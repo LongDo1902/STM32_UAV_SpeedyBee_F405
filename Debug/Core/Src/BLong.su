@@ -2,4 +2,7 @@
 ../Core/Src/BLong.c:72:28:BLong_MspInit	4	static
 ../Core/Src/BLong.c:85:28:BLong_MspDeInit	4	static
 ../Core/Src/BLong.c:100:38:BLong_initTick	24	static
-../Core/Src/BLong.c:121:28:BLong_incTick	4	static
+../Core/Src/BLong.c:140:28:BLong_incTick	4	static
+../Core/Src/BLong.c:152:32:BLong_getTick	4	static
+../Core/Src/BLong.c:167:16:BLong_setTickFreq	24	static
+../Core/Src/BLong.c:192:13:BLong_getTickFreq	4	static

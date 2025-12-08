@@ -56,7 +56,7 @@ BLong_Status_t BLong_init(){
 	/* Use SysTick as time base source for Cortex to run
 	 * Configure 1ms tick
 	 * Default: clock after Reset is HSI (16MHz) unless user change it */
-	BLong_initTick(TICK_INTERRUPT_PRIORITY_, TICK_FREQ_1KHZ);
+	BLong_initTick(TICK_INTERRUPT_PRIORITY_);
 
 	/* Init low level register (if have any) */
 	BLong_MspInit();
@@ -97,14 +97,23 @@ __attribute__((weak)) void BLong_MspDeInit(void){
  * @note	The function is declared as __attribute__((weak))
  * @retVal	BLong status
  */
-__attribute__((weak)) BLong_Status_t BLong_initTick(uint32_t tickPriority, Tick_Freq_t tickFreqSel){
-	uint32_t _1msInterrupt = (uint32_t)SYSTEM_CORE_CLOCK / (uint32_t)tickFreqSel;
+__attribute__((weak)) BLong_Status_t BLong_initTick(uint32_t tickPriority){
+	/*
+	 * Default setting:
+	 * 	SYSTEM_CORE_CLOCK = 16MHz
+	 * 	tickFreqGlobal = TICK_FREQ_DEFAULT = 1KHz
+	 * 	_1msInterrupt = 16000
+	 * 	It means when the MCU speed is 16MHz, SysTick generates each 1ms interrupt after each 16000-MCU-cycle
+	 */
+	uint32_t _1msInterrupt = (uint32_t)SYSTEM_CORE_CLOCK / (uint32_t)tickFreqGlobal;
 
+	/* Update the "reload" to SysTick Reload Register */
 	if(!SysTick_config(_1msInterrupt)) return BLong_ERROR;
 
-	/* Configure SysTick priority */
+	/* Configure SysTick Priority */
 	if(tickPriority <= ((1u << NVIC_PRIO_BITS) - 1u)){ //The valid priority range is 0-15 (& 0xF)
 		BLong_NVIC_setPriorityIRQ(SysTick_IRQn_, tickPriority, 0u);
+		/* Update "tickPriorityGlobal" to a new value of "tickPriority" */
 		tickPriorityGlobal = tickPriority;
 	}
 	else return BLong_ERROR;
@@ -114,9 +123,9 @@ __attribute__((weak)) BLong_Status_t BLong_initTick(uint32_t tickPriority, Tick_
 
 
 /*
- * ====================================================================
- * 						BLong CONTROL FUNCTIONS
- * ====================================================================
+ * ==============================================================================
+ * 						BLong CONTROLLING/CONFIGURING FUNCTIONS
+ * ==============================================================================
  */
 
 /*
@@ -134,8 +143,57 @@ __attribute__((weak)) void BLong_incTick(void){
 
 
 /*
- * @brief
+ * @brief	Extract/Get a tick value in millisecond
+ *
+ * @note	Declared as __weak so user can overwritten in case of other implementation in user file
+ *
+ * @retVal	None
  */
+__attribute__((weak)) uint32_t BLong_getTick(void){
+	return tickGlobal;
+}
+
+
+/*
+ * @brief	Update a new Tick Frequency
+ *
+ * @param	freqSel		Desired Tick Frequency value which is defined in Tick_Freq_t enum
+ *
+ * @note	BLong_init() must be called before calling BLong_setTickFreq().
+ * 			Otherwise, this function will return ERROR due to unintialize/invalid Tick Priority Value
+ *
+ * @retVal	BLong status
+ */
+BLong_Status_t BLong_setTickFreq(Tick_Freq_t freqSel){
+	BLong_Status_t status = BLong_OK;
+	Tick_Freq_t prevTickFreq;
+
+	if(tickFreqGlobal != freqSel){
+		/* Just back up the current tickFreqGlobal value before setting a new tick frequency */
+		prevTickFreq = tickFreqGlobal;
+		/* Update Tick Frequency Global to a new value which used by BLong_initTick() */
+		tickFreqGlobal = freqSel;
+		/* Apply the new Tick Freq Global variable */
+		status = BLong_initTick(tickPriorityGlobal);
+		if(status != BLong_OK){
+			/* Restore the previous tick frequency */
+			tickFreqGlobal = prevTickFreq;
+		}
+	}
+	return status;
+}
+
+
+/*
+ * @brief	Return Tick Frequency
+ *
+ * @retVal	Tick frequency value which is defined in Tick_Freq_t enum
+ */
+Tick_Freq_t BLong_getTickFreq(void){
+	return (Tick_Freq_t)tickFreqGlobal; //Re-cast tickFreqGlobal with Tick_Freq_t for extra safety. Re-cast is optional!
+}
+
+
 
 
 

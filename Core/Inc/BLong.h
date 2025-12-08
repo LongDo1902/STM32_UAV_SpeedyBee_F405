@@ -28,6 +28,7 @@
 #define	INSTRUCTION_CACHE_ENABLE_	1u		//Write 0 to skip FLASH Instruction Cache
 #define DATA_CACHE_ENABLE_			1u		//Write 0 to skip FLASH Data Cache
 
+
 /*
  * =====================================================================
  * 						RCC RELATED CONFIGURATIONS
@@ -72,7 +73,7 @@ extern Tick_Freq_t tickFreqGlobal;
  * 						FUNCTION DECLARATIONS
  * ====================================================================
  */
-__attribute__((weak)) BLong_Status_t BLong_initTick(uint32_t tickPriority, Tick_Freq_t tickFreqSel);
+__attribute__((weak)) BLong_Status_t BLong_initTick(uint32_t tickPriority);
 __attribute__((weak)) void BLong_MspInit(void);
 BLong_Status_t BLong_init();
 
