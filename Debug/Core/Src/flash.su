@@ -1,0 +1,14 @@
+../Core/Src/flash.c:51:20:isValidFlashBit	16	static
+../Core/Src/flash.c:63:16:FLASH_init	8	static
+../Core/Src/flash.c:71:16:FLASH_resetCache	8	static
+../Core/Src/flash.c:87:6:FLASH_setLatency	16	static
+../Core/Src/flash.c:91:6:FLASH_enablePrefetch	8	static
+../Core/Src/flash.c:95:6:FLASH_disablePrefetch	8	static
+../Core/Src/flash.c:99:6:FLASH_enableInstructionCache	8	static
+../Core/Src/flash.c:103:6:FLASH_disableInstructionCache	8	static
+../Core/Src/flash.c:107:6:FLASH_enableDataCache	8	static
+../Core/Src/flash.c:111:6:FLASH_disableDataCache	8	static
+../Core/Src/flash.c:115:6:FLASH_resetInstructionCache	8	static
+../Core/Src/flash.c:119:6:FLASH_resetDataCache	8	static
+../Core/Src/flash.c:134:6:writeFLASH	32	static
+../Core/Src/flash.c:170:6:readFLASH	32	static

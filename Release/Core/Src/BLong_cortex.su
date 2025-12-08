@@ -1,0 +1,16 @@
+../Core/Src/BLong_cortex.c:19:6:BLong_NVIC_setPriorityGrouping	0	static
+../Core/Src/BLong_cortex.c:29:22:BLong_getPriorityGrouping	0	static
+../Core/Src/BLong_cortex.c:40:6:BLong_NVIC_enableIRQ	0	static
+../Core/Src/BLong_cortex.c:51:6:BLong_NVIC_disableIRQ	0	static
+../Core/Src/BLong_cortex.c:66:10:BLong_NVIC_getPendingIRQ	0	static
+../Core/Src/BLong_cortex.c:76:6:BLong_NVIC_setPendingIRQ	0	static
+../Core/Src/BLong_cortex.c:86:6:BLong_NVIC_clearPendingIRQ	0	static
+../Core/Src/BLong_cortex.c:98:10:BLong_NVIC_getActiveInterrupt	0	static
+../Core/Src/BLong_cortex.c:116:6:BLong_NVIC_setPriorityIRQ	16	static
+../Core/Src/BLong_cortex.c:131:6:BLong_NVIC_getPriorityIRQ	16	static
+../Core/Src/BLong_cortex.c:140:6:BLong_NVIC_systemReset	8	static
+../Core/Src/BLong_cortex.c:152:6:BLong_SysTickConfig	0	static
+../Core/Src/BLong_cortex.c:160:6:BLong_CORTEX_clearEvent	0	static,ignoring_inline_asm
+../Core/Src/BLong_cortex.c:173:6:BLong_SysTick_cloclSourceConfig	0	static
+../Core/Src/BLong_cortex.c:191:28:BLong_SysTick_callBack	0	static
+../Core/Src/BLong_cortex.c:182:6:BLong_SysTick_IRQHandler	8	static

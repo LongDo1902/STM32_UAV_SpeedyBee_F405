@@ -1,0 +1,5 @@
+../Core/Src/BLong.c:39:16:BLong_init	8	static
+../Core/Src/BLong.c:72:28:BLong_MspInit	4	static
+../Core/Src/BLong.c:85:28:BLong_MspDeInit	4	static
+../Core/Src/BLong.c:100:38:BLong_initTick	24	static
+../Core/Src/BLong.c:121:28:BLong_incTick	4	static

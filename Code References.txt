@@ -1,0 +1,11 @@
+Reference links for pin assignments:
+https://github.com/iNavFlight/inav/tree/master/src/main/target/SPEEDYBEEF405V4
+
+SpeedyBee F405 V4 uses:
+STM32F405RGT6
+ICM42688P: SCK (PA5), MISO (PA6), MOSI (PA7), CS (PA4)
+DPS310: SCL (PB8), SDA (PB9)
+ADC Channel 1: PC0
+ADC Channel 2: PC1
+ADC Channel 3: PC5
+LED1: PC13 Blue
