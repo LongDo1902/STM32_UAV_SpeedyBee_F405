@@ -89,10 +89,9 @@ __attribute__((weak)) void BLong_MspDeInit(void){
 
 /*
  * @brief	This function configures the source of the time base.
- * 			The time source is configured to have 1ms time base with a dedicated Tick Interrupt Priority.
+ * 			The time source is configured tickGlobal in milliseconds, using a configurable SysTick interrupt frequency.
  *
  * @param	tickPriority	Tick Interrupt Priority
- * @param	tickFreqSel		Tick frequency value defined in enum Tick_Freq_t
  *
  * @note	The function is declared as __attribute__((weak))
  * @retVal	BLong status
@@ -105,10 +104,10 @@ __attribute__((weak)) BLong_Status_t BLong_initTick(uint32_t tickPriority){
 	 * 	_1msInterrupt = 16000
 	 * 	It means when the MCU speed is 16MHz, SysTick generates each 1ms interrupt after each 16000-MCU-cycle
 	 */
-	uint32_t _1msInterrupt = (uint32_t)SYSTEM_CORE_CLOCK / (uint32_t)tickFreqGlobal;
+	uint32_t reloadVal = (uint32_t)SYSTEM_CORE_CLOCK / (uint32_t)tickFreqGlobal;
 
 	/* Update the "reload" to SysTick Reload Register */
-	if(!SysTick_config(_1msInterrupt)) return BLong_ERROR;
+	if(!SysTick_config(reloadVal)) return BLong_ERROR;
 
 	/* Configure SysTick Priority */
 	if(tickPriority <= ((1u << NVIC_PRIO_BITS) - 1u)){ //The valid priority range is 0-15 (& 0xF)
@@ -138,7 +137,7 @@ __attribute__((weak)) BLong_Status_t BLong_initTick(uint32_t tickPriority){
  * @retVal	None
  */
 __attribute__((weak)) void BLong_incTick(void){
-	tickGlobal += (volatile uint32_t)(tickFreqGlobal/1000u);
+	tickGlobal += (uint32_t)(1000u/tickFreqGlobal);
 }
 
 
@@ -147,7 +146,7 @@ __attribute__((weak)) void BLong_incTick(void){
  *
  * @note	Declared as __weak so user can overwritten in case of other implementation in user file
  *
- * @retVal	None
+ * @retVal	Current tick value in milliseconds
  */
 __attribute__((weak)) uint32_t BLong_getTick(void){
 	return tickGlobal;
@@ -194,6 +193,41 @@ Tick_Freq_t BLong_getTickFreq(void){
 }
 
 
+/*
+ * @brief	This function waits for a number of milliseconds.
+ * 			It uses SysTick Interrupt as its time base.
+ *
+ * @param	delay	Desired amount of delay in milliseconds
+ *
+ * @retVal	none
+ */
+__attribute__((weak)) void BLong_delay(uint32_t delay){
+	uint32_t wait = delay; //Just store the "delay" in wait variable
+	uint32_t tickStart = BLong_getTick(); //Get the current global "tick"
+
+	if(wait < MAX_DELAY) wait += (uint32_t)(1000u/tickFreqGlobal); //Just add extra 1 step for safety
+
+	while((BLong_getTick() - tickStart) < wait){
+	}
+}
+
+
+/*
+ * @brief	Suspend Tick Increment
+ */
+__attribute__((weak)) void BLong_suspendTick(void){
+	/* Disable SysTick Interrupt */
+	SysTick_REG -> CTRL &= ~SysTick_CTRL_TICKINT_Msk_;
+}
+
+
+/*
+ * @brief	Resume Tick Increment
+ */
+__attribute__((weak)) void BLong_resumeTick(void){
+	/* Enable SysTick Interrupt */
+	SysTick_REG -> CTRL |= SysTick_CTRL_TICKINT_Msk_;
+}
 
 
 

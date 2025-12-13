@@ -1,8 +1,11 @@
 ../Core/Src/BLong.c:39:16:BLong_init	4
 ../Core/Src/BLong.c:72:28:BLong_MspInit	1
 ../Core/Src/BLong.c:85:28:BLong_MspDeInit	1
-../Core/Src/BLong.c:100:38:BLong_initTick	3
-../Core/Src/BLong.c:140:28:BLong_incTick	1
-../Core/Src/BLong.c:152:32:BLong_getTick	1
-../Core/Src/BLong.c:167:16:BLong_setTickFreq	3
-../Core/Src/BLong.c:192:13:BLong_getTickFreq	1
+../Core/Src/BLong.c:99:38:BLong_initTick	3
+../Core/Src/BLong.c:139:28:BLong_incTick	1
+../Core/Src/BLong.c:151:32:BLong_getTick	1
+../Core/Src/BLong.c:166:16:BLong_setTickFreq	3
+../Core/Src/BLong.c:191:13:BLong_getTickFreq	1
+../Core/Src/BLong.c:204:28:BLong_delay	3
+../Core/Src/BLong.c:218:28:BLong_suspendTick	1
+../Core/Src/BLong.c:227:28:BLong_resumeTick	1

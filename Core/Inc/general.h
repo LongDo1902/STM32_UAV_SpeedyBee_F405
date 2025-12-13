@@ -27,6 +27,5 @@ typedef enum{
 
 bool sanityCheckField(uint8_t bitPosition, uint8_t bitWidth);
 bool sanityCheckFieldValue(uint8_t bitPosition, uint8_t bitWidth, uint32_t value);
-uint8_t getBitWidth(Peripheral_t whichPeripheral, uint8_t regID, uint8_t bitPosition);
 
 #endif /* INC_GENERAL_H_ */

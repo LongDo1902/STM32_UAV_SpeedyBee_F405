@@ -36,6 +36,7 @@
  */
 #define SYSTEM_CORE_CLOCK	16000000u	//16MHz Internal Clock Frequency
 #define MAX_SYSTEM_CLOCK	168000000u	//168MHz Maximum Clock Frequency
+#define MAX_DELAY			0xFFFFFFFFu
 
 typedef enum{
 	TICK_FREQ_1KHZ		= 1000u,	//1ms tick
