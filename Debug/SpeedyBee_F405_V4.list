@@ -5,49 +5,49 @@ Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
   0 .isr_vector   00000188  08000000  08000000  00001000  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  1 .text         00000830  08000188  08000188  00001188  2**2
+  1 .text         000006f0  08000188  08000188  00001188  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .rodata       00000030  080009b8  080009b8  000019b8  2**2
+  2 .rodata       00000030  08000878  08000878  00001878  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  3 .ARM.extab    00000000  080009e8  080009e8  00002008  2**0
+  3 .ARM.extab    00000000  080008a8  080008a8  00002004  2**0
                   CONTENTS, READONLY
-  4 .ARM          00000000  080009e8  080009e8  00002008  2**0
+  4 .ARM          00000000  080008a8  080008a8  00002004  2**0
                   CONTENTS, READONLY
-  5 .preinit_array 00000000  080009e8  080009e8  00002008  2**0
+  5 .preinit_array 00000000  080008a8  080008a8  00002004  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  6 .init_array   00000004  080009e8  080009e8  000019e8  2**2
+  6 .init_array   00000004  080008a8  080008a8  000018a8  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  7 .fini_array   00000004  080009ec  080009ec  000019ec  2**2
+  7 .fini_array   00000004  080008ac  080008ac  000018ac  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  8 .data         00000008  20000000  080009f0  00002000  2**2
+  8 .data         00000004  20000000  080008b0  00002000  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  9 .ccmram       00000000  10000000  10000000  00002008  2**0
+  9 .ccmram       00000000  10000000  10000000  00002004  2**0
                   CONTENTS
- 10 .bss          00000020  20000008  20000008  00002008  2**2
+ 10 .bss          00000020  20000004  20000004  00002004  2**2
                   ALLOC
- 11 ._user_heap_stack 00000600  20000028  20000028  00002008  2**0
+ 11 ._user_heap_stack 00000604  20000024  20000024  00002004  2**0
                   ALLOC
- 12 .ARM.attributes 00000030  00000000  00000000  00002008  2**0
+ 12 .ARM.attributes 00000030  00000000  00000000  00002004  2**0
                   CONTENTS, READONLY
- 13 .debug_info   00002eaa  00000000  00000000  00002038  2**0
+ 13 .debug_info   00001994  00000000  00000000  00002034  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_abbrev 00000c28  00000000  00000000  00004ee2  2**0
+ 14 .debug_abbrev 00000738  00000000  00000000  000039c8  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_aranges 00000400  00000000  00000000  00005b10  2**3
+ 15 .debug_aranges 00000298  00000000  00000000  00004100  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_rnglists 000002d4  00000000  00000000  00005f10  2**0
+ 16 .debug_rnglists 000001d6  00000000  00000000  00004398  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_macro  0001e28b  00000000  00000000  000061e4  2**0
+ 17 .debug_macro  0001bf98  00000000  00000000  0000456e  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_line   00004aa5  00000000  00000000  0002446f  2**0
+ 18 .debug_line   00003407  00000000  00000000  00020506  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .debug_str    000b64a4  00000000  00000000  00028f14  2**0
+ 19 .debug_str    000b7558  00000000  00000000  0002390d  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 20 .comment      00000043  00000000  00000000  000df3b8  2**0
+ 20 .comment      00000043  00000000  00000000  000dae65  2**0
                   CONTENTS, READONLY
- 21 .debug_frame  00000d38  00000000  00000000  000df3fc  2**2
+ 21 .debug_frame  000007f8  00000000  00000000  000daea8  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 22 .debug_line_str 00000053  00000000  00000000  000e0134  2**0
+ 22 .debug_line_str 00000053  00000000  00000000  000db6a0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -64,9 +64,9 @@ Disassembly of section .text:
  800019a:	2301      	movs	r3, #1
  800019c:	7023      	strb	r3, [r4, #0]
  800019e:	bd10      	pop	{r4, pc}
- 80001a0:	20000008 	.word	0x20000008
+ 80001a0:	20000004 	.word	0x20000004
  80001a4:	00000000 	.word	0x00000000
- 80001a8:	080009a0 	.word	0x080009a0
+ 80001a8:	08000860 	.word	0x08000860
 
 080001ac <frame_dummy>:
  80001ac:	b508      	push	{r3, lr}
@@ -77,1574 +77,1264 @@ Disassembly of section .text:
  80001b6:	f3af 8000 	nop.w
  80001ba:	bd08      	pop	{r3, pc}
  80001bc:	00000000 	.word	0x00000000
- 80001c0:	2000000c 	.word	0x2000000c
- 80001c4:	080009a0 	.word	0x080009a0
+ 80001c0:	20000008 	.word	0x20000008
+ 80001c4:	08000860 	.word	0x08000860
 
-080001c8 <BLong_init>:
- * 				clocked by which is clocked by the HSI (internally 16MHz)
- * 				Set NVIC Group Priority to Group 4
- * 				Calls the BLong_MsInit() call back function defined in user file "stm32f4xx_hal_msp.c"
- * 				to do the global low level hardware init
- */
-BLong_Status_t BLong_init(){
- 80001c8:	b580      	push	{r7, lr}
- 80001ca:	af00      	add	r7, sp, #0
-	/* Enable FLASH Prefetch */
-	if(!FLASH_enablePrefetch()) return BLong_ERROR;
- 80001cc:	f000 f986 	bl	80004dc <FLASH_enablePrefetch>
- 80001d0:	4603      	mov	r3, r0
- 80001d2:	f083 0301 	eor.w	r3, r3, #1
- 80001d6:	b2db      	uxtb	r3, r3
- 80001d8:	2b00      	cmp	r3, #0
- 80001da:	d001      	beq.n	80001e0 <BLong_init+0x18>
- 80001dc:	2300      	movs	r3, #0
- 80001de:	e01e      	b.n	800021e <BLong_init+0x56>
-
-	/* Enable FLASH Instruction Cache */
-	if(!FLASH_enableInstructionCache()) return BLong_ERROR;
- 80001e0:	f000 f986 	bl	80004f0 <FLASH_enableInstructionCache>
- 80001e4:	4603      	mov	r3, r0
- 80001e6:	f083 0301 	eor.w	r3, r3, #1
- 80001ea:	b2db      	uxtb	r3, r3
- 80001ec:	2b00      	cmp	r3, #0
- 80001ee:	d001      	beq.n	80001f4 <BLong_init+0x2c>
- 80001f0:	2300      	movs	r3, #0
- 80001f2:	e014      	b.n	800021e <BLong_init+0x56>
-
-	/* Enable FLASH Data Cache */
-	if(!FLASH_enableDataCache()) return BLong_ERROR;
- 80001f4:	f000 f986 	bl	8000504 <FLASH_enableDataCache>
- 80001f8:	4603      	mov	r3, r0
- 80001fa:	f083 0301 	eor.w	r3, r3, #1
- 80001fe:	b2db      	uxtb	r3, r3
- 8000200:	2b00      	cmp	r3, #0
- 8000202:	d001      	beq.n	8000208 <BLong_init+0x40>
- 8000204:	2300      	movs	r3, #0
- 8000206:	e00a      	b.n	800021e <BLong_init+0x56>
-	/*
-	 * Priority Group 4:
-	 * 4 bits Pre-emption Priority
-	 * 0 bits Sub Priority
-	 */
-	BLong_NVIC_setPriorityGrouping(NVIC_PRIORITY_GROUP_4_);
- 8000208:	2003      	movs	r0, #3
- 800020a:	f000 f83f 	bl	800028c <BLong_NVIC_setPriorityGrouping>
-
-	/* Use SysTick as time base source for Cortex to run
-	 * Configure 1ms tick
-	 * Default: clock after Reset is HSI (16MHz) unless user change it */
-	BLong_initTick(TICK_INTERRUPT_PRIORITY_, TICK_FREQ_1KHZ);
- 800020e:	f44f 717a 	mov.w	r1, #1000	@ 0x3e8
- 8000212:	200f      	movs	r0, #15
- 8000214:	f000 f80c 	bl	8000230 <BLong_initTick>
-
-	/* Init low level register (if have any) */
-	BLong_MspInit();
- 8000218:	f000 f803 	bl	8000222 <BLong_MspInit>
-
-	return BLong_OK;
- 800021c:	2301      	movs	r3, #1
-}
- 800021e:	4618      	mov	r0, r3
- 8000220:	bd80      	pop	{r7, pc}
-
-08000222 <BLong_MspInit>:
-
-/*
- * @brief	Initialize the MSP
- * @retVal	None
- */
-__attribute__((weak)) void BLong_MspInit(void){
- 8000222:	b480      	push	{r7}
- 8000224:	af00      	add	r7, sp, #0
-	/*
-	 * Add some special initial hardware/register setups if you have/special requirement of some boards
-	 */
-	//	  __HAL_RCC_SYSCFG_CLK_ENABLE();
-	//	  __HAL_RCC_PWR_CLK_ENABLE();
-}
- 8000226:	bf00      	nop
- 8000228:	46bd      	mov	sp, r7
- 800022a:	f85d 7b04 	ldr.w	r7, [sp], #4
- 800022e:	4770      	bx	lr
-
-08000230 <BLong_initTick>:
- * @param	tickFreqSel		Tick frequency value defined in enum Tick_Freq_t
- *
- * @note	The function is declared as __attribute__((weak))
- * @retVal	BLong status
- */
-__attribute__((weak)) BLong_Status_t BLong_initTick(uint32_t tickPriority, Tick_Freq_t tickFreqSel){
- 8000230:	b580      	push	{r7, lr}
- 8000232:	b084      	sub	sp, #16
- 8000234:	af00      	add	r7, sp, #0
- 8000236:	6078      	str	r0, [r7, #4]
- 8000238:	460b      	mov	r3, r1
- 800023a:	807b      	strh	r3, [r7, #2]
-	uint32_t _1msInterrupt = (uint32_t)SYSTEM_CORE_CLOCK / (uint32_t)tickFreqSel;
- 800023c:	887b      	ldrh	r3, [r7, #2]
- 800023e:	4a11      	ldr	r2, [pc, #68]	@ (8000284 <BLong_initTick+0x54>)
- 8000240:	fbb2 f3f3 	udiv	r3, r2, r3
- 8000244:	60fb      	str	r3, [r7, #12]
-
-	if(!SysTick_config(_1msInterrupt)) return BLong_ERROR;
- 8000246:	68f8      	ldr	r0, [r7, #12]
- 8000248:	f000 f8f6 	bl	8000438 <SysTick_config>
- 800024c:	4603      	mov	r3, r0
- 800024e:	f083 0301 	eor.w	r3, r3, #1
- 8000252:	b2db      	uxtb	r3, r3
- 8000254:	2b00      	cmp	r3, #0
- 8000256:	d001      	beq.n	800025c <BLong_initTick+0x2c>
- 8000258:	2300      	movs	r3, #0
- 800025a:	e00e      	b.n	800027a <BLong_initTick+0x4a>
-
-	/* Configure SysTick priority */
-	if(tickPriority <= ((1u << NVIC_PRIO_BITS) - 1u)){ //The valid priority range is 0-15 (& 0xF)
- 800025c:	687b      	ldr	r3, [r7, #4]
- 800025e:	2b0f      	cmp	r3, #15
- 8000260:	d80a      	bhi.n	8000278 <BLong_initTick+0x48>
-		BLong_NVIC_setPriorityIRQ(SysTick_IRQn_, tickPriority, 0u);
- 8000262:	2200      	movs	r2, #0
- 8000264:	6879      	ldr	r1, [r7, #4]
- 8000266:	f04f 30ff 	mov.w	r0, #4294967295
- 800026a:	f000 f81c 	bl	80002a6 <BLong_NVIC_setPriorityIRQ>
-		tickPriorityGlobal = tickPriority;
- 800026e:	4a06      	ldr	r2, [pc, #24]	@ (8000288 <BLong_initTick+0x58>)
- 8000270:	687b      	ldr	r3, [r7, #4]
- 8000272:	6013      	str	r3, [r2, #0]
-	}
-	else return BLong_ERROR;
-
-	return BLong_OK;
- 8000274:	2301      	movs	r3, #1
- 8000276:	e000      	b.n	800027a <BLong_initTick+0x4a>
-	else return BLong_ERROR;
- 8000278:	2300      	movs	r3, #0
-}
- 800027a:	4618      	mov	r0, r3
- 800027c:	3710      	adds	r7, #16
- 800027e:	46bd      	mov	sp, r7
- 8000280:	bd80      	pop	{r7, pc}
- 8000282:	bf00      	nop
- 8000284:	00f42400 	.word	0x00f42400
- 8000288:	20000000 	.word	0x20000000
-
-0800028c <BLong_NVIC_setPriorityGrouping>:
- * 									NVIC_PRIORITY_GROUP_4_
- * 									...
- * 									NVIC_PRIORITY_GROUP_0_
- * @note	When NVIC_PRIORITY_GROUP_4_ is selected, a full 4-bit pre-emption priority and 0-bit for sub-priority will conducted, and vice versa
- */
-void BLong_NVIC_setPriorityGrouping(NVIC_PriorityGroup_t priorityGroupSel){
- 800028c:	b580      	push	{r7, lr}
- 800028e:	b082      	sub	sp, #8
- 8000290:	af00      	add	r7, sp, #0
- 8000292:	4603      	mov	r3, r0
- 8000294:	71fb      	strb	r3, [r7, #7]
-	/* Set the PRIGROUP[10:8] bits according to the Priority Group parameter value */
-	NVIC_setPriorityGrouping(priorityGroupSel);
- 8000296:	79fb      	ldrb	r3, [r7, #7]
- 8000298:	4618      	mov	r0, r3
- 800029a:	f000 f823 	bl	80002e4 <NVIC_setPriorityGrouping>
-}
- 800029e:	bf00      	nop
- 80002a0:	3708      	adds	r7, #8
- 80002a2:	46bd      	mov	sp, r7
- 80002a4:	bd80      	pop	{r7, pc}
-
-080002a6 <BLong_NVIC_setPriorityIRQ>:
- *
- * @param	subPriority			The subpriority level for IRQ Channel
- * 								A lower priority value, indicates a higher priority
- * 								Range from 0-15
- */
-bool BLong_NVIC_setPriorityIRQ(IRQn_t irqNumber, uint32_t preemptPriority, uint32_t subPriority){
- 80002a6:	b580      	push	{r7, lr}
- 80002a8:	b086      	sub	sp, #24
- 80002aa:	af00      	add	r7, sp, #0
- 80002ac:	4603      	mov	r3, r0
- 80002ae:	60b9      	str	r1, [r7, #8]
- 80002b0:	607a      	str	r2, [r7, #4]
- 80002b2:	73fb      	strb	r3, [r7, #15]
-	NVIC_PriorityGroup_t priorityGroup = 0x00u; //Just initialize
- 80002b4:	2300      	movs	r3, #0
- 80002b6:	75fb      	strb	r3, [r7, #23]
-	priorityGroup = NVIC_getPriorityGrouping();
- 80002b8:	f000 f83c 	bl	8000334 <NVIC_getPriorityGrouping>
- 80002bc:	4603      	mov	r3, r0
- 80002be:	75fb      	strb	r3, [r7, #23]
-	return NVIC_setPriorityIRQ(irqNumber, NVIC_encodePriority(priorityGroup, preemptPriority, subPriority));
- 80002c0:	7dfb      	ldrb	r3, [r7, #23]
- 80002c2:	687a      	ldr	r2, [r7, #4]
- 80002c4:	68b9      	ldr	r1, [r7, #8]
- 80002c6:	4618      	mov	r0, r3
- 80002c8:	f000 f884 	bl	80003d4 <NVIC_encodePriority>
- 80002cc:	4602      	mov	r2, r0
- 80002ce:	f997 300f 	ldrsb.w	r3, [r7, #15]
- 80002d2:	4611      	mov	r1, r2
- 80002d4:	4618      	mov	r0, r3
- 80002d6:	f000 f83d 	bl	8000354 <NVIC_setPriorityIRQ>
- 80002da:	4603      	mov	r3, r0
-}
- 80002dc:	4618      	mov	r0, r3
- 80002de:	3718      	adds	r7, #24
- 80002e0:	46bd      	mov	sp, r7
- 80002e2:	bd80      	pop	{r7, pc}
-
-080002e4 <NVIC_setPriorityGrouping>:
- * @brief	Set Application Interrupt and Reset Control Register (AIRCR)
- * 			AIRCR is located in SCB (System Control Block)
- * 			It same as global interrupt + reset + endianness
- * @note	To modify AIRCR, VECTKEY (0x5FA) must be written
- */
-void NVIC_setPriorityGrouping(NVIC_PriorityGroup_t priorityGrouping){
- 80002e4:	b480      	push	{r7}
- 80002e6:	b085      	sub	sp, #20
- 80002e8:	af00      	add	r7, sp, #0
- 80002ea:	4603      	mov	r3, r0
- 80002ec:	71fb      	strb	r3, [r7, #7]
-	uint32_t regVal = 0;
- 80002ee:	2300      	movs	r3, #0
- 80002f0:	60fb      	str	r3, [r7, #12]
-	uint32_t priorityGroupingTemp = (priorityGrouping & (uint32_t)0x7u);
- 80002f2:	79fb      	ldrb	r3, [r7, #7]
- 80002f4:	f003 0307 	and.w	r3, r3, #7
- 80002f8:	60bb      	str	r3, [r7, #8]
-
-	regVal = SCB_REG -> AIRCR;
- 80002fa:	4b0d      	ldr	r3, [pc, #52]	@ (8000330 <NVIC_setPriorityGrouping+0x4c>)
- 80002fc:	68db      	ldr	r3, [r3, #12]
- 80002fe:	60fb      	str	r3, [r7, #12]
-	regVal &= ~((SCB_AIRCR_VECTKEY_Msk_) | (SCB_AIRCR_PRIGROUP_Msk_));
- 8000300:	68fa      	ldr	r2, [r7, #12]
- 8000302:	f64f 03ff 	movw	r3, #63743	@ 0xf8ff
- 8000306:	4013      	ands	r3, r2
- 8000308:	60fb      	str	r3, [r7, #12]
-	regVal = (regVal | ((uint32_t)0x5FAu << SCB_AIRCR_VECTKEY_Pos_) | (priorityGroupingTemp << SCB_AIRCR_PRIGROUP_Pos_));
- 800030a:	68bb      	ldr	r3, [r7, #8]
- 800030c:	021a      	lsls	r2, r3, #8
- 800030e:	68fb      	ldr	r3, [r7, #12]
- 8000310:	4313      	orrs	r3, r2
- 8000312:	f043 63bf 	orr.w	r3, r3, #100139008	@ 0x5f80000
- 8000316:	f443 3300 	orr.w	r3, r3, #131072	@ 0x20000
- 800031a:	60fb      	str	r3, [r7, #12]
-	SCB_REG -> AIRCR = regVal;
- 800031c:	4a04      	ldr	r2, [pc, #16]	@ (8000330 <NVIC_setPriorityGrouping+0x4c>)
- 800031e:	68fb      	ldr	r3, [r7, #12]
- 8000320:	60d3      	str	r3, [r2, #12]
-}
- 8000322:	bf00      	nop
- 8000324:	3714      	adds	r7, #20
- 8000326:	46bd      	mov	sp, r7
- 8000328:	f85d 7b04 	ldr.w	r7, [sp], #4
- 800032c:	4770      	bx	lr
- 800032e:	bf00      	nop
- 8000330:	e000ed00 	.word	0xe000ed00
-
-08000334 <NVIC_getPriorityGrouping>:
-#if 0
-uint32_t NVIC_getPriorityGrouping(void){
-	return ((uint32_t)(((SCB_REG -> AIRCR) & SCB_AIRCR_PRIGROUP_Msk_) >> SCB_AIRCR_PRIGROUP_Pos_));
-}
-#else
-NVIC_PriorityGroup_t NVIC_getPriorityGrouping(void){
- 8000334:	b480      	push	{r7}
- 8000336:	af00      	add	r7, sp, #0
-	return ((uint32_t)(((SCB_REG -> AIRCR) & SCB_AIRCR_PRIGROUP_Msk_) >> SCB_AIRCR_PRIGROUP_Pos_));
- 8000338:	4b05      	ldr	r3, [pc, #20]	@ (8000350 <NVIC_getPriorityGrouping+0x1c>)
- 800033a:	68db      	ldr	r3, [r3, #12]
- 800033c:	0a1b      	lsrs	r3, r3, #8
- 800033e:	b2db      	uxtb	r3, r3
- 8000340:	f003 0307 	and.w	r3, r3, #7
- 8000344:	b2db      	uxtb	r3, r3
-}
- 8000346:	4618      	mov	r0, r3
- 8000348:	46bd      	mov	sp, r7
- 800034a:	f85d 7b04 	ldr.w	r7, [sp], #4
- 800034e:	4770      	bx	lr
- 8000350:	e000ed00 	.word	0xe000ed00
-
-08000354 <NVIC_setPriorityIRQ>:
- * 			Since Reset, HardFault and NonMaskableInt are fixed negative priority, so we excluded them in this function
- *
- * @retval	true	Success
- * 			false	Invalid IRQ number
- */
-bool NVIC_setPriorityIRQ(IRQn_t irqNumber, uint32_t priority){
- 8000354:	b480      	push	{r7}
- 8000356:	b083      	sub	sp, #12
- 8000358:	af00      	add	r7, sp, #0
- 800035a:	4603      	mov	r3, r0
- 800035c:	6039      	str	r1, [r7, #0]
- 800035e:	71fb      	strb	r3, [r7, #7]
-	/* STM32F4: 4 bits priority -> logical range 0 - 15 */
-	if(priority > 15u) return false;
- 8000360:	683b      	ldr	r3, [r7, #0]
- 8000362:	2b0f      	cmp	r3, #15
- 8000364:	d901      	bls.n	800036a <NVIC_setPriorityIRQ+0x16>
- 8000366:	2300      	movs	r3, #0
- 8000368:	e029      	b.n	80003be <NVIC_setPriorityIRQ+0x6a>
-
-	if((int32_t)irqNumber >= 0){
- 800036a:	f997 3007 	ldrsb.w	r3, [r7, #7]
- 800036e:	2b00      	cmp	r3, #0
- 8000370:	db0e      	blt.n	8000390 <NVIC_setPriorityIRQ+0x3c>
-		/* External STM32 Interrupt upper bound check */
-		if((uint32_t)irqNumber < (uint32_t)IRQn_COUNT){
- 8000372:	79fb      	ldrb	r3, [r7, #7]
- 8000374:	2b51      	cmp	r3, #81	@ 0x51
- 8000376:	d821      	bhi.n	80003bc <NVIC_setPriorityIRQ+0x68>
-			NVIC_REG -> IPR_[(uint32_t)irqNumber] = (uint8_t)((priority << (8u - NVIC_PRIO_BITS)) & (uint32_t)0xFFu);
- 8000378:	683b      	ldr	r3, [r7, #0]
- 800037a:	b2da      	uxtb	r2, r3
- 800037c:	4913      	ldr	r1, [pc, #76]	@ (80003cc <NVIC_setPriorityIRQ+0x78>)
- 800037e:	f997 3007 	ldrsb.w	r3, [r7, #7]
- 8000382:	0112      	lsls	r2, r2, #4
- 8000384:	b2d2      	uxtb	r2, r2
- 8000386:	440b      	add	r3, r1
- 8000388:	f883 2300 	strb.w	r2, [r3, #768]	@ 0x300
-			return true;
- 800038c:	2301      	movs	r3, #1
- 800038e:	e016      	b.n	80003be <NVIC_setPriorityIRQ+0x6a>
-		}
-	}
-	/* Set priority for system exceptions which has IRQn < 0 */
-	else{
-		if(((int32_t)irqNumber >= MemoryManagement_IRQn_) && ((int32_t)irqNumber <= SysTick_IRQn_)){
- 8000390:	f997 3007 	ldrsb.w	r3, [r7, #7]
- 8000394:	f113 0f0c 	cmn.w	r3, #12
- 8000398:	db10      	blt.n	80003bc <NVIC_setPriorityIRQ+0x68>
- 800039a:	f997 3007 	ldrsb.w	r3, [r7, #7]
- 800039e:	2b00      	cmp	r3, #0
- 80003a0:	da0c      	bge.n	80003bc <NVIC_setPriorityIRQ+0x68>
-			/* SysTick_IRQn = -1
-			 * Then, C converts signed "-1" to uint32_t which is 0xFFFF-FFFF-FFFF-FFFF...
-			 * 0xFFFF-FFFF-FFFF-FFFF... & 0xF = 0b1111
-			 * 0b1111 - 4u = index in SHP (System Handler Priority)
-			 * SHP[] index = Exception - 4. Because SHP[0] corresponding to exception #4 */
-			SCB_REG -> SHPR[(((uint32_t)irqNumber) & 0xFu) - 4u] = (uint8_t)((priority << (8u - NVIC_PRIO_BITS)) & 0xFFu);
- 80003a2:	683b      	ldr	r3, [r7, #0]
- 80003a4:	b2da      	uxtb	r2, r3
- 80003a6:	490a      	ldr	r1, [pc, #40]	@ (80003d0 <NVIC_setPriorityIRQ+0x7c>)
- 80003a8:	79fb      	ldrb	r3, [r7, #7]
- 80003aa:	f003 030f 	and.w	r3, r3, #15
- 80003ae:	3b04      	subs	r3, #4
- 80003b0:	0112      	lsls	r2, r2, #4
- 80003b2:	b2d2      	uxtb	r2, r2
- 80003b4:	440b      	add	r3, r1
- 80003b6:	761a      	strb	r2, [r3, #24]
-			return true;
- 80003b8:	2301      	movs	r3, #1
- 80003ba:	e000      	b.n	80003be <NVIC_setPriorityIRQ+0x6a>
-		}
-	}
-	return false;
- 80003bc:	2300      	movs	r3, #0
-}
- 80003be:	4618      	mov	r0, r3
- 80003c0:	370c      	adds	r7, #12
- 80003c2:	46bd      	mov	sp, r7
- 80003c4:	f85d 7b04 	ldr.w	r7, [sp], #4
- 80003c8:	4770      	bx	lr
- 80003ca:	bf00      	nop
- 80003cc:	e000e100 	.word	0xe000e100
- 80003d0:	e000ed00 	.word	0xe000ed00
-
-080003d4 <NVIC_encodePriority>:
- *
- * @param	priorityGrouping	Uses predefined value in enum NVIC_PriorityGroup_t
- * @param	preemptPriority 	Preemptive Priority value (starting from 0)
- * @param	subPriority			Sub Priority value (starting from 0)
- */
-uint32_t NVIC_encodePriority(NVIC_PriorityGroup_t priorityGrouping, uint32_t preemptPriority, uint32_t subPriority){
- 80003d4:	b480      	push	{r7}
- 80003d6:	b089      	sub	sp, #36	@ 0x24
- 80003d8:	af00      	add	r7, sp, #0
- 80003da:	4603      	mov	r3, r0
- 80003dc:	60b9      	str	r1, [r7, #8]
- 80003de:	607a      	str	r2, [r7, #4]
- 80003e0:	73fb      	strb	r3, [r7, #15]
-	uint32_t priorityGroupingTemp = ((uint32_t)priorityGrouping) & ((uint32_t)0x7u);
- 80003e2:	7bfb      	ldrb	r3, [r7, #15]
- 80003e4:	f003 0307 	and.w	r3, r3, #7
- 80003e8:	61fb      	str	r3, [r7, #28]
-	 * PriorityGroup2 = 5 (2 bit pre-emption, 2 subpriority)
-	 * PriorityGroup3 = 4 (3 bit pre-emption, 1 subpriority)
-	 * PriorityGroup4 = 3 (4 bit pre-emption, 0 subpriority)
-	 */
-	/* Determine how many bits go to Pre-emption Priority */
-	preemptPriorityBits = (((7u - priorityGroupingTemp) > NVIC_PRIO_BITS) ? (uint32_t)(NVIC_PRIO_BITS) : (uint32_t)(7u - priorityGroupingTemp));
- 80003ea:	69fb      	ldr	r3, [r7, #28]
- 80003ec:	f1c3 0307 	rsb	r3, r3, #7
- 80003f0:	2b04      	cmp	r3, #4
- 80003f2:	bf28      	it	cs
- 80003f4:	2304      	movcs	r3, #4
- 80003f6:	61bb      	str	r3, [r7, #24]
-
-	/* Determine how many bits go to Sub Priority */
-	subPriorityBits = (((priorityGroupingTemp + NVIC_PRIO_BITS) < 7u) ? (uint32_t)(0u) : (uint32_t)(priorityGroupingTemp - 7u + NVIC_PRIO_BITS));
- 80003f8:	69fb      	ldr	r3, [r7, #28]
- 80003fa:	3304      	adds	r3, #4
- 80003fc:	2b06      	cmp	r3, #6
- 80003fe:	d902      	bls.n	8000406 <NVIC_encodePriority+0x32>
- 8000400:	69fb      	ldr	r3, [r7, #28]
- 8000402:	3b03      	subs	r3, #3
- 8000404:	e000      	b.n	8000408 <NVIC_encodePriority+0x34>
- 8000406:	2300      	movs	r3, #0
- 8000408:	617b      	str	r3, [r7, #20]
-
-	/* Build the final value that combines [Pre-emption Priority][Sub Priority]	 */
-	return(((preemptPriority & (uint32_t)((1u << preemptPriorityBits) - 1u)) << subPriorityBits) |
- 800040a:	2201      	movs	r2, #1
- 800040c:	69bb      	ldr	r3, [r7, #24]
- 800040e:	fa02 f303 	lsl.w	r3, r2, r3
- 8000412:	1e5a      	subs	r2, r3, #1
- 8000414:	68bb      	ldr	r3, [r7, #8]
- 8000416:	401a      	ands	r2, r3
- 8000418:	697b      	ldr	r3, [r7, #20]
- 800041a:	409a      	lsls	r2, r3
-			(subPriority & (uint32_t)((1u << subPriorityBits) - 1u)));
- 800041c:	2101      	movs	r1, #1
- 800041e:	697b      	ldr	r3, [r7, #20]
- 8000420:	fa01 f303 	lsl.w	r3, r1, r3
- 8000424:	1e59      	subs	r1, r3, #1
- 8000426:	687b      	ldr	r3, [r7, #4]
- 8000428:	400b      	ands	r3, r1
-	return(((preemptPriority & (uint32_t)((1u << preemptPriorityBits) - 1u)) << subPriorityBits) |
- 800042a:	4313      	orrs	r3, r2
-}
- 800042c:	4618      	mov	r0, r3
- 800042e:	3724      	adds	r7, #36	@ 0x24
- 8000430:	46bd      	mov	sp, r7
- 8000432:	f85d 7b04 	ldr.w	r7, [sp], #4
- 8000436:	4770      	bx	lr
-
-08000438 <SysTick_config>:
- * @param	ticks	Number of CPU cycles per SysTick period.
- *
- * @retVal 	true	Ok
- * 			false	ticks value is larger than 24-bit value
- */
-bool SysTick_config(uint32_t ticks){
- 8000438:	b580      	push	{r7, lr}
- 800043a:	b082      	sub	sp, #8
- 800043c:	af00      	add	r7, sp, #0
- 800043e:	6078      	str	r0, [r7, #4]
-	if((ticks - 1u) > SysTick_LOAD_RELOAD_Msk_){ //24 bits counter so the mask is 0xFFFFFF
- 8000440:	687b      	ldr	r3, [r7, #4]
- 8000442:	3b01      	subs	r3, #1
- 8000444:	f1b3 7f80 	cmp.w	r3, #16777216	@ 0x1000000
- 8000448:	d301      	bcc.n	800044e <SysTick_config+0x16>
-		return false;
- 800044a:	2300      	movs	r3, #0
- 800044c:	e017      	b.n	800047e <SysTick_config+0x46>
-	}
-
-	SysTick_REG -> RELOAD = (uint32_t)(ticks - 1u);
- 800044e:	4a0e      	ldr	r2, [pc, #56]	@ (8000488 <SysTick_config+0x50>)
- 8000450:	687b      	ldr	r3, [r7, #4]
- 8000452:	3b01      	subs	r3, #1
- 8000454:	6053      	str	r3, [r2, #4]
-	if(!NVIC_setPriorityIRQ(SysTick_IRQn_, (1u << NVIC_PRIO_BITS) - 1u)) return false; //Set priority "15" for SysTick Interrupt
- 8000456:	210f      	movs	r1, #15
- 8000458:	f04f 30ff 	mov.w	r0, #4294967295
- 800045c:	f7ff ff7a 	bl	8000354 <NVIC_setPriorityIRQ>
- 8000460:	4603      	mov	r3, r0
- 8000462:	f083 0301 	eor.w	r3, r3, #1
- 8000466:	b2db      	uxtb	r3, r3
- 8000468:	2b00      	cmp	r3, #0
- 800046a:	d001      	beq.n	8000470 <SysTick_config+0x38>
- 800046c:	2300      	movs	r3, #0
- 800046e:	e006      	b.n	800047e <SysTick_config+0x46>
-
-	SysTick_REG -> CURVAL = 0u;								//Load the SysTick Counter value
- 8000470:	4b05      	ldr	r3, [pc, #20]	@ (8000488 <SysTick_config+0x50>)
- 8000472:	2200      	movs	r2, #0
- 8000474:	609a      	str	r2, [r3, #8]
-	SysTick_REG -> CTRL = (SysTick_CTRL_CLKSOURCE_Msk_ |	//Use CPU Clock
- 8000476:	4b04      	ldr	r3, [pc, #16]	@ (8000488 <SysTick_config+0x50>)
- 8000478:	2207      	movs	r2, #7
- 800047a:	601a      	str	r2, [r3, #0]
-						   SysTick_CTRL_TICKINT_Msk_ |	 	//Enable SysTick Interrupt
-						   SysTick_CTRL_ENABLE_Msk_);    	//Enable SysTick Timer
-
-	return true;
- 800047c:	2301      	movs	r3, #1
-}
- 800047e:	4618      	mov	r0, r3
- 8000480:	3708      	adds	r7, #8
- 8000482:	46bd      	mov	sp, r7
- 8000484:	bd80      	pop	{r7, pc}
- 8000486:	bf00      	nop
- 8000488:	e000e010 	.word	0xe000e010
-
-0800048c <isValidFlashBit>:
- * @param	flashReg		Enum value representing FLASH register being accessed
+080001c8 <isValidFlashBit>:
+ * @param	flashReg		Target FLASH register (FLASH_Reg_t)
  *
  * @retval	true	Safe to write and read
  * 			false	Bit is reserved or out of range
  */
-static inline bool isValidFlashBit(uint8_t bitPosition, FLASH_Reg_t flashReg){
- 800048c:	b480      	push	{r7}
- 800048e:	b083      	sub	sp, #12
- 8000490:	af00      	add	r7, sp, #0
- 8000492:	4603      	mov	r3, r0
- 8000494:	460a      	mov	r2, r1
- 8000496:	71fb      	strb	r3, [r7, #7]
- 8000498:	4613      	mov	r3, r2
- 800049a:	71bb      	strb	r3, [r7, #6]
+FLASH_RAMFUNC_ATTRIBUTE static inline bool isValidFlashBit(uint8_t bitPosition, FLASH_Reg_t flashReg){
+ 80001c8:	b480      	push	{r7}
+ 80001ca:	b083      	sub	sp, #12
+ 80001cc:	af00      	add	r7, sp, #0
+ 80001ce:	4603      	mov	r3, r0
+ 80001d0:	460a      	mov	r2, r1
+ 80001d2:	71fb      	strb	r3, [r7, #7]
+ 80001d4:	4613      	mov	r3, r2
+ 80001d6:	71bb      	strb	r3, [r7, #6]
 	return ((flashReg < FLASH_REG_COUNT) &&
 			(bitPosition < 32u) &&
- 800049c:	79bb      	ldrb	r3, [r7, #6]
- 800049e:	2b05      	cmp	r3, #5
- 80004a0:	d80f      	bhi.n	80004c2 <isValidFlashBit+0x36>
+ 80001d8:	79bb      	ldrb	r3, [r7, #6]
+ 80001da:	2b05      	cmp	r3, #5
+ 80001dc:	d80f      	bhi.n	80001fe <isValidFlashBit+0x36>
 	return ((flashReg < FLASH_REG_COUNT) &&
- 80004a2:	79fb      	ldrb	r3, [r7, #7]
- 80004a4:	2b1f      	cmp	r3, #31
- 80004a6:	d80c      	bhi.n	80004c2 <isValidFlashBit+0x36>
+ 80001de:	79fb      	ldrb	r3, [r7, #7]
+ 80001e0:	2b1f      	cmp	r3, #31
+ 80001e2:	d80c      	bhi.n	80001fe <isValidFlashBit+0x36>
 			(((FLASH_VALID_BIT[flashReg] >> bitPosition)) & 1u) != 0);
- 80004a8:	79bb      	ldrb	r3, [r7, #6]
- 80004aa:	4a0b      	ldr	r2, [pc, #44]	@ (80004d8 <isValidFlashBit+0x4c>)
- 80004ac:	f852 2023 	ldr.w	r2, [r2, r3, lsl #2]
- 80004b0:	79fb      	ldrb	r3, [r7, #7]
- 80004b2:	fa22 f303 	lsr.w	r3, r2, r3
- 80004b6:	f003 0301 	and.w	r3, r3, #1
+ 80001e4:	79bb      	ldrb	r3, [r7, #6]
+ 80001e6:	4a0b      	ldr	r2, [pc, #44]	@ (8000214 <isValidFlashBit+0x4c>)
+ 80001e8:	f852 2023 	ldr.w	r2, [r2, r3, lsl #2]
+ 80001ec:	79fb      	ldrb	r3, [r7, #7]
+ 80001ee:	fa22 f303 	lsr.w	r3, r2, r3
+ 80001f2:	f003 0301 	and.w	r3, r3, #1
 			(bitPosition < 32u) &&
- 80004ba:	2b00      	cmp	r3, #0
- 80004bc:	d001      	beq.n	80004c2 <isValidFlashBit+0x36>
- 80004be:	2301      	movs	r3, #1
- 80004c0:	e000      	b.n	80004c4 <isValidFlashBit+0x38>
- 80004c2:	2300      	movs	r3, #0
- 80004c4:	f003 0301 	and.w	r3, r3, #1
- 80004c8:	b2db      	uxtb	r3, r3
+ 80001f6:	2b00      	cmp	r3, #0
+ 80001f8:	d001      	beq.n	80001fe <isValidFlashBit+0x36>
+ 80001fa:	2301      	movs	r3, #1
+ 80001fc:	e000      	b.n	8000200 <isValidFlashBit+0x38>
+ 80001fe:	2300      	movs	r3, #0
+ 8000200:	f003 0301 	and.w	r3, r3, #1
+ 8000204:	b2db      	uxtb	r3, r3
 }
- 80004ca:	4618      	mov	r0, r3
- 80004cc:	370c      	adds	r7, #12
- 80004ce:	46bd      	mov	sp, r7
- 80004d0:	f85d 7b04 	ldr.w	r7, [sp], #4
- 80004d4:	4770      	bx	lr
- 80004d6:	bf00      	nop
- 80004d8:	080009d0 	.word	0x080009d0
+ 8000206:	4618      	mov	r0, r3
+ 8000208:	370c      	adds	r7, #12
+ 800020a:	46bd      	mov	sp, r7
+ 800020c:	f85d 7b04 	ldr.w	r7, [sp], #4
+ 8000210:	4770      	bx	lr
+ 8000212:	bf00      	nop
+ 8000214:	08000890 	.word	0x08000890
 
-080004dc <FLASH_enablePrefetch>:
-
-bool FLASH_setLatency(FLASH_Latency_t waitState){
-	return writeFLASH(LATENCY_Pos, FLASH_ACR, (uint32_t)waitState);
-}
-
-bool FLASH_enablePrefetch(){
- 80004dc:	b580      	push	{r7, lr}
- 80004de:	af00      	add	r7, sp, #0
-	return writeFLASH(PRFTEN_Pos, FLASH_ACR, 1u);
- 80004e0:	2201      	movs	r2, #1
- 80004e2:	2100      	movs	r1, #0
- 80004e4:	2008      	movs	r0, #8
- 80004e6:	f000 f817 	bl	8000518 <writeFLASH>
- 80004ea:	4603      	mov	r3, r0
-}
- 80004ec:	4618      	mov	r0, r3
- 80004ee:	bd80      	pop	{r7, pc}
-
-080004f0 <FLASH_enableInstructionCache>:
-
-bool FLASH_disablePrefetch(){
-	return writeFLASH(PRFTEN_Pos, FLASH_ACR, 0u);
-}
-
-bool FLASH_enableInstructionCache(){
- 80004f0:	b580      	push	{r7, lr}
- 80004f2:	af00      	add	r7, sp, #0
-	return writeFLASH(ICEN_Pos, FLASH_ACR, 1u);
- 80004f4:	2201      	movs	r2, #1
- 80004f6:	2100      	movs	r1, #0
- 80004f8:	2009      	movs	r0, #9
- 80004fa:	f000 f80d 	bl	8000518 <writeFLASH>
- 80004fe:	4603      	mov	r3, r0
-}
- 8000500:	4618      	mov	r0, r3
- 8000502:	bd80      	pop	{r7, pc}
-
-08000504 <FLASH_enableDataCache>:
-
-bool FLASH_disableInstructionCache(){
-	return writeFLASH(ICEN_Pos, FLASH_ACR, 0u);
-}
-
-bool FLASH_enableDataCache(){
- 8000504:	b580      	push	{r7, lr}
- 8000506:	af00      	add	r7, sp, #0
-	return writeFLASH(DCEN_Pos, FLASH_ACR, 1u);
- 8000508:	2201      	movs	r2, #1
- 800050a:	2100      	movs	r1, #0
- 800050c:	200a      	movs	r0, #10
- 800050e:	f000 f803 	bl	8000518 <writeFLASH>
- 8000512:	4603      	mov	r3, r0
-}
- 8000514:	4618      	mov	r0, r3
- 8000516:	bd80      	pop	{r7, pc}
-
-08000518 <writeFLASH>:
+08000218 <FLASH_getBitWidth>:
+ * 			Or before calling this function, user must have a helper to eliminate reserved bit position from entering this function
  *
- * @note	Auto check bitWidth and written value to avoid writing wrong size
- * 			Blocks writes to reserved bits
- * 			Handles both 'full register write' and 'partial field write'
+ * @retval	>0	Width of the field in bits
+ * 			0	Undefined, reserved, or unsupported
  */
-bool writeFLASH(uint8_t bitPosition, FLASH_Reg_t regID, uint32_t value){
- 8000518:	b580      	push	{r7, lr}
- 800051a:	b086      	sub	sp, #24
- 800051c:	af00      	add	r7, sp, #0
- 800051e:	4603      	mov	r3, r0
- 8000520:	603a      	str	r2, [r7, #0]
- 8000522:	71fb      	strb	r3, [r7, #7]
- 8000524:	460b      	mov	r3, r1
- 8000526:	71bb      	strb	r3, [r7, #6]
+FLASH_RAMFUNC_ATTRIBUTE static uint8_t FLASH_getBitWidth(FLASH_Reg_t regID, uint8_t bitPosition){
+ 8000218:	b480      	push	{r7}
+ 800021a:	b085      	sub	sp, #20
+ 800021c:	af00      	add	r7, sp, #0
+ 800021e:	4603      	mov	r3, r0
+ 8000220:	460a      	mov	r2, r1
+ 8000222:	71fb      	strb	r3, [r7, #7]
+ 8000224:	4613      	mov	r3, r2
+ 8000226:	71bb      	strb	r3, [r7, #6]
+	uint8_t defaultBitWidth = 1;
+ 8000228:	2301      	movs	r3, #1
+ 800022a:	73fb      	strb	r3, [r7, #15]
+	if(regID >= FLASH_REG_COUNT) return 0;
+ 800022c:	79fb      	ldrb	r3, [r7, #7]
+ 800022e:	2b05      	cmp	r3, #5
+ 8000230:	d901      	bls.n	8000236 <FLASH_getBitWidth+0x1e>
+ 8000232:	2300      	movs	r3, #0
+ 8000234:	e041      	b.n	80002ba <FLASH_getBitWidth+0xa2>
+
+	switch(regID){
+ 8000236:	79fb      	ldrb	r3, [r7, #7]
+ 8000238:	2b05      	cmp	r3, #5
+ 800023a:	d834      	bhi.n	80002a6 <FLASH_getBitWidth+0x8e>
+ 800023c:	a201      	add	r2, pc, #4	@ (adr r2, 8000244 <FLASH_getBitWidth+0x2c>)
+ 800023e:	f852 f023 	ldr.w	pc, [r2, r3, lsl #2]
+ 8000242:	bf00      	nop
+ 8000244:	0800025d 	.word	0x0800025d
+ 8000248:	08000267 	.word	0x08000267
+ 800024c:	08000267 	.word	0x08000267
+ 8000250:	080002ab 	.word	0x080002ab
+ 8000254:	08000275 	.word	0x08000275
+ 8000258:	08000289 	.word	0x08000289
+		case FLASH_ACR:
+			if(bitPosition == 0) return 3;
+ 800025c:	79bb      	ldrb	r3, [r7, #6]
+ 800025e:	2b00      	cmp	r3, #0
+ 8000260:	d125      	bne.n	80002ae <FLASH_getBitWidth+0x96>
+ 8000262:	2303      	movs	r3, #3
+ 8000264:	e029      	b.n	80002ba <FLASH_getBitWidth+0xa2>
+			break;
+
+		case FLASH_KEYR:
+		case FLASH_OPT_KEYR:
+			return (bitPosition == 0) ? 32 : 0;
+ 8000266:	79bb      	ldrb	r3, [r7, #6]
+ 8000268:	2b00      	cmp	r3, #0
+ 800026a:	d101      	bne.n	8000270 <FLASH_getBitWidth+0x58>
+ 800026c:	2320      	movs	r3, #32
+ 800026e:	e024      	b.n	80002ba <FLASH_getBitWidth+0xa2>
+ 8000270:	2300      	movs	r3, #0
+ 8000272:	e022      	b.n	80002ba <FLASH_getBitWidth+0xa2>
+
+		case FLASH_SR: break;
+
+		case FLASH_CR:
+			if(bitPosition == 3) return 4;
+ 8000274:	79bb      	ldrb	r3, [r7, #6]
+ 8000276:	2b03      	cmp	r3, #3
+ 8000278:	d101      	bne.n	800027e <FLASH_getBitWidth+0x66>
+ 800027a:	2304      	movs	r3, #4
+ 800027c:	e01d      	b.n	80002ba <FLASH_getBitWidth+0xa2>
+			if(bitPosition == 8) return 2;
+ 800027e:	79bb      	ldrb	r3, [r7, #6]
+ 8000280:	2b08      	cmp	r3, #8
+ 8000282:	d116      	bne.n	80002b2 <FLASH_getBitWidth+0x9a>
+ 8000284:	2302      	movs	r3, #2
+ 8000286:	e018      	b.n	80002ba <FLASH_getBitWidth+0xa2>
+			break;
+
+		case FLASH_OPT_CR:
+			if(bitPosition == 2) return 2;
+ 8000288:	79bb      	ldrb	r3, [r7, #6]
+ 800028a:	2b02      	cmp	r3, #2
+ 800028c:	d101      	bne.n	8000292 <FLASH_getBitWidth+0x7a>
+ 800028e:	2302      	movs	r3, #2
+ 8000290:	e013      	b.n	80002ba <FLASH_getBitWidth+0xa2>
+			if(bitPosition == 8) return 8;
+ 8000292:	79bb      	ldrb	r3, [r7, #6]
+ 8000294:	2b08      	cmp	r3, #8
+ 8000296:	d101      	bne.n	800029c <FLASH_getBitWidth+0x84>
+ 8000298:	2308      	movs	r3, #8
+ 800029a:	e00e      	b.n	80002ba <FLASH_getBitWidth+0xa2>
+			if(bitPosition == 16) return 12;
+ 800029c:	79bb      	ldrb	r3, [r7, #6]
+ 800029e:	2b10      	cmp	r3, #16
+ 80002a0:	d109      	bne.n	80002b6 <FLASH_getBitWidth+0x9e>
+ 80002a2:	230c      	movs	r3, #12
+ 80002a4:	e009      	b.n	80002ba <FLASH_getBitWidth+0xa2>
+			break;
+
+		default: return 0;
+ 80002a6:	2300      	movs	r3, #0
+ 80002a8:	e007      	b.n	80002ba <FLASH_getBitWidth+0xa2>
+		case FLASH_SR: break;
+ 80002aa:	bf00      	nop
+ 80002ac:	e004      	b.n	80002b8 <FLASH_getBitWidth+0xa0>
+			break;
+ 80002ae:	bf00      	nop
+ 80002b0:	e002      	b.n	80002b8 <FLASH_getBitWidth+0xa0>
+			break;
+ 80002b2:	bf00      	nop
+ 80002b4:	e000      	b.n	80002b8 <FLASH_getBitWidth+0xa0>
+			break;
+ 80002b6:	bf00      	nop
+		break;
+	}
+	return defaultBitWidth;
+ 80002b8:	7bfb      	ldrb	r3, [r7, #15]
+}
+ 80002ba:	4618      	mov	r0, r3
+ 80002bc:	3714      	adds	r7, #20
+ 80002be:	46bd      	mov	sp, r7
+ 80002c0:	f85d 7b04 	ldr.w	r7, [sp], #4
+ 80002c4:	4770      	bx	lr
+ 80002c6:	bf00      	nop
+
+080002c8 <writeFLASH>:
+ * 			Handles both 'full register write' and 'partial field write'
+ *
+ * @retVal	true	Write successful
+ * 			false	Invalid bit position, register, or value overflow
+ */
+FLASH_RAMFUNC_ATTRIBUTE static FLASH_Status_t writeFLASH(uint8_t bitPosition, FLASH_Reg_t regID, uint32_t value){
+ 80002c8:	b580      	push	{r7, lr}
+ 80002ca:	b086      	sub	sp, #24
+ 80002cc:	af00      	add	r7, sp, #0
+ 80002ce:	4603      	mov	r3, r0
+ 80002d0:	603a      	str	r2, [r7, #0]
+ 80002d2:	71fb      	strb	r3, [r7, #7]
+ 80002d4:	460b      	mov	r3, r1
+ 80002d6:	71bb      	strb	r3, [r7, #6]
 	/* Check that reg + bit are allowed (not reserved, in range) */
-	if(!isValidFlashBit(bitPosition, regID)) return false;
- 8000528:	79ba      	ldrb	r2, [r7, #6]
- 800052a:	79fb      	ldrb	r3, [r7, #7]
- 800052c:	4611      	mov	r1, r2
- 800052e:	4618      	mov	r0, r3
- 8000530:	f7ff ffac 	bl	800048c <isValidFlashBit>
- 8000534:	4603      	mov	r3, r0
- 8000536:	f083 0301 	eor.w	r3, r3, #1
- 800053a:	b2db      	uxtb	r3, r3
- 800053c:	2b00      	cmp	r3, #0
- 800053e:	d001      	beq.n	8000544 <writeFLASH+0x2c>
- 8000540:	2300      	movs	r3, #0
- 8000542:	e03c      	b.n	80005be <writeFLASH+0xa6>
+	if(!isValidFlashBit(bitPosition, regID)) return FLASH_ERROR;
+ 80002d8:	79ba      	ldrb	r2, [r7, #6]
+ 80002da:	79fb      	ldrb	r3, [r7, #7]
+ 80002dc:	4611      	mov	r1, r2
+ 80002de:	4618      	mov	r0, r3
+ 80002e0:	f7ff ff72 	bl	80001c8 <isValidFlashBit>
+ 80002e4:	4603      	mov	r3, r0
+ 80002e6:	f083 0301 	eor.w	r3, r3, #1
+ 80002ea:	b2db      	uxtb	r3, r3
+ 80002ec:	2b00      	cmp	r3, #0
+ 80002ee:	d001      	beq.n	80002f4 <writeFLASH+0x2c>
+ 80002f0:	2300      	movs	r3, #0
+ 80002f2:	e049      	b.n	8000388 <writeFLASH+0xc0>
 
 	/* Auto get width of the requested bit field */
-	uint8_t bitWidth = getBitWidth(PERIPH_FLASH, regID, bitPosition);
- 8000544:	79fa      	ldrb	r2, [r7, #7]
- 8000546:	79bb      	ldrb	r3, [r7, #6]
- 8000548:	4619      	mov	r1, r3
- 800054a:	2001      	movs	r0, #1
- 800054c:	f000 f88e 	bl	800066c <getBitWidth>
- 8000550:	4603      	mov	r3, r0
- 8000552:	75fb      	strb	r3, [r7, #23]
+	uint8_t bitWidth = FLASH_getBitWidth(regID, bitPosition);
+ 80002f4:	79fa      	ldrb	r2, [r7, #7]
+ 80002f6:	79bb      	ldrb	r3, [r7, #6]
+ 80002f8:	4611      	mov	r1, r2
+ 80002fa:	4618      	mov	r0, r3
+ 80002fc:	f7ff ff8c 	bl	8000218 <FLASH_getBitWidth>
+ 8000300:	4603      	mov	r3, r0
+ 8000302:	75fb      	strb	r3, [r7, #23]
 
 	/* Check if position/width/value fit inside 32-bits register */
-	if(!sanityCheckFieldValue(bitPosition, bitWidth, value)) return false;
- 8000554:	7df9      	ldrb	r1, [r7, #23]
- 8000556:	79fb      	ldrb	r3, [r7, #7]
- 8000558:	683a      	ldr	r2, [r7, #0]
- 800055a:	4618      	mov	r0, r3
- 800055c:	f000 f858 	bl	8000610 <sanityCheckFieldValue>
- 8000560:	4603      	mov	r3, r0
- 8000562:	f083 0301 	eor.w	r3, r3, #1
- 8000566:	b2db      	uxtb	r3, r3
- 8000568:	2b00      	cmp	r3, #0
- 800056a:	d001      	beq.n	8000570 <writeFLASH+0x58>
- 800056c:	2300      	movs	r3, #0
- 800056e:	e026      	b.n	80005be <writeFLASH+0xa6>
+	if(!sanityCheckFieldValue(bitPosition, bitWidth, value)) return FLASH_ERROR;
+ 8000304:	7df9      	ldrb	r1, [r7, #23]
+ 8000306:	79fb      	ldrb	r3, [r7, #7]
+ 8000308:	683a      	ldr	r2, [r7, #0]
+ 800030a:	4618      	mov	r0, r3
+ 800030c:	f000 f9bd 	bl	800068a <sanityCheckFieldValue>
+ 8000310:	4603      	mov	r3, r0
+ 8000312:	f083 0301 	eor.w	r3, r3, #1
+ 8000316:	b2db      	uxtb	r3, r3
+ 8000318:	2b00      	cmp	r3, #0
+ 800031a:	d001      	beq.n	8000320 <writeFLASH+0x58>
+ 800031c:	2300      	movs	r3, #0
+ 800031e:	e033      	b.n	8000388 <writeFLASH+0xc0>
 
 	/* Convert register index to a real pointer hardware register */
 	volatile uint32_t* reg = flashRegLookupTable[regID];
- 8000570:	79bb      	ldrb	r3, [r7, #6]
- 8000572:	4a15      	ldr	r2, [pc, #84]	@ (80005c8 <writeFLASH+0xb0>)
- 8000574:	f852 3023 	ldr.w	r3, [r2, r3, lsl #2]
- 8000578:	613b      	str	r3, [r7, #16]
+ 8000320:	79bb      	ldrb	r3, [r7, #6]
+ 8000322:	4a1b      	ldr	r2, [pc, #108]	@ (8000390 <writeFLASH+0xc8>)
+ 8000324:	f852 3023 	ldr.w	r3, [r2, r3, lsl #2]
+ 8000328:	613b      	str	r3, [r7, #16]
+
+	/* Special case FLASH_SR write 1 to clear and 0 means do nothing */
+	if(regID == FLASH_SR){
+ 800032a:	79bb      	ldrb	r3, [r7, #6]
+ 800032c:	2b03      	cmp	r3, #3
+ 800032e:	d109      	bne.n	8000344 <writeFLASH+0x7c>
+		/* Just write '1' to the specific bit we want to clear */
+		/* Do NOT read the register first. Do NOT use OR/AND operators */
+		if(value == 1){
+ 8000330:	683b      	ldr	r3, [r7, #0]
+ 8000332:	2b01      	cmp	r3, #1
+ 8000334:	d104      	bne.n	8000340 <writeFLASH+0x78>
+			*reg = (1u << bitPosition);
+ 8000336:	79fb      	ldrb	r3, [r7, #7]
+ 8000338:	2201      	movs	r2, #1
+ 800033a:	409a      	lsls	r2, r3
+ 800033c:	693b      	ldr	r3, [r7, #16]
+ 800033e:	601a      	str	r2, [r3, #0]
+		}
+		return FLASH_OK;
+ 8000340:	2301      	movs	r3, #1
+ 8000342:	e021      	b.n	8000388 <writeFLASH+0xc0>
+	}
 
 	/* Write whole register */
 	if(bitWidth == 32){
- 800057a:	7dfb      	ldrb	r3, [r7, #23]
- 800057c:	2b20      	cmp	r3, #32
- 800057e:	d104      	bne.n	800058a <writeFLASH+0x72>
+ 8000344:	7dfb      	ldrb	r3, [r7, #23]
+ 8000346:	2b20      	cmp	r3, #32
+ 8000348:	d104      	bne.n	8000354 <writeFLASH+0x8c>
 		*reg = value;
- 8000580:	693b      	ldr	r3, [r7, #16]
- 8000582:	683a      	ldr	r2, [r7, #0]
- 8000584:	601a      	str	r2, [r3, #0]
-		return true;
- 8000586:	2301      	movs	r3, #1
- 8000588:	e019      	b.n	80005be <writeFLASH+0xa6>
+ 800034a:	693b      	ldr	r3, [r7, #16]
+ 800034c:	683a      	ldr	r2, [r7, #0]
+ 800034e:	601a      	str	r2, [r3, #0]
+		return FLASH_OK;
+ 8000350:	2301      	movs	r3, #1
+ 8000352:	e019      	b.n	8000388 <writeFLASH+0xc0>
 	}
 
-	/* Other cases */
+	/* Read-Modify-Write for standard fields */
 	uint32_t mask = ((1u << bitWidth) - 1u) << bitPosition;
- 800058a:	7dfb      	ldrb	r3, [r7, #23]
- 800058c:	2201      	movs	r2, #1
- 800058e:	fa02 f303 	lsl.w	r3, r2, r3
- 8000592:	1e5a      	subs	r2, r3, #1
- 8000594:	79fb      	ldrb	r3, [r7, #7]
- 8000596:	fa02 f303 	lsl.w	r3, r2, r3
- 800059a:	60fb      	str	r3, [r7, #12]
+ 8000354:	7dfb      	ldrb	r3, [r7, #23]
+ 8000356:	2201      	movs	r2, #1
+ 8000358:	fa02 f303 	lsl.w	r3, r2, r3
+ 800035c:	1e5a      	subs	r2, r3, #1
+ 800035e:	79fb      	ldrb	r3, [r7, #7]
+ 8000360:	fa02 f303 	lsl.w	r3, r2, r3
+ 8000364:	60fb      	str	r3, [r7, #12]
 	uint32_t shiftedVal = (value << bitPosition) & mask;
- 800059c:	79fb      	ldrb	r3, [r7, #7]
- 800059e:	683a      	ldr	r2, [r7, #0]
- 80005a0:	fa02 f303 	lsl.w	r3, r2, r3
- 80005a4:	68fa      	ldr	r2, [r7, #12]
- 80005a6:	4013      	ands	r3, r2
- 80005a8:	60bb      	str	r3, [r7, #8]
+ 8000366:	79fb      	ldrb	r3, [r7, #7]
+ 8000368:	683a      	ldr	r2, [r7, #0]
+ 800036a:	fa02 f303 	lsl.w	r3, r2, r3
+ 800036e:	68fa      	ldr	r2, [r7, #12]
+ 8000370:	4013      	ands	r3, r2
+ 8000372:	60bb      	str	r3, [r7, #8]
 	*reg = (*reg & ~mask) | shiftedVal;
- 80005aa:	693b      	ldr	r3, [r7, #16]
- 80005ac:	681a      	ldr	r2, [r3, #0]
- 80005ae:	68fb      	ldr	r3, [r7, #12]
- 80005b0:	43db      	mvns	r3, r3
- 80005b2:	401a      	ands	r2, r3
- 80005b4:	68bb      	ldr	r3, [r7, #8]
- 80005b6:	431a      	orrs	r2, r3
- 80005b8:	693b      	ldr	r3, [r7, #16]
- 80005ba:	601a      	str	r2, [r3, #0]
+ 8000374:	693b      	ldr	r3, [r7, #16]
+ 8000376:	681a      	ldr	r2, [r3, #0]
+ 8000378:	68fb      	ldr	r3, [r7, #12]
+ 800037a:	43db      	mvns	r3, r3
+ 800037c:	401a      	ands	r2, r3
+ 800037e:	68bb      	ldr	r3, [r7, #8]
+ 8000380:	431a      	orrs	r2, r3
+ 8000382:	693b      	ldr	r3, [r7, #16]
+ 8000384:	601a      	str	r2, [r3, #0]
 	return true;
- 80005bc:	2301      	movs	r3, #1
+ 8000386:	2301      	movs	r3, #1
 }
- 80005be:	4618      	mov	r0, r3
- 80005c0:	3718      	adds	r7, #24
- 80005c2:	46bd      	mov	sp, r7
- 80005c4:	bd80      	pop	{r7, pc}
- 80005c6:	bf00      	nop
- 80005c8:	080009b8 	.word	0x080009b8
+ 8000388:	4618      	mov	r0, r3
+ 800038a:	3718      	adds	r7, #24
+ 800038c:	46bd      	mov	sp, r7
+ 800038e:	bd80      	pop	{r7, pc}
+ 8000390:	08000878 	.word	0x08000878
 
-080005cc <sanityCheckField>:
+08000394 <readFLASH>:
+ * @param	regID			Register index in a Flash_Reg_t enum
+ *
+ * @retVal	The value of requested field (shifted to LSB 0)
+ * 			0xFFFFFFFF	Read error (invalid bit or register)
+ */
+FLASH_RAMFUNC_ATTRIBUTE static uint32_t readFLASH(uint8_t bitPosition, FLASH_Reg_t regID){
+ 8000394:	b580      	push	{r7, lr}
+ 8000396:	b086      	sub	sp, #24
+ 8000398:	af00      	add	r7, sp, #0
+ 800039a:	4603      	mov	r3, r0
+ 800039c:	460a      	mov	r2, r1
+ 800039e:	71fb      	strb	r3, [r7, #7]
+ 80003a0:	4613      	mov	r3, r2
+ 80003a2:	71bb      	strb	r3, [r7, #6]
+	uint32_t READ_ERROR = 0xFFFFFFFFu;
+ 80003a4:	f04f 33ff 	mov.w	r3, #4294967295
+ 80003a8:	617b      	str	r3, [r7, #20]
+	if(!isValidFlashBit(bitPosition, regID)) return READ_ERROR;
+ 80003aa:	79ba      	ldrb	r2, [r7, #6]
+ 80003ac:	79fb      	ldrb	r3, [r7, #7]
+ 80003ae:	4611      	mov	r1, r2
+ 80003b0:	4618      	mov	r0, r3
+ 80003b2:	f7ff ff09 	bl	80001c8 <isValidFlashBit>
+ 80003b6:	4603      	mov	r3, r0
+ 80003b8:	f083 0301 	eor.w	r3, r3, #1
+ 80003bc:	b2db      	uxtb	r3, r3
+ 80003be:	2b00      	cmp	r3, #0
+ 80003c0:	d001      	beq.n	80003c6 <readFLASH+0x32>
+ 80003c2:	697b      	ldr	r3, [r7, #20]
+ 80003c4:	e02c      	b.n	8000420 <readFLASH+0x8c>
+
+	/* Auto get width of the requested bit field */
+	uint8_t bitWidth = FLASH_getBitWidth(regID, bitPosition); //Get the width of bit field
+ 80003c6:	79fa      	ldrb	r2, [r7, #7]
+ 80003c8:	79bb      	ldrb	r3, [r7, #6]
+ 80003ca:	4611      	mov	r1, r2
+ 80003cc:	4618      	mov	r0, r3
+ 80003ce:	f7ff ff23 	bl	8000218 <FLASH_getBitWidth>
+ 80003d2:	4603      	mov	r3, r0
+ 80003d4:	74fb      	strb	r3, [r7, #19]
+
+	/* Sanity check */
+	if(!sanityCheckField(bitPosition, bitWidth)) return READ_ERROR;
+ 80003d6:	7cfa      	ldrb	r2, [r7, #19]
+ 80003d8:	79fb      	ldrb	r3, [r7, #7]
+ 80003da:	4611      	mov	r1, r2
+ 80003dc:	4618      	mov	r0, r3
+ 80003de:	f000 f932 	bl	8000646 <sanityCheckField>
+ 80003e2:	4603      	mov	r3, r0
+ 80003e4:	f083 0301 	eor.w	r3, r3, #1
+ 80003e8:	b2db      	uxtb	r3, r3
+ 80003ea:	2b00      	cmp	r3, #0
+ 80003ec:	d001      	beq.n	80003f2 <readFLASH+0x5e>
+ 80003ee:	697b      	ldr	r3, [r7, #20]
+ 80003f0:	e016      	b.n	8000420 <readFLASH+0x8c>
+
+	/* Convert register index to a real pointer hardware register */
+	volatile uint32_t* reg = flashRegLookupTable[regID];
+ 80003f2:	79bb      	ldrb	r3, [r7, #6]
+ 80003f4:	4a0c      	ldr	r2, [pc, #48]	@ (8000428 <readFLASH+0x94>)
+ 80003f6:	f852 3023 	ldr.w	r3, [r2, r3, lsl #2]
+ 80003fa:	60fb      	str	r3, [r7, #12]
+
+	/* Read whole register */
+	if(bitWidth == 32){
+ 80003fc:	7cfb      	ldrb	r3, [r7, #19]
+ 80003fe:	2b20      	cmp	r3, #32
+ 8000400:	d102      	bne.n	8000408 <readFLASH+0x74>
+		return *reg;
+ 8000402:	68fb      	ldr	r3, [r7, #12]
+ 8000404:	681b      	ldr	r3, [r3, #0]
+ 8000406:	e00b      	b.n	8000420 <readFLASH+0x8c>
+	}
+
+	/* Otherwise, retrieve a fraction of bit field in a FLASH register */
+	uint32_t mask = ((1u << bitWidth) - 1u);
+ 8000408:	7cfb      	ldrb	r3, [r7, #19]
+ 800040a:	2201      	movs	r2, #1
+ 800040c:	fa02 f303 	lsl.w	r3, r2, r3
+ 8000410:	3b01      	subs	r3, #1
+ 8000412:	60bb      	str	r3, [r7, #8]
+	return (*reg >> bitPosition) & mask;
+ 8000414:	68fb      	ldr	r3, [r7, #12]
+ 8000416:	681a      	ldr	r2, [r3, #0]
+ 8000418:	79fb      	ldrb	r3, [r7, #7]
+ 800041a:	40da      	lsrs	r2, r3
+ 800041c:	68bb      	ldr	r3, [r7, #8]
+ 800041e:	4013      	ands	r3, r2
+}
+ 8000420:	4618      	mov	r0, r3
+ 8000422:	3718      	adds	r7, #24
+ 8000424:	46bd      	mov	sp, r7
+ 8000426:	bd80      	pop	{r7, pc}
+ 8000428:	08000878 	.word	0x08000878
+
+0800042c <FLASH_clearErrorFlags>:
+/*
+ * @brief	Clears all error flags in the FLASH Status Register
+ *
+ * @note	Must be called before starting any new Sector Erase or Program operation
+ */
+FLASH_RAMFUNC_ATTRIBUTE static void FLASH_clearErrorFlags(void){
+ 800042c:	b580      	push	{r7, lr}
+ 800042e:	b082      	sub	sp, #8
+ 8000430:	af00      	add	r7, sp, #0
+	FLASH_Reg_t reg = FLASH_SR;
+ 8000432:	2303      	movs	r3, #3
+ 8000434:	71fb      	strb	r3, [r7, #7]
+	writeFLASH(EOP_Pos, reg, 1u); 		//Clear "End of operation"
+ 8000436:	79fb      	ldrb	r3, [r7, #7]
+ 8000438:	2201      	movs	r2, #1
+ 800043a:	4619      	mov	r1, r3
+ 800043c:	2000      	movs	r0, #0
+ 800043e:	f7ff ff43 	bl	80002c8 <writeFLASH>
+	writeFLASH(OPERR_Pos, reg, 1u);		//Clear "Operation error"
+ 8000442:	79fb      	ldrb	r3, [r7, #7]
+ 8000444:	2201      	movs	r2, #1
+ 8000446:	4619      	mov	r1, r3
+ 8000448:	2001      	movs	r0, #1
+ 800044a:	f7ff ff3d 	bl	80002c8 <writeFLASH>
+	writeFLASH(WRPERR_Pos, reg, 1u);	//Clear "Write protection error"
+ 800044e:	79fb      	ldrb	r3, [r7, #7]
+ 8000450:	2201      	movs	r2, #1
+ 8000452:	4619      	mov	r1, r3
+ 8000454:	2004      	movs	r0, #4
+ 8000456:	f7ff ff37 	bl	80002c8 <writeFLASH>
+	writeFLASH(PGAERR_Pos, reg, 1u);	//Clear "Programming alignment error"
+ 800045a:	79fb      	ldrb	r3, [r7, #7]
+ 800045c:	2201      	movs	r2, #1
+ 800045e:	4619      	mov	r1, r3
+ 8000460:	2005      	movs	r0, #5
+ 8000462:	f7ff ff31 	bl	80002c8 <writeFLASH>
+	writeFLASH(PGPERR_Pos, reg, 1u);	//Clear "Programming parallelism error"
+ 8000466:	79fb      	ldrb	r3, [r7, #7]
+ 8000468:	2201      	movs	r2, #1
+ 800046a:	4619      	mov	r1, r3
+ 800046c:	2006      	movs	r0, #6
+ 800046e:	f7ff ff2b 	bl	80002c8 <writeFLASH>
+	writeFLASH(PGSERR_Pos, reg, 1u);	//Clear "Programming sequence error"
+ 8000472:	79fb      	ldrb	r3, [r7, #7]
+ 8000474:	2201      	movs	r2, #1
+ 8000476:	4619      	mov	r1, r3
+ 8000478:	2007      	movs	r0, #7
+ 800047a:	f7ff ff25 	bl	80002c8 <writeFLASH>
+}
+ 800047e:	bf00      	nop
+ 8000480:	3708      	adds	r7, #8
+ 8000482:	46bd      	mov	sp, r7
+ 8000484:	bd80      	pop	{r7, pc}
+	...
+
+08000488 <FLASH_sectorErase>:
+ * @note	This function is blocking. It waits for the BSY bit to be free
+ * 			Interrupts should be disabled if this funciton is executed from FLASH
+ *
+ * @note
+ */
+FLASH_RAMFUNC_ATTRIBUTE FLASH_Status_t FLASH_sectorErase(Sector_t sector){
+ 8000488:	b580      	push	{r7, lr}
+ 800048a:	b082      	sub	sp, #8
+ 800048c:	af00      	add	r7, sp, #0
+ 800048e:	4603      	mov	r3, r0
+ 8000490:	71fb      	strb	r3, [r7, #7]
+	/* Check if @param sector is in the valid range */
+	if(!((sector >= 0u) && (sector <= 11u))) return FLASH_ERROR;
+ 8000492:	79fb      	ldrb	r3, [r7, #7]
+ 8000494:	2b0b      	cmp	r3, #11
+ 8000496:	d901      	bls.n	800049c <FLASH_sectorErase+0x14>
+ 8000498:	2300      	movs	r3, #0
+ 800049a:	e03e      	b.n	800051a <FLASH_sectorErase+0x92>
+
+	/* Clear previous errors */
+	FLASH_clearErrorFlags();
+ 800049c:	f7ff ffc6 	bl	800042c <FLASH_clearErrorFlags>
+
+	/* Wait until there is no FLASH memory operation in progress */
+	while((readFLASH(BSY_Pos, FLASH_SR) & 1u) == 1u);
+ 80004a0:	bf00      	nop
+ 80004a2:	2103      	movs	r1, #3
+ 80004a4:	2010      	movs	r0, #16
+ 80004a6:	f7ff ff75 	bl	8000394 <readFLASH>
+ 80004aa:	4603      	mov	r3, r0
+ 80004ac:	f003 0301 	and.w	r3, r3, #1
+ 80004b0:	2b01      	cmp	r3, #1
+ 80004b2:	d0f6      	beq.n	80004a2 <FLASH_sectorErase+0x1a>
+
+	/* Check if the FLASH is blocked */
+	if((readFLASH(LOCK_Pos, FLASH_CR) & 1u) == 1u){
+ 80004b4:	2104      	movs	r1, #4
+ 80004b6:	201f      	movs	r0, #31
+ 80004b8:	f7ff ff6c 	bl	8000394 <readFLASH>
+ 80004bc:	4603      	mov	r3, r0
+ 80004be:	f003 0301 	and.w	r3, r3, #1
+ 80004c2:	2b01      	cmp	r3, #1
+ 80004c4:	d109      	bne.n	80004da <FLASH_sectorErase+0x52>
+		writeFLASH(0, FLASH_KEYR, 0x45670123u);
+ 80004c6:	4a17      	ldr	r2, [pc, #92]	@ (8000524 <FLASH_sectorErase+0x9c>)
+ 80004c8:	2101      	movs	r1, #1
+ 80004ca:	2000      	movs	r0, #0
+ 80004cc:	f7ff fefc 	bl	80002c8 <writeFLASH>
+		writeFLASH(0, FLASH_KEYR, 0xCDEF89ABu);
+ 80004d0:	4a15      	ldr	r2, [pc, #84]	@ (8000528 <FLASH_sectorErase+0xa0>)
+ 80004d2:	2101      	movs	r1, #1
+ 80004d4:	2000      	movs	r0, #0
+ 80004d6:	f7ff fef7 	bl	80002c8 <writeFLASH>
+	}
+
+	writeFLASH(SER_Pos, FLASH_CR, 1u);				 	//Sector Erase Activated
+ 80004da:	2201      	movs	r2, #1
+ 80004dc:	2104      	movs	r1, #4
+ 80004de:	2001      	movs	r0, #1
+ 80004e0:	f7ff fef2 	bl	80002c8 <writeFLASH>
+	writeFLASH(SNB_Pos, FLASH_CR, (uint32_t)sector); 	//Select sector that want to be deleted
+ 80004e4:	79fb      	ldrb	r3, [r7, #7]
+ 80004e6:	461a      	mov	r2, r3
+ 80004e8:	2104      	movs	r1, #4
+ 80004ea:	2003      	movs	r0, #3
+ 80004ec:	f7ff feec 	bl	80002c8 <writeFLASH>
+	writeFLASH(STRT_Pos, FLASH_CR, 1u); 			 	//Start
+ 80004f0:	2201      	movs	r2, #1
+ 80004f2:	2104      	movs	r1, #4
+ 80004f4:	2010      	movs	r0, #16
+ 80004f6:	f7ff fee7 	bl	80002c8 <writeFLASH>
+	while((readFLASH(BSY_Pos, FLASH_SR) & 1u) == 1u);	//Wait for BUSY bit to be cleared
+ 80004fa:	bf00      	nop
+ 80004fc:	2103      	movs	r1, #3
+ 80004fe:	2010      	movs	r0, #16
+ 8000500:	f7ff ff48 	bl	8000394 <readFLASH>
+ 8000504:	4603      	mov	r3, r0
+ 8000506:	f003 0301 	and.w	r3, r3, #1
+ 800050a:	2b01      	cmp	r3, #1
+ 800050c:	d0f6      	beq.n	80004fc <FLASH_sectorErase+0x74>
+	writeFLASH(SER_Pos, FLASH_CR, 0u);					//Clear SER bit manually as HW does not do it
+ 800050e:	2200      	movs	r2, #0
+ 8000510:	2104      	movs	r1, #4
+ 8000512:	2001      	movs	r0, #1
+ 8000514:	f7ff fed8 	bl	80002c8 <writeFLASH>
+
+	return FLASH_OK;
+ 8000518:	2301      	movs	r3, #1
+}
+ 800051a:	4618      	mov	r0, r3
+ 800051c:	3708      	adds	r7, #8
+ 800051e:	46bd      	mov	sp, r7
+ 8000520:	bd80      	pop	{r7, pc}
+ 8000522:	bf00      	nop
+ 8000524:	45670123 	.word	0x45670123
+ 8000528:	cdef89ab 	.word	0xcdef89ab
+
+0800052c <FLASH_setLatency>:
+	if(!FLASH_enableDataCache()) return FLASH_ERROR;
+
+	return FLASH_OK;
+}
+
+bool FLASH_setLatency(FLASH_Latency_t waitState){
+ 800052c:	b580      	push	{r7, lr}
+ 800052e:	b082      	sub	sp, #8
+ 8000530:	af00      	add	r7, sp, #0
+ 8000532:	4603      	mov	r3, r0
+ 8000534:	71fb      	strb	r3, [r7, #7]
+	return writeFLASH(LATENCY_Pos, FLASH_ACR, (uint32_t)waitState);
+ 8000536:	79fb      	ldrb	r3, [r7, #7]
+ 8000538:	461a      	mov	r2, r3
+ 800053a:	2100      	movs	r1, #0
+ 800053c:	2000      	movs	r0, #0
+ 800053e:	f7ff fec3 	bl	80002c8 <writeFLASH>
+ 8000542:	4603      	mov	r3, r0
+ 8000544:	2b00      	cmp	r3, #0
+ 8000546:	bf14      	ite	ne
+ 8000548:	2301      	movne	r3, #1
+ 800054a:	2300      	moveq	r3, #0
+ 800054c:	b2db      	uxtb	r3, r3
+}
+ 800054e:	4618      	mov	r0, r3
+ 8000550:	3708      	adds	r7, #8
+ 8000552:	46bd      	mov	sp, r7
+ 8000554:	bd80      	pop	{r7, pc}
+
+08000556 <FLASH_enablePrefetch>:
+
+bool FLASH_enablePrefetch(){
+ 8000556:	b580      	push	{r7, lr}
+ 8000558:	af00      	add	r7, sp, #0
+	return writeFLASH(PRFTEN_Pos, FLASH_ACR, 1u);
+ 800055a:	2201      	movs	r2, #1
+ 800055c:	2100      	movs	r1, #0
+ 800055e:	2008      	movs	r0, #8
+ 8000560:	f7ff feb2 	bl	80002c8 <writeFLASH>
+ 8000564:	4603      	mov	r3, r0
+ 8000566:	2b00      	cmp	r3, #0
+ 8000568:	bf14      	ite	ne
+ 800056a:	2301      	movne	r3, #1
+ 800056c:	2300      	moveq	r3, #0
+ 800056e:	b2db      	uxtb	r3, r3
+}
+ 8000570:	4618      	mov	r0, r3
+ 8000572:	bd80      	pop	{r7, pc}
+
+08000574 <FLASH_disablePrefetch>:
+
+bool FLASH_disablePrefetch(){
+ 8000574:	b580      	push	{r7, lr}
+ 8000576:	af00      	add	r7, sp, #0
+	return writeFLASH(PRFTEN_Pos, FLASH_ACR, 0u);
+ 8000578:	2200      	movs	r2, #0
+ 800057a:	2100      	movs	r1, #0
+ 800057c:	2008      	movs	r0, #8
+ 800057e:	f7ff fea3 	bl	80002c8 <writeFLASH>
+ 8000582:	4603      	mov	r3, r0
+ 8000584:	2b00      	cmp	r3, #0
+ 8000586:	bf14      	ite	ne
+ 8000588:	2301      	movne	r3, #1
+ 800058a:	2300      	moveq	r3, #0
+ 800058c:	b2db      	uxtb	r3, r3
+}
+ 800058e:	4618      	mov	r0, r3
+ 8000590:	bd80      	pop	{r7, pc}
+
+08000592 <FLASH_enableInstructionCache>:
+
+bool FLASH_enableInstructionCache(){
+ 8000592:	b580      	push	{r7, lr}
+ 8000594:	af00      	add	r7, sp, #0
+	return writeFLASH(ICEN_Pos, FLASH_ACR, 1u);
+ 8000596:	2201      	movs	r2, #1
+ 8000598:	2100      	movs	r1, #0
+ 800059a:	2009      	movs	r0, #9
+ 800059c:	f7ff fe94 	bl	80002c8 <writeFLASH>
+ 80005a0:	4603      	mov	r3, r0
+ 80005a2:	2b00      	cmp	r3, #0
+ 80005a4:	bf14      	ite	ne
+ 80005a6:	2301      	movne	r3, #1
+ 80005a8:	2300      	moveq	r3, #0
+ 80005aa:	b2db      	uxtb	r3, r3
+}
+ 80005ac:	4618      	mov	r0, r3
+ 80005ae:	bd80      	pop	{r7, pc}
+
+080005b0 <FLASH_disableInstructionCache>:
+
+bool FLASH_disableInstructionCache(){
+ 80005b0:	b580      	push	{r7, lr}
+ 80005b2:	af00      	add	r7, sp, #0
+	return writeFLASH(ICEN_Pos, FLASH_ACR, 0u);
+ 80005b4:	2200      	movs	r2, #0
+ 80005b6:	2100      	movs	r1, #0
+ 80005b8:	2009      	movs	r0, #9
+ 80005ba:	f7ff fe85 	bl	80002c8 <writeFLASH>
+ 80005be:	4603      	mov	r3, r0
+ 80005c0:	2b00      	cmp	r3, #0
+ 80005c2:	bf14      	ite	ne
+ 80005c4:	2301      	movne	r3, #1
+ 80005c6:	2300      	moveq	r3, #0
+ 80005c8:	b2db      	uxtb	r3, r3
+}
+ 80005ca:	4618      	mov	r0, r3
+ 80005cc:	bd80      	pop	{r7, pc}
+
+080005ce <FLASH_enableDataCache>:
+
+bool FLASH_enableDataCache(){
+ 80005ce:	b580      	push	{r7, lr}
+ 80005d0:	af00      	add	r7, sp, #0
+	return writeFLASH(DCEN_Pos, FLASH_ACR, 1u);
+ 80005d2:	2201      	movs	r2, #1
+ 80005d4:	2100      	movs	r1, #0
+ 80005d6:	200a      	movs	r0, #10
+ 80005d8:	f7ff fe76 	bl	80002c8 <writeFLASH>
+ 80005dc:	4603      	mov	r3, r0
+ 80005de:	2b00      	cmp	r3, #0
+ 80005e0:	bf14      	ite	ne
+ 80005e2:	2301      	movne	r3, #1
+ 80005e4:	2300      	moveq	r3, #0
+ 80005e6:	b2db      	uxtb	r3, r3
+}
+ 80005e8:	4618      	mov	r0, r3
+ 80005ea:	bd80      	pop	{r7, pc}
+
+080005ec <FLASH_disableDataCache>:
+
+bool FLASH_disableDataCache(){
+ 80005ec:	b580      	push	{r7, lr}
+ 80005ee:	af00      	add	r7, sp, #0
+	return writeFLASH(DCEN_Pos, FLASH_ACR, 0u);
+ 80005f0:	2200      	movs	r2, #0
+ 80005f2:	2100      	movs	r1, #0
+ 80005f4:	200a      	movs	r0, #10
+ 80005f6:	f7ff fe67 	bl	80002c8 <writeFLASH>
+ 80005fa:	4603      	mov	r3, r0
+ 80005fc:	2b00      	cmp	r3, #0
+ 80005fe:	bf14      	ite	ne
+ 8000600:	2301      	movne	r3, #1
+ 8000602:	2300      	moveq	r3, #0
+ 8000604:	b2db      	uxtb	r3, r3
+}
+ 8000606:	4618      	mov	r0, r3
+ 8000608:	bd80      	pop	{r7, pc}
+
+0800060a <FLASH_resetInstructionCache>:
+
+bool FLASH_resetInstructionCache(){
+ 800060a:	b580      	push	{r7, lr}
+ 800060c:	af00      	add	r7, sp, #0
+	return writeFLASH(ICRST_Pos, FLASH_ACR, 1u);
+ 800060e:	2201      	movs	r2, #1
+ 8000610:	2100      	movs	r1, #0
+ 8000612:	200b      	movs	r0, #11
+ 8000614:	f7ff fe58 	bl	80002c8 <writeFLASH>
+ 8000618:	4603      	mov	r3, r0
+ 800061a:	2b00      	cmp	r3, #0
+ 800061c:	bf14      	ite	ne
+ 800061e:	2301      	movne	r3, #1
+ 8000620:	2300      	moveq	r3, #0
+ 8000622:	b2db      	uxtb	r3, r3
+}
+ 8000624:	4618      	mov	r0, r3
+ 8000626:	bd80      	pop	{r7, pc}
+
+08000628 <FLASH_resetDataCache>:
+
+bool FLASH_resetDataCache(){
+ 8000628:	b580      	push	{r7, lr}
+ 800062a:	af00      	add	r7, sp, #0
+	return writeFLASH(DCRST_Pos, FLASH_ACR, 1u);
+ 800062c:	2201      	movs	r2, #1
+ 800062e:	2100      	movs	r1, #0
+ 8000630:	200c      	movs	r0, #12
+ 8000632:	f7ff fe49 	bl	80002c8 <writeFLASH>
+ 8000636:	4603      	mov	r3, r0
+ 8000638:	2b00      	cmp	r3, #0
+ 800063a:	bf14      	ite	ne
+ 800063c:	2301      	movne	r3, #1
+ 800063e:	2300      	moveq	r3, #0
+ 8000640:	b2db      	uxtb	r3, r3
+}
+ 8000642:	4618      	mov	r0, r3
+ 8000644:	bd80      	pop	{r7, pc}
+
+08000646 <sanityCheckField>:
  * @param	bitWidth		Width of the field in bits (> 0)
  *
  * @retval	true	When @p bitPosition and @p bitWidth is valid
  * 			false	The field is zero-width or extends beyond bit 31
  */
 bool sanityCheckField(uint8_t bitPosition, uint8_t bitWidth){
- 80005cc:	b480      	push	{r7}
- 80005ce:	b083      	sub	sp, #12
- 80005d0:	af00      	add	r7, sp, #0
- 80005d2:	4603      	mov	r3, r0
- 80005d4:	460a      	mov	r2, r1
- 80005d6:	71fb      	strb	r3, [r7, #7]
- 80005d8:	4613      	mov	r3, r2
- 80005da:	71bb      	strb	r3, [r7, #6]
+ 8000646:	b480      	push	{r7}
+ 8000648:	b083      	sub	sp, #12
+ 800064a:	af00      	add	r7, sp, #0
+ 800064c:	4603      	mov	r3, r0
+ 800064e:	460a      	mov	r2, r1
+ 8000650:	71fb      	strb	r3, [r7, #7]
+ 8000652:	4613      	mov	r3, r2
+ 8000654:	71bb      	strb	r3, [r7, #6]
 	return (bitPosition < 32u) &&
 		   ((bitWidth > 0u) && (bitWidth <= 32)) &&
- 80005dc:	79fb      	ldrb	r3, [r7, #7]
- 80005de:	2b1f      	cmp	r3, #31
- 80005e0:	d80c      	bhi.n	80005fc <sanityCheckField+0x30>
+ 8000656:	79fb      	ldrb	r3, [r7, #7]
+ 8000658:	2b1f      	cmp	r3, #31
+ 800065a:	d80c      	bhi.n	8000676 <sanityCheckField+0x30>
 	return (bitPosition < 32u) &&
- 80005e2:	79bb      	ldrb	r3, [r7, #6]
- 80005e4:	2b00      	cmp	r3, #0
- 80005e6:	d009      	beq.n	80005fc <sanityCheckField+0x30>
+ 800065c:	79bb      	ldrb	r3, [r7, #6]
+ 800065e:	2b00      	cmp	r3, #0
+ 8000660:	d009      	beq.n	8000676 <sanityCheckField+0x30>
 		   ((bitWidth > 0u) && (bitWidth <= 32)) &&
- 80005e8:	79bb      	ldrb	r3, [r7, #6]
- 80005ea:	2b20      	cmp	r3, #32
- 80005ec:	d806      	bhi.n	80005fc <sanityCheckField+0x30>
+ 8000662:	79bb      	ldrb	r3, [r7, #6]
+ 8000664:	2b20      	cmp	r3, #32
+ 8000666:	d806      	bhi.n	8000676 <sanityCheckField+0x30>
 		   ((bitPosition + bitWidth) <= 32u);
- 80005ee:	79fa      	ldrb	r2, [r7, #7]
- 80005f0:	79bb      	ldrb	r3, [r7, #6]
- 80005f2:	4413      	add	r3, r2
+ 8000668:	79fa      	ldrb	r2, [r7, #7]
+ 800066a:	79bb      	ldrb	r3, [r7, #6]
+ 800066c:	4413      	add	r3, r2
 		   ((bitWidth > 0u) && (bitWidth <= 32)) &&
- 80005f4:	2b20      	cmp	r3, #32
- 80005f6:	d801      	bhi.n	80005fc <sanityCheckField+0x30>
- 80005f8:	2301      	movs	r3, #1
- 80005fa:	e000      	b.n	80005fe <sanityCheckField+0x32>
- 80005fc:	2300      	movs	r3, #0
- 80005fe:	f003 0301 	and.w	r3, r3, #1
- 8000602:	b2db      	uxtb	r3, r3
+ 800066e:	2b20      	cmp	r3, #32
+ 8000670:	d801      	bhi.n	8000676 <sanityCheckField+0x30>
+ 8000672:	2301      	movs	r3, #1
+ 8000674:	e000      	b.n	8000678 <sanityCheckField+0x32>
+ 8000676:	2300      	movs	r3, #0
+ 8000678:	f003 0301 	and.w	r3, r3, #1
+ 800067c:	b2db      	uxtb	r3, r3
 }
- 8000604:	4618      	mov	r0, r3
- 8000606:	370c      	adds	r7, #12
- 8000608:	46bd      	mov	sp, r7
- 800060a:	f85d 7b04 	ldr.w	r7, [sp], #4
- 800060e:	4770      	bx	lr
+ 800067e:	4618      	mov	r0, r3
+ 8000680:	370c      	adds	r7, #12
+ 8000682:	46bd      	mov	sp, r7
+ 8000684:	f85d 7b04 	ldr.w	r7, [sp], #4
+ 8000688:	4770      	bx	lr
 
-08000610 <sanityCheckFieldValue>:
+0800068a <sanityCheckFieldValue>:
  *
  * @param	bitPosition		LSB index of the field (0-31)
  * @param	bitWidth		Width of the field in bits (>0)
  * @param	value			a 32-bit value fit in the bit field
  */
 bool sanityCheckFieldValue(uint8_t bitPosition, uint8_t bitWidth, uint32_t value){
- 8000610:	b580      	push	{r7, lr}
- 8000612:	b084      	sub	sp, #16
- 8000614:	af00      	add	r7, sp, #0
- 8000616:	4603      	mov	r3, r0
- 8000618:	603a      	str	r2, [r7, #0]
- 800061a:	71fb      	strb	r3, [r7, #7]
- 800061c:	460b      	mov	r3, r1
- 800061e:	71bb      	strb	r3, [r7, #6]
+ 800068a:	b580      	push	{r7, lr}
+ 800068c:	b084      	sub	sp, #16
+ 800068e:	af00      	add	r7, sp, #0
+ 8000690:	4603      	mov	r3, r0
+ 8000692:	603a      	str	r2, [r7, #0]
+ 8000694:	71fb      	strb	r3, [r7, #7]
+ 8000696:	460b      	mov	r3, r1
+ 8000698:	71bb      	strb	r3, [r7, #6]
 	if(!sanityCheckField(bitPosition, bitWidth)) return false;
- 8000620:	79ba      	ldrb	r2, [r7, #6]
- 8000622:	79fb      	ldrb	r3, [r7, #7]
- 8000624:	4611      	mov	r1, r2
- 8000626:	4618      	mov	r0, r3
- 8000628:	f7ff ffd0 	bl	80005cc <sanityCheckField>
- 800062c:	4603      	mov	r3, r0
- 800062e:	f083 0301 	eor.w	r3, r3, #1
- 8000632:	b2db      	uxtb	r3, r3
- 8000634:	2b00      	cmp	r3, #0
- 8000636:	d001      	beq.n	800063c <sanityCheckFieldValue+0x2c>
- 8000638:	2300      	movs	r3, #0
- 800063a:	e013      	b.n	8000664 <sanityCheckFieldValue+0x54>
+ 800069a:	79ba      	ldrb	r2, [r7, #6]
+ 800069c:	79fb      	ldrb	r3, [r7, #7]
+ 800069e:	4611      	mov	r1, r2
+ 80006a0:	4618      	mov	r0, r3
+ 80006a2:	f7ff ffd0 	bl	8000646 <sanityCheckField>
+ 80006a6:	4603      	mov	r3, r0
+ 80006a8:	f083 0301 	eor.w	r3, r3, #1
+ 80006ac:	b2db      	uxtb	r3, r3
+ 80006ae:	2b00      	cmp	r3, #0
+ 80006b0:	d001      	beq.n	80006b6 <sanityCheckFieldValue+0x2c>
+ 80006b2:	2300      	movs	r3, #0
+ 80006b4:	e013      	b.n	80006de <sanityCheckFieldValue+0x54>
 
 	if(bitWidth == 32u) return true;
- 800063c:	79bb      	ldrb	r3, [r7, #6]
- 800063e:	2b20      	cmp	r3, #32
- 8000640:	d101      	bne.n	8000646 <sanityCheckFieldValue+0x36>
- 8000642:	2301      	movs	r3, #1
- 8000644:	e00e      	b.n	8000664 <sanityCheckFieldValue+0x54>
+ 80006b6:	79bb      	ldrb	r3, [r7, #6]
+ 80006b8:	2b20      	cmp	r3, #32
+ 80006ba:	d101      	bne.n	80006c0 <sanityCheckFieldValue+0x36>
+ 80006bc:	2301      	movs	r3, #1
+ 80006be:	e00e      	b.n	80006de <sanityCheckFieldValue+0x54>
 
+	/* ~mask zeros valid bits and keeps invalid bits to 1
+	 * value & ~mask extract the only bits that should NOT be present*/
 	uint32_t mask = (1u << bitWidth) - 1u;
- 8000646:	79bb      	ldrb	r3, [r7, #6]
- 8000648:	2201      	movs	r2, #1
- 800064a:	fa02 f303 	lsl.w	r3, r2, r3
- 800064e:	3b01      	subs	r3, #1
- 8000650:	60fb      	str	r3, [r7, #12]
-	return (value & ~mask) == 0; //~mask zeros valid bits and keeps invalid bits to 1
- 8000652:	68fb      	ldr	r3, [r7, #12]
- 8000654:	43da      	mvns	r2, r3
- 8000656:	683b      	ldr	r3, [r7, #0]
- 8000658:	4013      	ands	r3, r2
- 800065a:	2b00      	cmp	r3, #0
- 800065c:	bf0c      	ite	eq
- 800065e:	2301      	moveq	r3, #1
- 8000660:	2300      	movne	r3, #0
- 8000662:	b2db      	uxtb	r3, r3
-	//value & ~mask extract the only bits that should NOT be present
+ 80006c0:	79bb      	ldrb	r3, [r7, #6]
+ 80006c2:	2201      	movs	r2, #1
+ 80006c4:	fa02 f303 	lsl.w	r3, r2, r3
+ 80006c8:	3b01      	subs	r3, #1
+ 80006ca:	60fb      	str	r3, [r7, #12]
+	if((value & ~mask) == 0u) return true;
+ 80006cc:	68fb      	ldr	r3, [r7, #12]
+ 80006ce:	43da      	mvns	r2, r3
+ 80006d0:	683b      	ldr	r3, [r7, #0]
+ 80006d2:	4013      	ands	r3, r2
+ 80006d4:	2b00      	cmp	r3, #0
+ 80006d6:	d101      	bne.n	80006dc <sanityCheckFieldValue+0x52>
+ 80006d8:	2301      	movs	r3, #1
+ 80006da:	e000      	b.n	80006de <sanityCheckFieldValue+0x54>
+	else return false;
+ 80006dc:	2300      	movs	r3, #0
 }
- 8000664:	4618      	mov	r0, r3
- 8000666:	3710      	adds	r7, #16
- 8000668:	46bd      	mov	sp, r7
- 800066a:	bd80      	pop	{r7, pc}
+ 80006de:	4618      	mov	r0, r3
+ 80006e0:	3710      	adds	r7, #16
+ 80006e2:	46bd      	mov	sp, r7
+ 80006e4:	bd80      	pop	{r7, pc}
 
-0800066c <getBitWidth>:
- * @param	bitPosition			LSB index of the field (0-31)
- *
- * @retval	>0	Width of the field in bits
- * 			0	Undefined, reserved, or unsupported
- */
-uint8_t getBitWidth(Peripheral_t whichPeripheral, uint8_t regID, uint8_t bitPosition){
- 800066c:	b480      	push	{r7}
- 800066e:	b085      	sub	sp, #20
- 8000670:	af00      	add	r7, sp, #0
- 8000672:	4603      	mov	r3, r0
- 8000674:	71fb      	strb	r3, [r7, #7]
- 8000676:	460b      	mov	r3, r1
- 8000678:	71bb      	strb	r3, [r7, #6]
- 800067a:	4613      	mov	r3, r2
- 800067c:	717b      	strb	r3, [r7, #5]
-	switch(whichPeripheral){
- 800067e:	79fb      	ldrb	r3, [r7, #7]
- 8000680:	2b01      	cmp	r3, #1
- 8000682:	d002      	beq.n	800068a <getBitWidth+0x1e>
- 8000684:	2b05      	cmp	r3, #5
- 8000686:	d072      	beq.n	800076e <getBitWidth+0x102>
- 8000688:	e0d8      	b.n	800083c <getBitWidth+0x1d0>
-		/* FLASH peripheral */
-		case PERIPH_FLASH:{
-			FLASH_Reg_t reg = (FLASH_Reg_t) regID;
- 800068a:	79bb      	ldrb	r3, [r7, #6]
- 800068c:	73bb      	strb	r3, [r7, #14]
-			if(reg >= FLASH_REG_COUNT) return 0;
- 800068e:	7bbb      	ldrb	r3, [r7, #14]
- 8000690:	2b05      	cmp	r3, #5
- 8000692:	d901      	bls.n	8000698 <getBitWidth+0x2c>
- 8000694:	2300      	movs	r3, #0
- 8000696:	e0d2      	b.n	800083e <getBitWidth+0x1d2>
-			switch(reg){
- 8000698:	7bbb      	ldrb	r3, [r7, #14]
- 800069a:	2b05      	cmp	r3, #5
- 800069c:	d865      	bhi.n	800076a <getBitWidth+0xfe>
- 800069e:	a201      	add	r2, pc, #4	@ (adr r2, 80006a4 <getBitWidth+0x38>)
- 80006a0:	f852 f023 	ldr.w	pc, [r2, r3, lsl #2]
- 80006a4:	080006bd 	.word	0x080006bd
- 80006a8:	080006db 	.word	0x080006db
- 80006ac:	080006db 	.word	0x080006db
- 80006b0:	080006e9 	.word	0x080006e9
- 80006b4:	080006ed 	.word	0x080006ed
- 80006b8:	08000727 	.word	0x08000727
-				case FLASH_ACR:
-					if(bitPosition == 0) return 3;
- 80006bc:	797b      	ldrb	r3, [r7, #5]
- 80006be:	2b00      	cmp	r3, #0
- 80006c0:	d101      	bne.n	80006c6 <getBitWidth+0x5a>
- 80006c2:	2303      	movs	r3, #3
- 80006c4:	e0bb      	b.n	800083e <getBitWidth+0x1d2>
-					if((bitPosition >= 8) && (bitPosition <= 12)) return 1;
- 80006c6:	797b      	ldrb	r3, [r7, #5]
- 80006c8:	2b07      	cmp	r3, #7
- 80006ca:	d904      	bls.n	80006d6 <getBitWidth+0x6a>
- 80006cc:	797b      	ldrb	r3, [r7, #5]
- 80006ce:	2b0c      	cmp	r3, #12
- 80006d0:	d801      	bhi.n	80006d6 <getBitWidth+0x6a>
- 80006d2:	2301      	movs	r3, #1
- 80006d4:	e0b3      	b.n	800083e <getBitWidth+0x1d2>
-					return 0;
- 80006d6:	2300      	movs	r3, #0
- 80006d8:	e0b1      	b.n	800083e <getBitWidth+0x1d2>
-
-				case FLASH_KEYR:
-				case FLASH_OPT_KEYR:
-					return (bitPosition == 0) ? 32 : 0;
- 80006da:	797b      	ldrb	r3, [r7, #5]
- 80006dc:	2b00      	cmp	r3, #0
- 80006de:	d101      	bne.n	80006e4 <getBitWidth+0x78>
- 80006e0:	2320      	movs	r3, #32
- 80006e2:	e0ac      	b.n	800083e <getBitWidth+0x1d2>
- 80006e4:	2300      	movs	r3, #0
- 80006e6:	e0aa      	b.n	800083e <getBitWidth+0x1d2>
-
-				case FLASH_SR: return 1;
- 80006e8:	2301      	movs	r3, #1
- 80006ea:	e0a8      	b.n	800083e <getBitWidth+0x1d2>
-
-				case FLASH_CR:
-					if((bitPosition <= 2) ||
- 80006ec:	797b      	ldrb	r3, [r7, #5]
- 80006ee:	2b02      	cmp	r3, #2
- 80006f0:	d90b      	bls.n	800070a <getBitWidth+0x9e>
- 80006f2:	797b      	ldrb	r3, [r7, #5]
- 80006f4:	2b10      	cmp	r3, #16
- 80006f6:	d008      	beq.n	800070a <getBitWidth+0x9e>
-					   (bitPosition == 16) ||
- 80006f8:	797b      	ldrb	r3, [r7, #5]
- 80006fa:	2b19      	cmp	r3, #25
- 80006fc:	d005      	beq.n	800070a <getBitWidth+0x9e>
-					   (bitPosition == 25) ||
- 80006fe:	797b      	ldrb	r3, [r7, #5]
- 8000700:	2b18      	cmp	r3, #24
- 8000702:	d002      	beq.n	800070a <getBitWidth+0x9e>
-					   (bitPosition == 24) ||
- 8000704:	797b      	ldrb	r3, [r7, #5]
- 8000706:	2b1f      	cmp	r3, #31
- 8000708:	d101      	bne.n	800070e <getBitWidth+0xa2>
-					   (bitPosition == 31)) return 1;
- 800070a:	2301      	movs	r3, #1
- 800070c:	e097      	b.n	800083e <getBitWidth+0x1d2>
-					if(bitPosition == 3) return 4;
- 800070e:	797b      	ldrb	r3, [r7, #5]
- 8000710:	2b03      	cmp	r3, #3
- 8000712:	d101      	bne.n	8000718 <getBitWidth+0xac>
- 8000714:	2304      	movs	r3, #4
- 8000716:	e092      	b.n	800083e <getBitWidth+0x1d2>
-					if(bitPosition == 8) return 2;
- 8000718:	797b      	ldrb	r3, [r7, #5]
- 800071a:	2b08      	cmp	r3, #8
- 800071c:	d101      	bne.n	8000722 <getBitWidth+0xb6>
- 800071e:	2302      	movs	r3, #2
- 8000720:	e08d      	b.n	800083e <getBitWidth+0x1d2>
-					return 0;
- 8000722:	2300      	movs	r3, #0
- 8000724:	e08b      	b.n	800083e <getBitWidth+0x1d2>
-
-				case FLASH_OPT_CR:
-					if(bitPosition == 2) return 2;
- 8000726:	797b      	ldrb	r3, [r7, #5]
- 8000728:	2b02      	cmp	r3, #2
- 800072a:	d101      	bne.n	8000730 <getBitWidth+0xc4>
- 800072c:	2302      	movs	r3, #2
- 800072e:	e086      	b.n	800083e <getBitWidth+0x1d2>
-					if(bitPosition == 8) return 8;
- 8000730:	797b      	ldrb	r3, [r7, #5]
- 8000732:	2b08      	cmp	r3, #8
- 8000734:	d101      	bne.n	800073a <getBitWidth+0xce>
- 8000736:	2308      	movs	r3, #8
- 8000738:	e081      	b.n	800083e <getBitWidth+0x1d2>
-					if(bitPosition == 16) return 12;
- 800073a:	797b      	ldrb	r3, [r7, #5]
- 800073c:	2b10      	cmp	r3, #16
- 800073e:	d101      	bne.n	8000744 <getBitWidth+0xd8>
- 8000740:	230c      	movs	r3, #12
- 8000742:	e07c      	b.n	800083e <getBitWidth+0x1d2>
-					if((bitPosition == 0) ||
- 8000744:	797b      	ldrb	r3, [r7, #5]
- 8000746:	2b00      	cmp	r3, #0
- 8000748:	d00b      	beq.n	8000762 <getBitWidth+0xf6>
- 800074a:	797b      	ldrb	r3, [r7, #5]
- 800074c:	2b01      	cmp	r3, #1
- 800074e:	d008      	beq.n	8000762 <getBitWidth+0xf6>
-					   (bitPosition == 1) ||
- 8000750:	797b      	ldrb	r3, [r7, #5]
- 8000752:	2b05      	cmp	r3, #5
- 8000754:	d005      	beq.n	8000762 <getBitWidth+0xf6>
-					   (bitPosition == 5) ||
- 8000756:	797b      	ldrb	r3, [r7, #5]
- 8000758:	2b06      	cmp	r3, #6
- 800075a:	d002      	beq.n	8000762 <getBitWidth+0xf6>
-					   (bitPosition == 6) ||
- 800075c:	797b      	ldrb	r3, [r7, #5]
- 800075e:	2b07      	cmp	r3, #7
- 8000760:	d101      	bne.n	8000766 <getBitWidth+0xfa>
-					   (bitPosition == 7)) return 1;
- 8000762:	2301      	movs	r3, #1
- 8000764:	e06b      	b.n	800083e <getBitWidth+0x1d2>
-					return 0;
- 8000766:	2300      	movs	r3, #0
- 8000768:	e069      	b.n	800083e <getBitWidth+0x1d2>
-
-				default: return 0;
- 800076a:	2300      	movs	r3, #0
- 800076c:	e067      	b.n	800083e <getBitWidth+0x1d2>
-				break;
-			}
-		}
-
-		case PERIPH_RCC:{
-			RCC_Reg_t reg = (RCC_Reg_t) regID;
- 800076e:	79bb      	ldrb	r3, [r7, #6]
- 8000770:	73fb      	strb	r3, [r7, #15]
-			switch(reg){
- 8000772:	7bfb      	ldrb	r3, [r7, #15]
- 8000774:	2b16      	cmp	r3, #22
- 8000776:	d85f      	bhi.n	8000838 <getBitWidth+0x1cc>
- 8000778:	a201      	add	r2, pc, #4	@ (adr r2, 8000780 <getBitWidth+0x114>)
- 800077a:	f852 f023 	ldr.w	pc, [r2, r3, lsl #2]
- 800077e:	bf00      	nop
- 8000780:	080007dd 	.word	0x080007dd
- 8000784:	080007e1 	.word	0x080007e1
- 8000788:	080007e5 	.word	0x080007e5
- 800078c:	080007e9 	.word	0x080007e9
- 8000790:	080007ed 	.word	0x080007ed
- 8000794:	080007f1 	.word	0x080007f1
- 8000798:	080007f5 	.word	0x080007f5
- 800079c:	080007f9 	.word	0x080007f9
- 80007a0:	080007fd 	.word	0x080007fd
- 80007a4:	08000801 	.word	0x08000801
- 80007a8:	08000805 	.word	0x08000805
- 80007ac:	08000809 	.word	0x08000809
- 80007b0:	0800080d 	.word	0x0800080d
- 80007b4:	08000811 	.word	0x08000811
- 80007b8:	08000815 	.word	0x08000815
- 80007bc:	08000819 	.word	0x08000819
- 80007c0:	0800081d 	.word	0x0800081d
- 80007c4:	08000821 	.word	0x08000821
- 80007c8:	08000825 	.word	0x08000825
- 80007cc:	08000829 	.word	0x08000829
- 80007d0:	0800082d 	.word	0x0800082d
- 80007d4:	08000831 	.word	0x08000831
- 80007d8:	08000835 	.word	0x08000835
-				case RCC_CR:
-
-					return 0;
- 80007dc:	2300      	movs	r3, #0
- 80007de:	e02e      	b.n	800083e <getBitWidth+0x1d2>
-
-				case RCC_PLL_CFGR:
-
-					return 0;
- 80007e0:	2300      	movs	r3, #0
- 80007e2:	e02c      	b.n	800083e <getBitWidth+0x1d2>
-
-				case RCC_CFGR:
-
-					return 0;
- 80007e4:	2300      	movs	r3, #0
- 80007e6:	e02a      	b.n	800083e <getBitWidth+0x1d2>
-
-				case RCC_CIR:
-
-					return 0;
- 80007e8:	2300      	movs	r3, #0
- 80007ea:	e028      	b.n	800083e <getBitWidth+0x1d2>
-
-				case RCC_AHB1_RSTR:
-
-					return 0;
- 80007ec:	2300      	movs	r3, #0
- 80007ee:	e026      	b.n	800083e <getBitWidth+0x1d2>
-
-				case RCC_AHB2_RSTR:
-
-					return 0;
- 80007f0:	2300      	movs	r3, #0
- 80007f2:	e024      	b.n	800083e <getBitWidth+0x1d2>
-
-				case RCC_AHB3_RSTR:
-
-					return 0;
- 80007f4:	2300      	movs	r3, #0
- 80007f6:	e022      	b.n	800083e <getBitWidth+0x1d2>
-
-				case RCC_APB1_RSTR:
-
-					return 0;
- 80007f8:	2300      	movs	r3, #0
- 80007fa:	e020      	b.n	800083e <getBitWidth+0x1d2>
-
-				case RCC_APB2_RSTR:
-
-					return 0;
- 80007fc:	2300      	movs	r3, #0
- 80007fe:	e01e      	b.n	800083e <getBitWidth+0x1d2>
-
-				case RCC_AHB1_ENR:
-
-					return 0;
- 8000800:	2300      	movs	r3, #0
- 8000802:	e01c      	b.n	800083e <getBitWidth+0x1d2>
-
-				case RCC_AHB2_ENR:
-
-					return 0;
- 8000804:	2300      	movs	r3, #0
- 8000806:	e01a      	b.n	800083e <getBitWidth+0x1d2>
-
-				case RCC_AHB3_ENR:
-
-					return 0;
- 8000808:	2300      	movs	r3, #0
- 800080a:	e018      	b.n	800083e <getBitWidth+0x1d2>
-
-				case RCC_APB1_ENR:
-
-					return 0;
- 800080c:	2300      	movs	r3, #0
- 800080e:	e016      	b.n	800083e <getBitWidth+0x1d2>
-
-				case RCC_APB2_ENR:
-
-					return 0;
- 8000810:	2300      	movs	r3, #0
- 8000812:	e014      	b.n	800083e <getBitWidth+0x1d2>
-
-				case RCC_AHB1_LP_ENR:
-
-					return 0;
- 8000814:	2300      	movs	r3, #0
- 8000816:	e012      	b.n	800083e <getBitWidth+0x1d2>
-
-				case RCC_AHB2_LP_ENR:
-
-					return 0;
- 8000818:	2300      	movs	r3, #0
- 800081a:	e010      	b.n	800083e <getBitWidth+0x1d2>
-
-				case RCC_AHB3_LP_ENR:
-
-					return 0;
- 800081c:	2300      	movs	r3, #0
- 800081e:	e00e      	b.n	800083e <getBitWidth+0x1d2>
-
-				case RCC_APB1_LP_ENR:
-
-					return 0;
- 8000820:	2300      	movs	r3, #0
- 8000822:	e00c      	b.n	800083e <getBitWidth+0x1d2>
-
-				case RCC_APB2_LP_ENR:
-
-					return 0;
- 8000824:	2300      	movs	r3, #0
- 8000826:	e00a      	b.n	800083e <getBitWidth+0x1d2>
-
-				case RCC_BDCR:
-
-					return 0;
- 8000828:	2300      	movs	r3, #0
- 800082a:	e008      	b.n	800083e <getBitWidth+0x1d2>
-
-				case RCC_CSR:
-
-					return 0;
- 800082c:	2300      	movs	r3, #0
- 800082e:	e006      	b.n	800083e <getBitWidth+0x1d2>
-
-				case RCC_SSCGR:
-
-					return 0;
- 8000830:	2300      	movs	r3, #0
- 8000832:	e004      	b.n	800083e <getBitWidth+0x1d2>
-
-				case RCC_PLL_I2S_CFGR:
-
-					return 0;
- 8000834:	2300      	movs	r3, #0
- 8000836:	e002      	b.n	800083e <getBitWidth+0x1d2>
-
-				default: return 0;
- 8000838:	2300      	movs	r3, #0
- 800083a:	e000      	b.n	800083e <getBitWidth+0x1d2>
-
-		case PERIPH_UART:{
-
-		}
-
-		default: return 0;
- 800083c:	2300      	movs	r3, #0
-	}
-}
- 800083e:	4618      	mov	r0, r3
- 8000840:	3714      	adds	r7, #20
- 8000842:	46bd      	mov	sp, r7
- 8000844:	f85d 7b04 	ldr.w	r7, [sp], #4
- 8000848:	4770      	bx	lr
- 800084a:	bf00      	nop
-
-0800084c <main>:
-#include "stm32f4xx_hal.h"
+080006e6 <main>:
 #include "BLong_cortex.h"
 #include "BLong.h"
+#include "flash.h"
 
 
 int main(void){
- 800084c:	b580      	push	{r7, lr}
- 800084e:	af00      	add	r7, sp, #0
-	BLong_init(); //This is a clone version of HAL_Init()
- 8000850:	f7ff fcba 	bl	80001c8 <BLong_init>
+ 80006e6:	b580      	push	{r7, lr}
+ 80006e8:	af00      	add	r7, sp, #0
+	FLASH_setLatency(_6_WS);
+ 80006ea:	2006      	movs	r0, #6
+ 80006ec:	f7ff ff1e 	bl	800052c <FLASH_setLatency>
+	FLASH_enablePrefetch();
+ 80006f0:	f7ff ff31 	bl	8000556 <FLASH_enablePrefetch>
+	FLASH_enableInstructionCache();
+ 80006f4:	f7ff ff4d 	bl	8000592 <FLASH_enableInstructionCache>
+	FLASH_enableDataCache();
+ 80006f8:	f7ff ff69 	bl	80005ce <FLASH_enableDataCache>
+
+	FLASH_disablePrefetch();
+ 80006fc:	f7ff ff3a 	bl	8000574 <FLASH_disablePrefetch>
+	FLASH_disableInstructionCache();
+ 8000700:	f7ff ff56 	bl	80005b0 <FLASH_disableInstructionCache>
+	FLASH_disableDataCache();
+ 8000704:	f7ff ff72 	bl	80005ec <FLASH_disableDataCache>
+
+	FLASH_resetInstructionCache();
+ 8000708:	f7ff ff7f 	bl	800060a <FLASH_resetInstructionCache>
+	FLASH_resetDataCache();
+ 800070c:	f7ff ff8c 	bl	8000628 <FLASH_resetDataCache>
+
+	FLASH_sectorErase(SECTOR_9);
+ 8000710:	2009      	movs	r0, #9
+ 8000712:	f7ff feb9 	bl	8000488 <FLASH_sectorErase>
 
 	while(1);
- 8000854:	bf00      	nop
- 8000856:	e7fd      	b.n	8000854 <main+0x8>
+ 8000716:	bf00      	nop
+ 8000718:	e7fd      	b.n	8000716 <main+0x30>
 
-08000858 <NMI_Handler>:
+0800071a <NMI_Handler>:
 /******************************************************************************/
 /**
   * @brief This function handles Non maskable interrupt.
   */
 void NMI_Handler(void)
 {
- 8000858:	b480      	push	{r7}
- 800085a:	af00      	add	r7, sp, #0
+ 800071a:	b480      	push	{r7}
+ 800071c:	af00      	add	r7, sp, #0
   /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
 
   /* USER CODE END NonMaskableInt_IRQn 0 */
   /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
    while (1)
- 800085c:	bf00      	nop
- 800085e:	e7fd      	b.n	800085c <NMI_Handler+0x4>
+ 800071e:	bf00      	nop
+ 8000720:	e7fd      	b.n	800071e <NMI_Handler+0x4>
 
-08000860 <HardFault_Handler>:
+08000722 <HardFault_Handler>:
 
 /**
   * @brief This function handles Hard fault interrupt.
   */
 void HardFault_Handler(void)
 {
- 8000860:	b480      	push	{r7}
- 8000862:	af00      	add	r7, sp, #0
+ 8000722:	b480      	push	{r7}
+ 8000724:	af00      	add	r7, sp, #0
   /* USER CODE BEGIN HardFault_IRQn 0 */
 
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
- 8000864:	bf00      	nop
- 8000866:	e7fd      	b.n	8000864 <HardFault_Handler+0x4>
+ 8000726:	bf00      	nop
+ 8000728:	e7fd      	b.n	8000726 <HardFault_Handler+0x4>
 
-08000868 <MemManage_Handler>:
+0800072a <MemManage_Handler>:
 
 /**
   * @brief This function handles Memory management fault.
   */
 void MemManage_Handler(void)
 {
- 8000868:	b480      	push	{r7}
- 800086a:	af00      	add	r7, sp, #0
+ 800072a:	b480      	push	{r7}
+ 800072c:	af00      	add	r7, sp, #0
   /* USER CODE BEGIN MemoryManagement_IRQn 0 */
 
   /* USER CODE END MemoryManagement_IRQn 0 */
   while (1)
- 800086c:	bf00      	nop
- 800086e:	e7fd      	b.n	800086c <MemManage_Handler+0x4>
+ 800072e:	bf00      	nop
+ 8000730:	e7fd      	b.n	800072e <MemManage_Handler+0x4>
 
-08000870 <BusFault_Handler>:
+08000732 <BusFault_Handler>:
 
 /**
   * @brief This function handles Pre-fetch fault, memory access fault.
   */
 void BusFault_Handler(void)
 {
- 8000870:	b480      	push	{r7}
- 8000872:	af00      	add	r7, sp, #0
+ 8000732:	b480      	push	{r7}
+ 8000734:	af00      	add	r7, sp, #0
   /* USER CODE BEGIN BusFault_IRQn 0 */
 
   /* USER CODE END BusFault_IRQn 0 */
   while (1)
- 8000874:	bf00      	nop
- 8000876:	e7fd      	b.n	8000874 <BusFault_Handler+0x4>
+ 8000736:	bf00      	nop
+ 8000738:	e7fd      	b.n	8000736 <BusFault_Handler+0x4>
 
-08000878 <UsageFault_Handler>:
+0800073a <UsageFault_Handler>:
 
 /**
   * @brief This function handles Undefined instruction or illegal state.
   */
 void UsageFault_Handler(void)
 {
- 8000878:	b480      	push	{r7}
- 800087a:	af00      	add	r7, sp, #0
+ 800073a:	b480      	push	{r7}
+ 800073c:	af00      	add	r7, sp, #0
   /* USER CODE BEGIN UsageFault_IRQn 0 */
 
   /* USER CODE END UsageFault_IRQn 0 */
   while (1)
- 800087c:	bf00      	nop
- 800087e:	e7fd      	b.n	800087c <UsageFault_Handler+0x4>
+ 800073e:	bf00      	nop
+ 8000740:	e7fd      	b.n	800073e <UsageFault_Handler+0x4>
 
-08000880 <SVC_Handler>:
+08000742 <SVC_Handler>:
 
 /**
   * @brief This function handles System service call via SWI instruction.
   */
 void SVC_Handler(void)
 {
- 8000880:	b480      	push	{r7}
- 8000882:	af00      	add	r7, sp, #0
+ 8000742:	b480      	push	{r7}
+ 8000744:	af00      	add	r7, sp, #0
 
   /* USER CODE END SVCall_IRQn 0 */
   /* USER CODE BEGIN SVCall_IRQn 1 */
 
   /* USER CODE END SVCall_IRQn 1 */
 }
- 8000884:	bf00      	nop
- 8000886:	46bd      	mov	sp, r7
- 8000888:	f85d 7b04 	ldr.w	r7, [sp], #4
- 800088c:	4770      	bx	lr
+ 8000746:	bf00      	nop
+ 8000748:	46bd      	mov	sp, r7
+ 800074a:	f85d 7b04 	ldr.w	r7, [sp], #4
+ 800074e:	4770      	bx	lr
 
-0800088e <DebugMon_Handler>:
+08000750 <DebugMon_Handler>:
 
 /**
   * @brief This function handles Debug monitor.
   */
 void DebugMon_Handler(void)
 {
- 800088e:	b480      	push	{r7}
- 8000890:	af00      	add	r7, sp, #0
+ 8000750:	b480      	push	{r7}
+ 8000752:	af00      	add	r7, sp, #0
 
   /* USER CODE END DebugMonitor_IRQn 0 */
   /* USER CODE BEGIN DebugMonitor_IRQn 1 */
 
   /* USER CODE END DebugMonitor_IRQn 1 */
 }
- 8000892:	bf00      	nop
- 8000894:	46bd      	mov	sp, r7
- 8000896:	f85d 7b04 	ldr.w	r7, [sp], #4
- 800089a:	4770      	bx	lr
+ 8000754:	bf00      	nop
+ 8000756:	46bd      	mov	sp, r7
+ 8000758:	f85d 7b04 	ldr.w	r7, [sp], #4
+ 800075c:	4770      	bx	lr
 
-0800089c <PendSV_Handler>:
+0800075e <PendSV_Handler>:
 
 /**
   * @brief This function handles Pendable request for system service.
   */
 void PendSV_Handler(void)
 {
- 800089c:	b480      	push	{r7}
- 800089e:	af00      	add	r7, sp, #0
+ 800075e:	b480      	push	{r7}
+ 8000760:	af00      	add	r7, sp, #0
 
   /* USER CODE END PendSV_IRQn 0 */
   /* USER CODE BEGIN PendSV_IRQn 1 */
 
   /* USER CODE END PendSV_IRQn 1 */
 }
- 80008a0:	bf00      	nop
- 80008a2:	46bd      	mov	sp, r7
- 80008a4:	f85d 7b04 	ldr.w	r7, [sp], #4
- 80008a8:	4770      	bx	lr
+ 8000762:	bf00      	nop
+ 8000764:	46bd      	mov	sp, r7
+ 8000766:	f85d 7b04 	ldr.w	r7, [sp], #4
+ 800076a:	4770      	bx	lr
 
-080008aa <SysTick_Handler>:
+0800076c <SysTick_Handler>:
 
 /**
   * @brief This function handles System tick timer.
   */
 void SysTick_Handler(void)
 {
- 80008aa:	b580      	push	{r7, lr}
- 80008ac:	af00      	add	r7, sp, #0
+ 800076c:	b580      	push	{r7, lr}
+ 800076e:	af00      	add	r7, sp, #0
   /* USER CODE BEGIN SysTick_IRQn 0 */
 
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
- 80008ae:	f000 f83f 	bl	8000930 <HAL_IncTick>
+ 8000770:	f000 f83e 	bl	80007f0 <HAL_IncTick>
   /* USER CODE BEGIN SysTick_IRQn 1 */
 
   /* USER CODE END SysTick_IRQn 1 */
 }
- 80008b2:	bf00      	nop
- 80008b4:	bd80      	pop	{r7, pc}
-	...
+ 8000774:	bf00      	nop
+ 8000776:	bd80      	pop	{r7, pc}
 
-080008b8 <SystemInit>:
+08000778 <SystemInit>:
   *         configuration.
   * @param  None
   * @retval None
   */
 void SystemInit(void)
 {
- 80008b8:	b480      	push	{r7}
- 80008ba:	af00      	add	r7, sp, #0
+ 8000778:	b480      	push	{r7}
+ 800077a:	af00      	add	r7, sp, #0
   /* FPU settings ------------------------------------------------------------*/
   #if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
     SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));  /* set CP10 and CP11 Full Access */
- 80008bc:	4b06      	ldr	r3, [pc, #24]	@ (80008d8 <SystemInit+0x20>)
- 80008be:	f8d3 3088 	ldr.w	r3, [r3, #136]	@ 0x88
- 80008c2:	4a05      	ldr	r2, [pc, #20]	@ (80008d8 <SystemInit+0x20>)
- 80008c4:	f443 0370 	orr.w	r3, r3, #15728640	@ 0xf00000
- 80008c8:	f8c2 3088 	str.w	r3, [r2, #136]	@ 0x88
+ 800077c:	4b06      	ldr	r3, [pc, #24]	@ (8000798 <SystemInit+0x20>)
+ 800077e:	f8d3 3088 	ldr.w	r3, [r3, #136]	@ 0x88
+ 8000782:	4a05      	ldr	r2, [pc, #20]	@ (8000798 <SystemInit+0x20>)
+ 8000784:	f443 0370 	orr.w	r3, r3, #15728640	@ 0xf00000
+ 8000788:	f8c2 3088 	str.w	r3, [r2, #136]	@ 0x88
 
   /* Configure the Vector Table location -------------------------------------*/
 #if defined(USER_VECT_TAB_ADDRESS)
   SCB->VTOR = VECT_TAB_BASE_ADDRESS | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal SRAM */
 #endif /* USER_VECT_TAB_ADDRESS */
 }
- 80008cc:	bf00      	nop
- 80008ce:	46bd      	mov	sp, r7
- 80008d0:	f85d 7b04 	ldr.w	r7, [sp], #4
- 80008d4:	4770      	bx	lr
- 80008d6:	bf00      	nop
- 80008d8:	e000ed00 	.word	0xe000ed00
+ 800078c:	bf00      	nop
+ 800078e:	46bd      	mov	sp, r7
+ 8000790:	f85d 7b04 	ldr.w	r7, [sp], #4
+ 8000794:	4770      	bx	lr
+ 8000796:	bf00      	nop
+ 8000798:	e000ed00 	.word	0xe000ed00
 
-080008dc <Reset_Handler>:
+0800079c <Reset_Handler>:
 
     .section  .text.Reset_Handler
   .weak  Reset_Handler
   .type  Reset_Handler, %function
 Reset_Handler:  
   ldr   sp, =_estack     /* set stack pointer */
- 80008dc:	f8df d034 	ldr.w	sp, [pc, #52]	@ 8000914 <LoopFillZerobss+0xe>
+ 800079c:	f8df d034 	ldr.w	sp, [pc, #52]	@ 80007d4 <LoopFillZerobss+0xe>
   
 /* Call the clock system initialization function.*/
   bl  SystemInit  
- 80008e0:	f7ff ffea 	bl	80008b8 <SystemInit>
+ 80007a0:	f7ff ffea 	bl	8000778 <SystemInit>
 
 /* Copy the data segment initializers from flash to SRAM */  
   ldr r0, =_sdata
- 80008e4:	480c      	ldr	r0, [pc, #48]	@ (8000918 <LoopFillZerobss+0x12>)
+ 80007a4:	480c      	ldr	r0, [pc, #48]	@ (80007d8 <LoopFillZerobss+0x12>)
   ldr r1, =_edata
- 80008e6:	490d      	ldr	r1, [pc, #52]	@ (800091c <LoopFillZerobss+0x16>)
+ 80007a6:	490d      	ldr	r1, [pc, #52]	@ (80007dc <LoopFillZerobss+0x16>)
   ldr r2, =_sidata
- 80008e8:	4a0d      	ldr	r2, [pc, #52]	@ (8000920 <LoopFillZerobss+0x1a>)
+ 80007a8:	4a0d      	ldr	r2, [pc, #52]	@ (80007e0 <LoopFillZerobss+0x1a>)
   movs r3, #0
- 80008ea:	2300      	movs	r3, #0
+ 80007aa:	2300      	movs	r3, #0
   b LoopCopyDataInit
- 80008ec:	e002      	b.n	80008f4 <LoopCopyDataInit>
+ 80007ac:	e002      	b.n	80007b4 <LoopCopyDataInit>
 
-080008ee <CopyDataInit>:
+080007ae <CopyDataInit>:
 
 CopyDataInit:
   ldr r4, [r2, r3]
- 80008ee:	58d4      	ldr	r4, [r2, r3]
+ 80007ae:	58d4      	ldr	r4, [r2, r3]
   str r4, [r0, r3]
- 80008f0:	50c4      	str	r4, [r0, r3]
+ 80007b0:	50c4      	str	r4, [r0, r3]
   adds r3, r3, #4
- 80008f2:	3304      	adds	r3, #4
+ 80007b2:	3304      	adds	r3, #4
 
-080008f4 <LoopCopyDataInit>:
+080007b4 <LoopCopyDataInit>:
 
 LoopCopyDataInit:
   adds r4, r0, r3
- 80008f4:	18c4      	adds	r4, r0, r3
+ 80007b4:	18c4      	adds	r4, r0, r3
   cmp r4, r1
- 80008f6:	428c      	cmp	r4, r1
+ 80007b6:	428c      	cmp	r4, r1
   bcc CopyDataInit
- 80008f8:	d3f9      	bcc.n	80008ee <CopyDataInit>
+ 80007b8:	d3f9      	bcc.n	80007ae <CopyDataInit>
   
 /* Zero fill the bss segment. */
   ldr r2, =_sbss
- 80008fa:	4a0a      	ldr	r2, [pc, #40]	@ (8000924 <LoopFillZerobss+0x1e>)
+ 80007ba:	4a0a      	ldr	r2, [pc, #40]	@ (80007e4 <LoopFillZerobss+0x1e>)
   ldr r4, =_ebss
- 80008fc:	4c0a      	ldr	r4, [pc, #40]	@ (8000928 <LoopFillZerobss+0x22>)
+ 80007bc:	4c0a      	ldr	r4, [pc, #40]	@ (80007e8 <LoopFillZerobss+0x22>)
   movs r3, #0
- 80008fe:	2300      	movs	r3, #0
+ 80007be:	2300      	movs	r3, #0
   b LoopFillZerobss
- 8000900:	e001      	b.n	8000906 <LoopFillZerobss>
+ 80007c0:	e001      	b.n	80007c6 <LoopFillZerobss>
 
-08000902 <FillZerobss>:
+080007c2 <FillZerobss>:
 
 FillZerobss:
   str  r3, [r2]
- 8000902:	6013      	str	r3, [r2, #0]
+ 80007c2:	6013      	str	r3, [r2, #0]
   adds r2, r2, #4
- 8000904:	3204      	adds	r2, #4
+ 80007c4:	3204      	adds	r2, #4
 
-08000906 <LoopFillZerobss>:
+080007c6 <LoopFillZerobss>:
 
 LoopFillZerobss:
   cmp r2, r4
- 8000906:	42a2      	cmp	r2, r4
+ 80007c6:	42a2      	cmp	r2, r4
   bcc FillZerobss
- 8000908:	d3fb      	bcc.n	8000902 <FillZerobss>
+ 80007c8:	d3fb      	bcc.n	80007c2 <FillZerobss>
  
 /* Call static constructors */
     bl __libc_init_array
- 800090a:	f000 f825 	bl	8000958 <__libc_init_array>
+ 80007ca:	f000 f825 	bl	8000818 <__libc_init_array>
 /* Call the application's entry point.*/
   bl  main
- 800090e:	f7ff ff9d 	bl	800084c <main>
+ 80007ce:	f7ff ff8a 	bl	80006e6 <main>
   bx  lr    
- 8000912:	4770      	bx	lr
+ 80007d2:	4770      	bx	lr
   ldr   sp, =_estack     /* set stack pointer */
- 8000914:	20020000 	.word	0x20020000
+ 80007d4:	20020000 	.word	0x20020000
   ldr r0, =_sdata
- 8000918:	20000000 	.word	0x20000000
+ 80007d8:	20000000 	.word	0x20000000
   ldr r1, =_edata
- 800091c:	20000008 	.word	0x20000008
+ 80007dc:	20000004 	.word	0x20000004
   ldr r2, =_sidata
- 8000920:	080009f0 	.word	0x080009f0
+ 80007e0:	080008b0 	.word	0x080008b0
   ldr r2, =_sbss
- 8000924:	20000008 	.word	0x20000008
+ 80007e4:	20000004 	.word	0x20000004
   ldr r4, =_ebss
- 8000928:	20000028 	.word	0x20000028
+ 80007e8:	20000024 	.word	0x20000024
 
-0800092c <ADC_IRQHandler>:
+080007ec <ADC_IRQHandler>:
  * @retval None       
 */
     .section  .text.Default_Handler,"ax",%progbits
 Default_Handler:
 Infinite_Loop:
   b  Infinite_Loop
- 800092c:	e7fe      	b.n	800092c <ADC_IRQHandler>
+ 80007ec:	e7fe      	b.n	80007ec <ADC_IRQHandler>
 	...
 
-08000930 <HAL_IncTick>:
+080007f0 <HAL_IncTick>:
  * @note This function is declared as __weak to be overwritten in case of other 
   *      implementations in user file.
   * @retval None
   */
 __weak void HAL_IncTick(void)
 {
- 8000930:	b480      	push	{r7}
- 8000932:	af00      	add	r7, sp, #0
+ 80007f0:	b480      	push	{r7}
+ 80007f2:	af00      	add	r7, sp, #0
   uwTick += uwTickFreq;
- 8000934:	4b06      	ldr	r3, [pc, #24]	@ (8000950 <HAL_IncTick+0x20>)
- 8000936:	781b      	ldrb	r3, [r3, #0]
- 8000938:	461a      	mov	r2, r3
- 800093a:	4b06      	ldr	r3, [pc, #24]	@ (8000954 <HAL_IncTick+0x24>)
- 800093c:	681b      	ldr	r3, [r3, #0]
- 800093e:	4413      	add	r3, r2
- 8000940:	4a04      	ldr	r2, [pc, #16]	@ (8000954 <HAL_IncTick+0x24>)
- 8000942:	6013      	str	r3, [r2, #0]
+ 80007f4:	4b06      	ldr	r3, [pc, #24]	@ (8000810 <HAL_IncTick+0x20>)
+ 80007f6:	781b      	ldrb	r3, [r3, #0]
+ 80007f8:	461a      	mov	r2, r3
+ 80007fa:	4b06      	ldr	r3, [pc, #24]	@ (8000814 <HAL_IncTick+0x24>)
+ 80007fc:	681b      	ldr	r3, [r3, #0]
+ 80007fe:	4413      	add	r3, r2
+ 8000800:	4a04      	ldr	r2, [pc, #16]	@ (8000814 <HAL_IncTick+0x24>)
+ 8000802:	6013      	str	r3, [r2, #0]
 }
- 8000944:	bf00      	nop
- 8000946:	46bd      	mov	sp, r7
- 8000948:	f85d 7b04 	ldr.w	r7, [sp], #4
- 800094c:	4770      	bx	lr
- 800094e:	bf00      	nop
- 8000950:	20000004 	.word	0x20000004
- 8000954:	20000024 	.word	0x20000024
+ 8000804:	bf00      	nop
+ 8000806:	46bd      	mov	sp, r7
+ 8000808:	f85d 7b04 	ldr.w	r7, [sp], #4
+ 800080c:	4770      	bx	lr
+ 800080e:	bf00      	nop
+ 8000810:	20000000 	.word	0x20000000
+ 8000814:	20000020 	.word	0x20000020
 
-08000958 <__libc_init_array>:
- 8000958:	b570      	push	{r4, r5, r6, lr}
- 800095a:	4d0d      	ldr	r5, [pc, #52]	@ (8000990 <__libc_init_array+0x38>)
- 800095c:	4c0d      	ldr	r4, [pc, #52]	@ (8000994 <__libc_init_array+0x3c>)
- 800095e:	1b64      	subs	r4, r4, r5
- 8000960:	10a4      	asrs	r4, r4, #2
- 8000962:	2600      	movs	r6, #0
- 8000964:	42a6      	cmp	r6, r4
- 8000966:	d109      	bne.n	800097c <__libc_init_array+0x24>
- 8000968:	4d0b      	ldr	r5, [pc, #44]	@ (8000998 <__libc_init_array+0x40>)
- 800096a:	4c0c      	ldr	r4, [pc, #48]	@ (800099c <__libc_init_array+0x44>)
- 800096c:	f000 f818 	bl	80009a0 <_init>
- 8000970:	1b64      	subs	r4, r4, r5
- 8000972:	10a4      	asrs	r4, r4, #2
- 8000974:	2600      	movs	r6, #0
- 8000976:	42a6      	cmp	r6, r4
- 8000978:	d105      	bne.n	8000986 <__libc_init_array+0x2e>
- 800097a:	bd70      	pop	{r4, r5, r6, pc}
- 800097c:	f855 3b04 	ldr.w	r3, [r5], #4
- 8000980:	4798      	blx	r3
- 8000982:	3601      	adds	r6, #1
- 8000984:	e7ee      	b.n	8000964 <__libc_init_array+0xc>
- 8000986:	f855 3b04 	ldr.w	r3, [r5], #4
- 800098a:	4798      	blx	r3
- 800098c:	3601      	adds	r6, #1
- 800098e:	e7f2      	b.n	8000976 <__libc_init_array+0x1e>
- 8000990:	080009e8 	.word	0x080009e8
- 8000994:	080009e8 	.word	0x080009e8
- 8000998:	080009e8 	.word	0x080009e8
- 800099c:	080009ec 	.word	0x080009ec
+08000818 <__libc_init_array>:
+ 8000818:	b570      	push	{r4, r5, r6, lr}
+ 800081a:	4d0d      	ldr	r5, [pc, #52]	@ (8000850 <__libc_init_array+0x38>)
+ 800081c:	4c0d      	ldr	r4, [pc, #52]	@ (8000854 <__libc_init_array+0x3c>)
+ 800081e:	1b64      	subs	r4, r4, r5
+ 8000820:	10a4      	asrs	r4, r4, #2
+ 8000822:	2600      	movs	r6, #0
+ 8000824:	42a6      	cmp	r6, r4
+ 8000826:	d109      	bne.n	800083c <__libc_init_array+0x24>
+ 8000828:	4d0b      	ldr	r5, [pc, #44]	@ (8000858 <__libc_init_array+0x40>)
+ 800082a:	4c0c      	ldr	r4, [pc, #48]	@ (800085c <__libc_init_array+0x44>)
+ 800082c:	f000 f818 	bl	8000860 <_init>
+ 8000830:	1b64      	subs	r4, r4, r5
+ 8000832:	10a4      	asrs	r4, r4, #2
+ 8000834:	2600      	movs	r6, #0
+ 8000836:	42a6      	cmp	r6, r4
+ 8000838:	d105      	bne.n	8000846 <__libc_init_array+0x2e>
+ 800083a:	bd70      	pop	{r4, r5, r6, pc}
+ 800083c:	f855 3b04 	ldr.w	r3, [r5], #4
+ 8000840:	4798      	blx	r3
+ 8000842:	3601      	adds	r6, #1
+ 8000844:	e7ee      	b.n	8000824 <__libc_init_array+0xc>
+ 8000846:	f855 3b04 	ldr.w	r3, [r5], #4
+ 800084a:	4798      	blx	r3
+ 800084c:	3601      	adds	r6, #1
+ 800084e:	e7f2      	b.n	8000836 <__libc_init_array+0x1e>
+ 8000850:	080008a8 	.word	0x080008a8
+ 8000854:	080008a8 	.word	0x080008a8
+ 8000858:	080008a8 	.word	0x080008a8
+ 800085c:	080008ac 	.word	0x080008ac
 
-080009a0 <_init>:
- 80009a0:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
- 80009a2:	bf00      	nop
- 80009a4:	bcf8      	pop	{r3, r4, r5, r6, r7}
- 80009a6:	bc08      	pop	{r3}
- 80009a8:	469e      	mov	lr, r3
- 80009aa:	4770      	bx	lr
+08000860 <_init>:
+ 8000860:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+ 8000862:	bf00      	nop
+ 8000864:	bcf8      	pop	{r3, r4, r5, r6, r7}
+ 8000866:	bc08      	pop	{r3}
+ 8000868:	469e      	mov	lr, r3
+ 800086a:	4770      	bx	lr
 
-080009ac <_fini>:
- 80009ac:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
- 80009ae:	bf00      	nop
- 80009b0:	bcf8      	pop	{r3, r4, r5, r6, r7}
- 80009b2:	bc08      	pop	{r3}
- 80009b4:	469e      	mov	lr, r3
- 80009b6:	4770      	bx	lr
+0800086c <_fini>:
+ 800086c:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+ 800086e:	bf00      	nop
+ 8000870:	bcf8      	pop	{r3, r4, r5, r6, r7}
+ 8000872:	bc08      	pop	{r3}
+ 8000874:	469e      	mov	lr, r3
+ 8000876:	4770      	bx	lr

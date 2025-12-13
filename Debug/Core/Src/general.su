@@ -1,3 +1,2 @@
 ../Core/Src/general.c:19:6:sanityCheckField	16	static
-../Core/Src/general.c:34:6:sanityCheckFieldValue	24	static
-../Core/Src/general.c:54:9:getBitWidth	24	static
+../Core/Src/general.c:35:6:sanityCheckFieldValue	24	static

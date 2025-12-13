@@ -1,3 +1,2 @@
 ../Core/Src/general.c:19:6:sanityCheckField	5
-../Core/Src/general.c:34:6:sanityCheckFieldValue	3
-../Core/Src/general.c:54:9:getBitWidth	51
+../Core/Src/general.c:35:6:sanityCheckFieldValue	4

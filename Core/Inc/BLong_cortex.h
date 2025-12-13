@@ -38,7 +38,7 @@ uint32_t BLong_NVIC_getActiveInterrupt(IRQn_t irqNumber);
 bool BLong_NVIC_setPriorityIRQ(IRQn_t irqNumber, uint32_t preemptPriority, uint32_t subPriority);
 void BLong_NVIC_getPriorityIRQ(NVIC_PriorityGroup_t priorityGroup, IRQn_t irqNumber, uint32_t* preemptPriority, uint32_t* subPriority);
 
-void BLon_NVIC_systemReset(void);
+void BLong_NVIC_systemReset(void);
 bool BLong_SysTickConfig(uint32_t ticks);
 
 void BLong_CORTEX_clearEvent(void);
