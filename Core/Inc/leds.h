@@ -26,8 +26,8 @@ typedef enum{
 }LED_Control_Status_t;
 
 /* Function Prototypes */
-void ledInit(LED_Color_t ledColor);
-void ledControl(LED_Control_Status_t state, LED_Color_t ledColor);
-void ledControlAlt(LED_Color_t ledColor);
+void Long_ledInit(LED_Color_t ledColor);
+void Long_ledControl(LED_Control_Status_t state, LED_Color_t ledColor);
+void Long_ledControlAlt(LED_Color_t ledColor);
 
 #endif /* INC_LEDS_H_ */

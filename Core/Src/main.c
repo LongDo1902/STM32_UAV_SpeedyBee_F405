@@ -26,6 +26,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "leds.h"
+#include "temperature.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -57,14 +58,6 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-
-/* @brief	MCU's temperature  */
-#define VOLTAGE_AT_25DEG	0.76f	//Sensor output voltage when the chip is at 25*C
-#define AVG_SLOPE			2.5f	//How much voltage changes for every 1*C change in temperature
-#define VREF				3300.0f	//System reference voltage 3V3
-#define ADC_MAX				4095.0f	//The maximum possible value of a 12-bit value can output
-
 
 /* USER CODE END 0 */
 
@@ -106,14 +99,16 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  Long_ADC_startADC1Int(&hadc1);
+
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  ledControlAlt(LED_BLUE);
+	  Long_ledControlAlt(LED_BLUE);
 	  HAL_Delay(300);
-	  ledControlAlt(LED_BLUE);
+	  Long_ledControlAlt(LED_BLUE);
 	  HAL_Delay(200);
   }
   /* USER CODE END 3 */

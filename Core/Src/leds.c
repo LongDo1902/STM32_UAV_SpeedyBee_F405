@@ -10,7 +10,7 @@
 /*
  * @brief	Initialize LED GPIOs
  */
-void ledInit(LED_Color_t ledColor){
+void Long_ledInit(LED_Color_t ledColor){
 	/* Enable HAL RCC Clock for GPIOC */
 	__HAL_RCC_GPIOC_CLK_ENABLE();
 
@@ -29,7 +29,7 @@ void ledInit(LED_Color_t ledColor){
 /*
  * @brief	Control the specific LED state
  */
-void ledControl(LED_Control_Status_t state, LED_Color_t ledColor){
+void Long_ledControl(LED_Control_Status_t state, LED_Color_t ledColor){
 	/* LED_BLUE / PC13 is an active LOW LED so led state is flipped */
 	HAL_GPIO_WritePin(LED_GPIO_PORT, ledColor, !(GPIO_PinState)state);
 }
@@ -38,7 +38,7 @@ void ledControl(LED_Control_Status_t state, LED_Color_t ledColor){
 /*
  * @brief	Alternative controlling LED state
  */
-void ledControlAlt(LED_Color_t ledColor){
+void Long_ledControlAlt(LED_Color_t ledColor){
 	HAL_GPIO_TogglePin(LED_GPIO_PORT, ledColor);
 }
 
