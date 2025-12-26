@@ -66,9 +66,6 @@ float Long_ADC_getSTM32Temperature(){
 }
 
 
-s
-
-
 
 
 
