@@ -846,18 +846,19 @@ int main(void)
 	  Long_ledControlAlt(LED_BLUE);
  8000796:	f44f 5000 	mov.w	r0, #8192	@ 0x2000
  800079a:	f7ff ffdb 	bl	8000754 <Long_ledControlAlt>
-	  HAL_Delay(300);
- 800079e:	f44f 7096 	mov.w	r0, #300	@ 0x12c
- 80007a2:	f000 faff 	bl	8000da4 <HAL_Delay>
+	  HAL_Delay(100);
+ 800079e:	2064      	movs	r0, #100	@ 0x64
+ 80007a0:	f000 fb00 	bl	8000da4 <HAL_Delay>
 	  Long_ledControlAlt(LED_BLUE);
- 80007a6:	f44f 5000 	mov.w	r0, #8192	@ 0x2000
- 80007aa:	f7ff ffd3 	bl	8000754 <Long_ledControlAlt>
-	  HAL_Delay(200);
- 80007ae:	20c8      	movs	r0, #200	@ 0xc8
- 80007b0:	f000 faf8 	bl	8000da4 <HAL_Delay>
+ 80007a4:	f44f 5000 	mov.w	r0, #8192	@ 0x2000
+ 80007a8:	f7ff ffd4 	bl	8000754 <Long_ledControlAlt>
+	  HAL_Delay(100);
+ 80007ac:	2064      	movs	r0, #100	@ 0x64
+ 80007ae:	f000 faf9 	bl	8000da4 <HAL_Delay>
 	  Long_ledControlAlt(LED_BLUE);
- 80007b4:	bf00      	nop
- 80007b6:	e7ee      	b.n	8000796 <main+0x22>
+ 80007b2:	bf00      	nop
+ 80007b4:	e7ef      	b.n	8000796 <main+0x22>
+ 80007b6:	bf00      	nop
  80007b8:	20000028 	.word	0x20000028
 
 080007bc <SystemClock_Config>:

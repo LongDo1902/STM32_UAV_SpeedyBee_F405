@@ -107,9 +107,9 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  Long_ledControlAlt(LED_BLUE);
-	  HAL_Delay(300);
+	  HAL_Delay(100);
 	  Long_ledControlAlt(LED_BLUE);
-	  HAL_Delay(200);
+	  HAL_Delay(100);
   }
   /* USER CODE END 3 */
 }
