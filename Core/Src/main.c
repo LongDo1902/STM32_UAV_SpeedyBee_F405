@@ -94,12 +94,11 @@ int main(void)
   MX_SPI1_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
-
+  Long_ADC_startADC1Int(&hadc1);	//Start reading STM32's temperature using interrupt
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  Long_ADC_startADC1Int(&hadc1);
 
   while (1)
   {

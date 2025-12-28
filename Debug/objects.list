@@ -1,7 +1,7 @@
 "./Core/Src/adc.o"
 "./Core/Src/dma.o"
 "./Core/Src/gpio.o"
-"./Core/Src/icm42688p.o"
+"./Core/Src/icm42688.o"
 "./Core/Src/leds.o"
 "./Core/Src/main.o"
 "./Core/Src/spi.o"
