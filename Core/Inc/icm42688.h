@@ -13,10 +13,10 @@
 
 /*
  * =============================================================
- * 						ICM42688-P Macros
+ * 						ICM42688-P MACROS
  * =============================================================
  */
-#define ICM42688_VDD				1800U	//In mVs
+#define ICM42688_VDD				1800U	//In mV
 
 /* Frequencies are declared in Hz */
 #define ICM42688_SPI_MAX_CLKFREQ	24000000U
@@ -25,10 +25,13 @@
 #define ICM42688_TYP_RTC_FREQ		32000U
 #define ICM42688_MIN_RTC_FREQ		31000U
 
+/* Other Defines */
+#define ICM42688_SENSITIVITY_SCALE_FACTOR	32768.0f
+
 
 /*
  * ============================================================================
- * 								Gyroscope Defines
+ * 								GYROSCOPE DEFINES
  * ============================================================================
  */
 typedef enum{
@@ -57,7 +60,7 @@ typedef enum{
 	GYRO_FSR_125dps		= (uint8_t)0x04,
 	GYRO_FSR_65dps5		= (uint8_t)0x05,
 	GYRO_FSR_31dps25	= (uint8_t)0x06,
-	GYRO_FSR_16dps625	= (uint8_t)0x07
+	GYRO_FSR_15dps625	= (uint8_t)0x07
 }ICM42688_GyroFSR_t;
 
 typedef enum{
@@ -80,7 +83,7 @@ typedef enum{
 
 /*
  * ============================================================================
- * 								Accelerometer Defines
+ * 								ACCELOROMETER DEFINES
  * ============================================================================
  */
 typedef enum{
@@ -136,6 +139,23 @@ typedef struct{
 	float gyro_lsb_to_dps;		//Stores "What is the math multiplier for this setup?"
 	float accel_lsb_to_dps;		//Stores...
 }ICM42688_Handle_t;
+
+
+/*
+ * ===================================================================================
+ *							ICM42688 REGISTER MAP ADDRs
+ * ===================================================================================
+ */
+/* User Bank 0 (UB0) */
+#define ICM42688_UB0_DEVICE_CONF		0x11U
+#define ICM42688_UB0_DRIVE_CONF			0x13U
+#define ICM42688_UB0_INT_CONF			0x14U
+#define ICM42688_UB0_FIFO_CONF			0x16U
+#define ICM42688_UB0_TEMP_DATA1			0x1DU
+#define ICM42688_UB0_TEMP_DATA2			0x1EU
+#define ICM42688_UB0_ACCEL_DATA_X1		0x1FU
+
+
 
 
 #endif /* INC_ICM42688_H_ */
