@@ -1,1 +1,6 @@
-../Core/Src/icm42688.c:10:6:ICM42688_Init	1
+../Core/Src/icm42688.c:31:20:ICM42688_CS_Low	1
+../Core/Src/icm42688.c:36:20:ICM42688_CS_High	1
+../Core/Src/icm42688.c:53:19:ICM42688_WriteReg	4
+../Core/Src/icm42688.c:82:19:ICM42688_ReadReg	5
+../Core/Src/icm42688.c:105:19:ICM42688_ReadRegs	7
+../Core/Src/icm42688.c:129:6:ICM42688_Init	4

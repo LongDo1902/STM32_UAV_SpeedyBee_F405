@@ -1,1 +1,6 @@
-../Core/Src/icm42688.c:10:6:ICM42688_Init	80	static
+../Core/Src/icm42688.c:31:20:ICM42688_CS_Low	16	static
+../Core/Src/icm42688.c:36:20:ICM42688_CS_High	16	static
+../Core/Src/icm42688.c:53:19:ICM42688_WriteReg	24	static
+../Core/Src/icm42688.c:82:19:ICM42688_ReadReg	32	static
+../Core/Src/icm42688.c:105:19:ICM42688_ReadRegs	32	static
+../Core/Src/icm42688.c:129:6:ICM42688_Init	24	static
