@@ -1,4 +1,5 @@
 "./Core/Src/adc.o"
+"./Core/Src/board_imu.o"
 "./Core/Src/dma.o"
 "./Core/Src/gpio.o"
 "./Core/Src/icm42688.o"

@@ -2,5 +2,8 @@
 ../Core/Src/icm42688.c:36:20:ICM42688_CS_High	16	static
 ../Core/Src/icm42688.c:53:19:ICM42688_WriteReg	24	static
 ../Core/Src/icm42688.c:82:19:ICM42688_ReadReg	32	static
-../Core/Src/icm42688.c:105:19:ICM42688_ReadRegs	32	static
-../Core/Src/icm42688.c:129:6:ICM42688_Init	24	static
+../Core/Src/icm42688.c:109:19:ICM42688_ReadRegs	32	static
+../Core/Src/icm42688.c:136:19:ICM42688_IsAlive	24	static
+../Core/Src/icm42688.c:150:20:ICM42688_GetRegBank	24	static
+../Core/Src/icm42688.c:166:19:ICM42688_RegBankSel	24	static
+../Core/Src/icm42688.c:184:6:ICM42688_Init	24	static

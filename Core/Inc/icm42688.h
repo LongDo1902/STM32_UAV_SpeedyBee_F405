@@ -12,6 +12,7 @@
 #include <stdint.h>
 
 #include "stm32f4xx_hal.h"
+#include "spi.h"
 
 /*
  * =============================================================
@@ -32,6 +33,22 @@
 #define ICM42688_SPI_TIMEOUT_MS				10U		//10ms
 #define ICM42688_SPI_ADDR_MASK				0x7FU
 #define ICM42688_SPI_READ_BIT				0x80U
+#define ICM42688_WHO_AM_I_DEFAULT			0x47U
+
+
+typedef enum{
+	ICM42688_ERROR,
+	ICM42688_OK,
+	ICM42688_TIMEOUT
+}ICM42688_Status_t;
+
+typedef enum{
+	REG_BANK_0 = 0x00U,
+	REG_BANK_1 = 0x01U,
+	REG_BANK_2 = 0x02U,
+	REG_BANK_3 = 0x03U,
+	REG_BANK_4 = 0x04U
+}ICM42688_RegBank_t;
 
 
 /*
@@ -140,7 +157,6 @@ typedef struct{
 }ICM42688_Config_t;
 
 typedef struct{
-	ICM42688_Config_t	config;				//Stores "How is the sensor setup?"
 	float 				gyro_lsb_to_dps;	//Stores "What is the math multiplier for this setup?"
 	float 				accel_lsb_to_g;		//Stores...
 
@@ -148,8 +164,18 @@ typedef struct{
 	GPIO_TypeDef 		*cs_port;
 	uint16_t			cs_pin;
 
-	uint8_t 			regBank;
+	ICM42688_RegBank_t	regBank;
 }ICM42688_Handle_t;
+
+
+/*
+ * ===================================================================================
+ *							ICM42688 MASKS
+ * ===================================================================================
+ */
+#define ICM42688_DEV_CONF_SOFT_RESET_Pos		0U
+#define ICM42688_DEV_CONF_SOFT_RESET_Msk		(1U << ICM42688_SOFT_RESET_Pos)
+
 
 
 /*
@@ -321,7 +347,8 @@ HAL_StatusTypeDef ICM42688_WriteReg(ICM42688_Handle_t *handle, uint8_t regAddr, 
 HAL_StatusTypeDef ICM42688_ReadReg(ICM42688_Handle_t* handle, uint8_t regAddr, uint8_t* outVal);
 HAL_StatusTypeDef ICM42688_ReadRegs(ICM42688_Handle_t* handle, uint8_t startRegAddr, uint8_t* buf, uint16_t bufLength);
 
-void ICM42688_Init(ICM42688_Handle_t *handle, ICM42688_Config_t config);
+HAL_StatusTypeDef ICM42688_IsAlive(ICM42688_Handle_t* handle);
+void ICM42688_Init(ICM42688_Handle_t* handle, ICM42688_Config_t config);
 
 #endif /* INC_ICM42688_H_ */
 

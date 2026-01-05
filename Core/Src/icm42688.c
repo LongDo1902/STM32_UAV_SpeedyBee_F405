@@ -130,28 +130,90 @@ HAL_StatusTypeDef ICM42688_ReadRegs(ICM42688_Handle_t* handle, uint8_t startRegA
  * 						  PUBLIC APIs
  * ============================================================
  */
-void ICM42688_Init(ICM42688_Handle_t *handle, ICM42688_Config_t config){
+/*
+ * @brief	A Verification Function that check if ICM42688 sensor is active
+ */
+HAL_StatusTypeDef ICM42688_IsAlive(ICM42688_Handle_t* handle){
+	if(!handle) return HAL_ERROR;
+
+	uint8_t who = 0U;
+	HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB0_WHO_AM_I, &who);
+	if(status == HAL_ERROR) return status;
+
+	return (who == ICM42688_WHO_AM_I_DEFAULT) ? HAL_OK : HAL_ERROR;
+}
+
+
+/*
+ * @brief	Extract the current setting of register bank
+ */
+ICM42688_RegBank_t ICM42688_GetRegBank(ICM42688_Handle_t* handle){
+	if(!handle) return REG_BANK_0;
+
+	uint8_t curRegBank = 0U;
+	if(ICM42688_ReadReg(handle, ICM42688_UB0_REG_BANK_SEL, &curRegBank) != HAL_OK){
+		/* If reading is fail, fall back to cached value */
+		return(ICM42688_RegBank_t)handle -> regBank;
+	}
+	curRegBank = curRegBank & 0x07U;
+	return (ICM42688_RegBank_t)curRegBank;
+}
+
+
+/*
+ * @brief	select/Modify Register Bank
+ */
+HAL_StatusTypeDef ICM42688_RegBankSel(ICM42688_Handle_t* handle, ICM42688_RegBank_t userRegBank){
+	if(!handle) return HAL_ERROR;
+
+	/* Fast path: if the user enter the same as cached regBank value, skip reading the chip */
+	if((uint8_t)(handle -> regBank) == (uint8_t)userRegBank) return HAL_OK;
+
+	HAL_StatusTypeDef status = ICM42688_WriteReg(handle, ICM42688_UB0_REG_BANK_SEL, (uint8_t)userRegBank);
+	if(status == HAL_OK){
+		/* If write is succeed, update cached register bank */
+		handle -> regBank = (ICM42688_RegBank_t)userRegBank;
+	}
+	return status;
+}
+
+
+/*
+ * @brief	Software reset ICM42688
+ * @note	After triggering soft reset, wait 1ms for it to be effective
+ */
+HAL_StatusTypeDef ICM42688_SoftReset(ICM42688_Handle_t* handle){
+	if(!handle) return HAL_ERROR;
+
+	HAL_StatusTypeDef status = ICM42688_WriteReg(handle, ICM42688_UB0_DEVICE_CONF, ICM42688_DEV_CONF_SOFT_RESET_Msk);
+	if(status != HAL_OK) return HAL_ERROR;
+
+	/* Wait >= 1ms after reset */
+	HAL_Delay(2);
+
+	/* After reset, register bank is 0 */
+	handle -> regBank = REG_BANK_0;
+
+	return HAL_OK;
+}
+
+
+/*
+ * @brief
+ */
+void ICM42688_Init(ICM42688_Handle_t* handle, ICM42688_Config_t config){
 	/* Sanity Checks */
 	if(!handle) return;
 	if((config.gyro_fsr > GYRO_FSR_15dps625) || (config.accel_fsr > ACCEL_FSR_2g)) return;
-
-	/* Save the config into "handle" */
-	handle -> config = config;
 
 	/* Precalculate sensitivity multiplier of Gyro and Accel
 	 * Formula:	MAX FSR / 32768.0 */
 	handle -> gyro_lsb_to_dps 	= (float)(gyro_FSR_value[config.gyro_fsr] / ICM42688_SENSITIVITY_SCALE_FACTOR);
 	handle -> accel_lsb_to_g 	= (float)(accel_FSR_value[config.accel_fsr] / ICM42688_SENSITIVITY_SCALE_FACTOR);
+
+	/* Register Bank Selection */
+	(void)ICM42688_RegBankSel(handle, handle -> regBank);
 }
-
-
-
-
-
-
-
-
-
 
 
 
