@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "stm32f4xx_hal.h"
 #include "spi.h"
@@ -30,25 +31,10 @@
 
 /* Other Defines */
 #define ICM42688_SENSITIVITY_SCALE_FACTOR	32768.0f
-#define ICM42688_SPI_TIMEOUT_MS				10U		//10ms
+#define ICM42688_SPI_TIMEOUT_MS				20U		//10ms
 #define ICM42688_SPI_ADDR_MASK				0x7FU
 #define ICM42688_SPI_READ_BIT				0x80U
 #define ICM42688_WHO_AM_I_DEFAULT			0x47U
-
-
-typedef enum{
-	ICM42688_ERROR,
-	ICM42688_OK,
-	ICM42688_TIMEOUT
-}ICM42688_Status_t;
-
-typedef enum{
-	REG_BANK_0 = 0x00U,
-	REG_BANK_1 = 0x01U,
-	REG_BANK_2 = 0x02U,
-	REG_BANK_3 = 0x03U,
-	REG_BANK_4 = 0x04U
-}ICM42688_RegBank_t;
 
 
 /*
@@ -103,6 +89,13 @@ typedef enum{
 }ICM42688_GyroUIFiltOrder_t;
 
 
+typedef enum{
+	GYRO_OFF		= (uint8_t)0x00,
+	GYRO_STANDBY	= (uint8_t)0x01,
+	GYRO_LOW_NOISE	= (uint8_t)0x03
+}ICM42688_GyroMode_t;
+
+
 /*
  * ============================================================================
  * 								ACCELOROMETER DEFINES
@@ -139,33 +132,90 @@ typedef enum{
 	ACCEL_THIRD_ORDER	= (uint8_t)0x02
 }ICM42688_AccelUIFiltOrder_t;
 
+typedef enum{
+	ACCEL_OFF	= (uint8_t)0x00U,
+
+};
+
 
 /*
- * ===============================================================================
- * 				STRUCT HOLDS EVERY DEFINED CHARACTERISTICS OF ICM42688P
- * ===============================================================================
+ * ============================================================================
+ * 							REGISTER BANK 0 ENUMS
+ * ============================================================================
  */
-typedef struct{
-	ICM42688_GyroODR_t 			gyro_odr;
-	ICM42688_GyroFSR_t			gyro_fsr;
-	ICM42688_GyroNotch_t		gyro_notch;
-	ICM42688_GyroUIFiltOrder_t	gyro_filt_order;
+/* DEVICE_CONFIG Defines */
+typedef enum{
+	SPI_MODE_0_3 = 0U,
+	SPI_MODE_1_2 = 1U
+}ICM42688_SPI_Mode_t;
 
-	ICM42688_AccelODR_t			accel_odr;
-	ICM42688_AccelFSR_t			accel_fsr;
-	ICM42688_AccelUIFiltOrder_t	accel_filt_order;
-}ICM42688_Config_t;
 
-typedef struct{
-	float 				gyro_lsb_to_dps;	//Stores "What is the math multiplier for this setup?"
-	float 				accel_lsb_to_g;		//Stores...
+/* DRIVE_CONFIG Defines */
+typedef enum{
+	SPI_SR_20NS_60NS	= 0x00U,
+	SPI_SR_12NS_36NS	= 0x01U,
+	SPI_SR_6NS_18NS		= 0x02U,
+	SPI_SR_4NS_12NS		= 0x03U,
+	SPI_SR_2NS_6NS		= 0x04U,
+	SPI_SR_2NS			= 0x05U, //Less than 2ns
+}ICM42688_SPI_SLEWRATE_t;
 
-	SPI_HandleTypeDef 	*hspi;
-	GPIO_TypeDef 		*cs_port;
-	uint16_t			cs_pin;
+typedef enum{
+	I2C_SR_20NS_60NS	= 0x00U,
+	I2C_SR_12NS_36NS	= 0x01U,
+	I2C_SR_6NS_18NS		= 0x02U,
+	I2C_SR_4NS_12NS		= 0x03U,
+	I2C_SR_2NS_6NS		= 0x04U,
+	I2C_SR_2NS			= 0X05U	//Less than 2ns
+}ICM42688_I2C_SLEWRATE_t;
 
-	ICM42688_RegBank_t	regBank;
-}ICM42688_Handle_t;
+
+/* INT_CONFIG Defines */
+typedef enum{
+	INT_ACTIVE_LOW 	= 0U,
+	INT_ACTIVE_HIGH	= 1U
+}ICM42688_Int_Polarity_t;
+
+typedef enum{
+	INT_OPEN_DRAIN	= 0U,
+	INT_PUSH_PULL 	= 1U
+}ICM42688_Int_Drive_Circuit_t;
+
+typedef enum{
+	INT_PUSHED		= 0U,
+	INT_LATCHED		= 1U
+}ICM42688_Int_Mode_t;
+
+
+/* FIFO_CONFIG Defines */
+typedef enum{
+	BYPASS			= 0x00U,
+	STREAM_TO_FIFO	= 0x01U,
+	STOP_ON_FULL	= 0x02U
+}ICM42688_FIFO_MODE_t;
+
+
+/* REG_BANK_SEL Defines */
+typedef enum{
+	REG_BANK_0 = 0x00U,
+	REG_BANK_1 = 0x01U,
+	REG_BANK_2 = 0x02U,
+	REG_BANK_3 = 0x03U,
+	REG_BANK_4 = 0x04U
+}ICM42688_RegBank_t;
+
+
+/*
+ * ============================================================================
+ * 							REGISTER BANK 1 ENUMS
+ * ============================================================================
+ */
+/* SENSOR_CONFIG0
+ * Common options for enabling both Gyro and Accel */
+typedef enum{
+	_ENABLE		= 0U,
+	_DISABLE	= 1U
+}ICM42688_XYZ_Enable_t;
 
 
 /*
@@ -173,9 +223,82 @@ typedef struct{
  *							ICM42688 MASKS
  * ===================================================================================
  */
-#define ICM42688_DEV_CONF_SOFT_RESET_Pos		0U
-#define ICM42688_DEV_CONF_SOFT_RESET_Msk		(1U << ICM42688_SOFT_RESET_Pos)
+/* Generic Helpers */
+#define ICM42688_BIT(pos)					(1U << (pos))
+#define	ICM42688_FIELD_MSK(pos, width)		(((1U << (width)) - 1U) << (pos))
+#define ICM42688_FIELD_VAL(val, pos, msk)	((uint8_t)((val << pos) & msk))
 
+
+/* DEVICE_CONFIG Fields */
+#define ICM42688_DEVICE_CONFIG_SOFT_RESET_Pos		0U
+#define ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk		ICM42688_BIT(ICM42688_DEVICE_CONFIG_SOFT_RESET_Pos)
+
+#define	ICM42688_DEVICE_CONFIG_SPI_MODE_Pos			4U
+#define	ICM42688_DEVICE_CONFIG_SPI_MODE_Msk			ICM42688_BIT(ICM42688_DEVICE_CONFIG_SPI_MODE_Pos)
+#define ICM42688_DEVICE_CONFIG_SPI_MODE_Val(val)	ICM42688_FIELD_VAL((val), ICM42688_DEVICE_CONFIG_SPI_MODE_Pos, ICM42688_DEVICE_CONFIG_SPI_MODE_Msk)
+
+/* DRIVE_CONFIG Fields */
+#define ICM42688_DRIVE_CONFIG_SPI_SR_Pos		0U
+#define ICM42688_DRIVE_CONFIG_SPI_SR_Msk		ICM42688_FIELD_MSK(ICM42688_DRIVE_CONFIG_SPI_SR_Pos, 3U)
+#define ICM42688_DRIVE_CONFIG_SPI_SR_Val(val)	ICM42688_FIELD_VAL(val, ICM42688_DRIVE_CONFIG_SPI_SR_Pos, ICM42688_DRIVE_CONFIG_SPI_SR_Msk)
+
+#define ICM42688_DRIVE_CONFIG_I2C_SR_Pos		3U
+#define ICM42688_DRIVE_CONFIG_I2C_SR_Msk		ICM42688_FIELD_MSK(ICM42688_DRIVE_CONFIG_I2C_SR_Pos, 3U)
+#define ICM42688_DRIVE_CONFIG_I2C_SR_Val(val)	ICM42688_FIELD_VAL(val, ICM42688_DRIVE_CONFIG_I2C_SR_Pos, ICM42688_DRIVE_CONFIG_I2C_SR_Msk)
+
+/* INT_CONFIG Fields */
+#define ICM42688_INT1_POL_Pos			0U
+#define ICM42688_INT1_POL_Msk			ICM42688_BIT(ICM42688_INT1_POL_Pos)
+#define ICM42688_INT1_POL_Val(val)		ICM42688_FIELD_VAL(val, ICM42688_INT1_POL_Pos, ICM42688_INT1_POL_Msk)
+
+#define ICM42688_INT1_DRIVE_Pos			1U
+#define ICM42688_INT1_DRIVE_Msk			ICM42688_BIT(ICM42688_INT1_DRIVE_Pos)
+#define ICM42688_INT1_DRIVE_Val(val)	ICM42688_FIELD_VAL(val, ICM42688_INT1_DRIVE_Pos, ICM42688_INT1_DRIVE_Msk)
+
+#define ICM42688_INT1_MODE_Pos			2U
+#define ICM42688_INT1_MODE_Msk			ICM42688_BIT(ICM42688_INT1_MODE_Pos)
+#define ICM42688_INT1_MODE_Val(val)		ICM42688_FIELD_VAL(val, ICM42688_INT1_MODE_Pos, ICM42688_INT1_MODE_Msk)
+
+#define ICM42688_INT2_POL_Pos			3U
+#define ICM42688_INT2_POL_Msk			ICM42688_BIT(ICM42688_INT2_POL_Pos)
+#define ICM42688_INT2_POL_Val(val)		ICM42688_FIELD_VAL(val, ICM42688_INT2_POL_Pos, ICM42688_INT2_POL_Msk)
+
+#define ICM42688_INT2_DRIVE_Pos			4U
+#define ICM42688_INT2_DRIVE_Msk			ICM42688_BIT(ICM42688_INT2_DRIVE_Pos)
+#define ICM42688_INT2_DRIVE_Val(val)	ICM42688_FIELD_VAL(val, ICM42688_INT2_DRIVE_Pos, ICM42688_INT2_DRIVE_Msk)
+
+#define ICM42688_INT2_MODE_Pos			5U
+#define ICM42688_INT2_MODE_Msk			ICM42688_BIT(ICM42688_INT2_MODE_Pos)
+#define ICM42688_INT2_MODE_Val(val)		ICM42688_FIELD_VAL(val, ICM42688_INT2_MODE_Pos, ICM42688_INT2_MODE_Msk)
+
+
+/* GYRO_CONFIG0 fields */
+#define ICM42688_GYRO_ODR_Pos			0U
+#define ICM42688_GYRO_ODR_Msk			ICM42688_FIELD_MSK(ICM42688_GYRO_ODR_Pos, 4U)
+#define ICM42688_GYRO_ODR_Val(val)		ICM42688_FIELD_VAL(val, ICM42688_GYRO_ODR_Pos, ICM42688_GYRO_ODR_Msk)
+
+#define ICM42688_GYRO_FS_SEL_Pos		5U
+#define ICM42688_GYRO_FS_SEL_Msk		ICM42688_FIELD_MSK(ICM42688_GYRO_FS_SEL_Pos, 3U)
+#define ICM42688_GYRO_FS_SEL_Val(val)	ICM42688_FIELD_VAL(val, ICM42688_GYRO_FS_SEL_Pos, ICM42688_GYRO_FS_SEL_Msk)
+
+
+/* ACCEL_CONFIG0 fields */
+#define ICM42688_ACCEL_ODR_Pos			0U
+#define ICM42688_ACCEL_ODR_Msk			ICM42688_FIELD_MSK(ICM42688_ACCEL_ODR_Pos, 4U)
+#define ICM42688_ACCEL_ODR_Val(val) 	ICM42688_FIELD_VAL(val, ICM42688_ACCEL_ODR_Pos, ICM42688_ACCEL_ODR_Msk)
+
+#define ICM42688_ACCEL_FS_SEL_Pos		5U
+#define ICM42688_ACCEL_FS_SEL_Msk		ICM42688_FIELD_MSK(ICM42688_ACCEL_FS_SEL_Pos, 3U)
+#define ICM42688_ACCEL_FS_SEL_Val(val)	ICM42688_FIELD_VAL(val, ICM42688_ACCEL_FS_SEL_Pos, ICM42688_ACCEL_FS_SEL_Msk)
+
+
+/* SENSOR_CONFIG0 */
+#define ICM42688_XA_DISABLE_Pos		0U
+#define ICM42688_YA_DISABLE_Pos		1U
+#define ICM42688_ZA_DISABLE_Pos		2U
+#define ICM42688_XG_DISABLE_Pos		3U
+#define	ICM42688_YG_DISABLE_Pos		4U
+#define ICM42688_ZG_DISABLE_Pos		5U
 
 
 /*
@@ -339,16 +462,51 @@ typedef struct{
 
 
 /*
+ * ===============================================================================
+ * 				STRUCT HOLDS EVERY DEFINED CHARACTERISTICS OF ICM42688P
+ * ===============================================================================
+ */
+typedef struct{
+	SPI_HandleTypeDef	*hspi;
+	GPIO_TypeDef		*cs_port;
+	uint16_t			cs_pin;
+}ICM42688_SPI_PinConf_t;
+
+
+typedef struct{
+	ICM42688_GyroODR_t 				gyro_odr;
+	ICM42688_GyroFSR_t				gyro_fsr;
+	ICM42688_GyroNotch_t			gyro_notch;
+	ICM42688_GyroUIFiltOrder_t		gyro_filt_order;
+
+	ICM42688_AccelODR_t				accel_odr;
+	ICM42688_AccelFSR_t				accel_fsr;
+	ICM42688_AccelUIFiltOrder_t		accel_filt_order;
+
+	ICM42688_SPI_Mode_t				spiMode;
+	ICM42688_SPI_SLEWRATE_t			spiSlewRate;
+}ICM42688_Config_t;
+
+
+typedef struct{
+	ICM42688_Config_t		config;
+	ICM42688_SPI_PinConf_t	spi_io;
+
+	/* Other runtime setups */
+	float 	gyro_lsb_to_dps;	//Scale factor: raw gyro LSB -> dps
+	float 	accel_lsb_to_g;		//Scale factor: raw accel LSB -> g
+
+	bool				isInitialized;
+	bool				isAlive;
+	ICM42688_RegBank_t	regBank;
+}ICM42688_Handle_t;
+
+
+/*
  * =============================================================
  * 							PUBLIC APIs
  * =============================================================
  */
-HAL_StatusTypeDef ICM42688_WriteReg(ICM42688_Handle_t *handle, uint8_t regAddr, uint8_t val);
-HAL_StatusTypeDef ICM42688_ReadReg(ICM42688_Handle_t* handle, uint8_t regAddr, uint8_t* outVal);
-HAL_StatusTypeDef ICM42688_ReadRegs(ICM42688_Handle_t* handle, uint8_t startRegAddr, uint8_t* buf, uint16_t bufLength);
-
-HAL_StatusTypeDef ICM42688_IsAlive(ICM42688_Handle_t* handle);
-void ICM42688_Init(ICM42688_Handle_t* handle, ICM42688_Config_t config);
 
 #endif /* INC_ICM42688_H_ */
 
