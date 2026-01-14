@@ -36,6 +36,11 @@
 #define ICM42688_SPI_READ_BIT				0x80U
 #define ICM42688_WHO_AM_I_DEFAULT			0x47U
 
+typedef enum{
+	_ENABLE		= 0U,
+	_DISABLE	= 1U
+}ICM42688_Trigger_t;
+
 
 /*
  * ============================================================================
@@ -133,9 +138,10 @@ typedef enum{
 }ICM42688_AccelUIFiltOrder_t;
 
 typedef enum{
-	ACCEL_OFF	= (uint8_t)0x00U,
-
-};
+	ACCEL_OFF		= (uint8_t)0x00,
+	ACCEL_LOW_POWER	= (uint8_t)0x02,
+	ACCEL_LOW_NOISE	= (uint8_t)0x03
+}ICM42688_AccelMode_t;
 
 
 /*
@@ -212,10 +218,7 @@ typedef enum{
  */
 /* SENSOR_CONFIG0
  * Common options for enabling both Gyro and Accel */
-typedef enum{
-	_ENABLE		= 0U,
-	_DISABLE	= 1U
-}ICM42688_XYZ_Enable_t;
+
 
 
 /*
@@ -292,14 +295,31 @@ typedef enum{
 #define ICM42688_ACCEL_FS_SEL_Val(val)	ICM42688_FIELD_VAL(val, ICM42688_ACCEL_FS_SEL_Pos, ICM42688_ACCEL_FS_SEL_Msk)
 
 
-/* SENSOR_CONFIG0 */
+/* PWR_MGMT0 fields */
+#define ICM42688_ACCEL_MODE_Pos			0U
+#define ICM42688_ACCEL_MODE_Msk			ICM42688_FIELD_MSK(ICM42688_ACCEL_MODE_Pos, 2U)
+#define ICM42688_ACCEL_MODE_Val(val)	ICM42688_FIELD_VAL(val, ICM42688_ACCEL_MODE_Pos, ICM42688_ACCEL_MODE_Msk)
+
+#define ICM42688_GYRO_MODE_Pos			2U
+#define ICM42688_GYRO_MODE_Msk			ICM42688_FIELD_MSK(ICM42688_GYRO_MODE_Pos, 2U)
+#define ICM42688_GYRO_MODE_Val(val)		ICM42688_FIELD_VAL(val, ICM42688_GYRO_MODE_Pos, ICM42688_GYRO_MODE_Msk)
+
+#define ICM42688_IDLE_Pos				4U
+#define ICM42688_IDLE_Msk				ICM42688_BIT(ICM42688_IDLE_Pos)
+#define ICM42688_IDLE_Val(val)			ICM42688_FIELD_VAL(val, ICM42688_IDLE_Pos, ICM42688_IDLE_Msk)
+
+#define ICM42688_TEMP_Pos				5U
+#define ICM42688_TEMP_Msk				ICM42688_BIT(ICM42688_TEMP_Pos)
+#define ICM42688_TEMP_Val(val)			ICM42688_FIELD_VAL(val, ICM42688_TEMP_Pos, ICM42688_TEMP_Msk)
+
+
+/* SENSOR_CONFIG0 fields */
 #define ICM42688_XA_DISABLE_Pos		0U
 #define ICM42688_YA_DISABLE_Pos		1U
 #define ICM42688_ZA_DISABLE_Pos		2U
 #define ICM42688_XG_DISABLE_Pos		3U
 #define	ICM42688_YG_DISABLE_Pos		4U
 #define ICM42688_ZG_DISABLE_Pos		5U
-
 
 /*
  * ===================================================================================
@@ -325,12 +345,11 @@ typedef enum{
 #define ICM42688_UB0_FIFO_DATA			0x30U
 
 /* Sensor Configuration */
-#define ICM42688_GYRO_CONF0				0x4FU
-#define ICM42688_GYRO_CONF1				0x51U
-#define ICM42688_ACCEL_CONF0			0x50U
-#define ICM42688_ACCEL_CONF1			0x53U
+#define ICM42688_UB0_GYRO_CONF0			0x4FU
+#define ICM42688_UB0_GYRO_CONF1			0x51U
+#define ICM42688_UB0_ACCEL_CONF0		0x50U
+#define ICM42688_UB0_ACCEL_CONF1		0x53U
 #define ICM42688_UB0_GYRO_ACCEL_CONF0	0x52U
-
 
 /* APEX & Features */
 #define ICM42688_UB0_APEX_DATA0			0x31U
@@ -478,10 +497,12 @@ typedef struct{
 	ICM42688_GyroFSR_t				gyro_fsr;
 	ICM42688_GyroNotch_t			gyro_notch;
 	ICM42688_GyroUIFiltOrder_t		gyro_filt_order;
+	ICM42688_GyroMode_t				gyro_mode;
 
 	ICM42688_AccelODR_t				accel_odr;
 	ICM42688_AccelFSR_t				accel_fsr;
 	ICM42688_AccelUIFiltOrder_t		accel_filt_order;
+	ICM42688_AccelMode_t			accel_mode;
 
 	ICM42688_SPI_Mode_t				spiMode;
 	ICM42688_SPI_SLEWRATE_t			spiSlewRate;
@@ -497,6 +518,7 @@ typedef struct{
 	float 	accel_lsb_to_g;		//Scale factor: raw accel LSB -> g
 
 	bool				isInitialized;
+	bool				isReset;
 	bool				isAlive;
 	ICM42688_RegBank_t	regBank;
 }ICM42688_Handle_t;

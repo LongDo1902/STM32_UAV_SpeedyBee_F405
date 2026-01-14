@@ -18,13 +18,15 @@ ICM42688_Handle_t ICM42688_Handle = {
 				.gyro_fsr			= GYRO_FSR_1000dps,
 				.gyro_notch			= GYRO_NOTCHBW_11449Hz,
 				.gyro_filt_order 	= GYRO_FIRST_ORDER,
+				.gyro_mode			= GYRO_OFF,				//Default
 
 				.accel_odr			= ACCEL_ODR_1KHz,
 				.accel_fsr			= ACCEL_FSR_4g,
 				.accel_filt_order	= ACCEL_FIRST_ORDER,
+				.accel_mode			= ACCEL_OFF,			//Default
 
 				.spiMode			= SPI_MODE_0_3,			//Default
-				.spiSlewRate		= SPI_SR_2NS			//Reset value/Default
+				.spiSlewRate		= SPI_SR_2NS			//Default
 		},
 
 		.spi_io = {
