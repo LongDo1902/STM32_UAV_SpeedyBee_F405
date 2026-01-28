@@ -179,17 +179,20 @@ typedef enum{
 /* INT_CONFIG Defines */
 typedef enum{
 	INT_ACTIVE_LOW 	= 0U,
-	INT_ACTIVE_HIGH	= 1U
+	INT_ACTIVE_HIGH	= 1U,
+	INT_POL_MAX		= 2U	//Just for sanity check
 }ICM42688_Int_Polarity_t;
 
 typedef enum{
 	INT_OPEN_DRAIN	= 0U,
-	INT_PUSH_PULL 	= 1U
+	INT_PUSH_PULL 	= 1U,
+	INT_DRIVE_MAX	= 2U	//Just for sanity check
 }ICM42688_Int_Drive_Circuit_t;
 
 typedef enum{
 	INT_PUSHED		= 0U,
-	INT_LATCHED		= 1U
+	INT_LATCHED		= 1U,
+	INT_MODE_MAX	= 2U	//Just for sanity check
 }ICM42688_Int_Mode_t;
 
 
@@ -212,13 +215,76 @@ typedef enum{
 
 
 /*
- * ============================================================================
- * 							REGISTER BANK 1 ENUMS
- * ============================================================================
+ * ===============================================================================
+ * 		   STRUCT HOLDS EVERY DEFINED/CACHED/DEFAULT VALUES OF ICM42688P
+ * ===============================================================================
  */
-/* SENSOR_CONFIG0
- * Common options for enabling both Gyro and Accel */
+typedef struct{
+	SPI_HandleTypeDef		*hspi;
+	GPIO_TypeDef			*cs_port;
+	uint16_t				cs_pin;
 
+	ICM42688_SPI_Mode_t		spiMode;
+	ICM42688_SPI_SLEWRATE_t	spiSlewRate;
+}ICM42688_SPI_Config_t;
+
+
+typedef struct{
+	ICM42688_GyroODR_t 				gyro_odr;
+	ICM42688_GyroFSR_t				gyro_fsr;
+	ICM42688_GyroNotch_t			gyro_notch;
+	ICM42688_GyroUIFiltOrder_t		gyro_filt_order;
+	ICM42688_GyroMode_t				gyro_mode;
+}ICM42688_Gyro_Config_t;
+
+
+typedef struct{
+	ICM42688_AccelODR_t				accel_odr;
+	ICM42688_AccelFSR_t				accel_fsr;
+	ICM42688_AccelUIFiltOrder_t		accel_filt_order;
+	ICM42688_AccelMode_t			accel_mode;
+}ICM42688_Accel_Config_t;
+
+
+typedef struct{
+	ICM42688_Int_Polarity_t			int1_polarity;
+	ICM42688_Int_Drive_Circuit_t	int1_drive;
+	ICM42688_Int_Mode_t				int1_mode;
+}ICM42688_Int1_Config_t;
+
+
+typedef struct{
+	ICM42688_Int_Polarity_t			int2_polarity;
+	ICM42688_Int_Drive_Circuit_t	int2_drive;
+	ICM42688_Int_Mode_t				int2_mode;
+}ICM42688_Int2_Config_t;
+
+
+typedef struct{
+	/* Gyro and Accel config */
+	ICM42688_Gyro_Config_t	gyro_config;
+	ICM42688_Accel_Config_t	accel_config;
+
+	/* SPI config */
+	ICM42688_SPI_Config_t	spi_config;
+
+	/* Interrupt config */
+	ICM42688_Int1_Config_t	int1_config;
+	ICM42688_Int2_Config_t	int2_config;
+
+	/* Other runtime setups */
+	float 	gyro_lsb_to_dps;	//Scale factor: raw gyro LSB -> dps
+	float 	accel_lsb_to_g;		//Scale factor: raw accel LSB -> g
+
+	/* Flags/variable to check */
+	bool				isInitialized;
+	bool				isReset;
+	bool				isAlive;
+	HAL_StatusTypeDef	lastHalStatus;
+
+	/* Cached Register Bank */
+	ICM42688_RegBank_t	regBank;
+}ICM42688_Handle_t;
 
 
 /*
@@ -478,51 +544,6 @@ typedef enum{
 #define ICM42688_UB4_OFFSET_USER6		0x7DU
 #define ICM42688_UB4_OFFSET_USER7		0x7EU
 #define ICM42688_UB4_OFFSET_USER8		0x7FU
-
-
-/*
- * ===============================================================================
- * 				STRUCT HOLDS EVERY DEFINED CHARACTERISTICS OF ICM42688P
- * ===============================================================================
- */
-typedef struct{
-	SPI_HandleTypeDef	*hspi;
-	GPIO_TypeDef		*cs_port;
-	uint16_t			cs_pin;
-}ICM42688_SPI_PinConf_t;
-
-
-typedef struct{
-	ICM42688_GyroODR_t 				gyro_odr;
-	ICM42688_GyroFSR_t				gyro_fsr;
-	ICM42688_GyroNotch_t			gyro_notch;
-	ICM42688_GyroUIFiltOrder_t		gyro_filt_order;
-	ICM42688_GyroMode_t				gyro_mode;
-
-	ICM42688_AccelODR_t				accel_odr;
-	ICM42688_AccelFSR_t				accel_fsr;
-	ICM42688_AccelUIFiltOrder_t		accel_filt_order;
-	ICM42688_AccelMode_t			accel_mode;
-
-	ICM42688_SPI_Mode_t				spiMode;
-	ICM42688_SPI_SLEWRATE_t			spiSlewRate;
-}ICM42688_Config_t;
-
-
-typedef struct{
-	ICM42688_Config_t		config;
-	ICM42688_SPI_PinConf_t	spi_io;
-
-	/* Other runtime setups */
-	float 	gyro_lsb_to_dps;	//Scale factor: raw gyro LSB -> dps
-	float 	accel_lsb_to_g;		//Scale factor: raw accel LSB -> g
-
-	bool				isInitialized;
-	bool				isReset;
-	bool				isAlive;
-	ICM42688_RegBank_t	regBank;
-}ICM42688_Handle_t;
-
 
 /*
  * =============================================================

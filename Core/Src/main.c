@@ -17,6 +17,7 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
+#include <imu.h>
 #include "main.h"
 #include "adc.h"
 #include "dma.h"
@@ -28,7 +29,6 @@
 #include <stdbool.h>
 #include "leds.h"
 #include "temperature.h"
-#include "board_imu.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

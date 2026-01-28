@@ -9,48 +9,16 @@
 
 /*
  * =============================================================================
- * 								PRIVATE CONSTANTS
- * =============================================================================
- */
-/* Register-field code -> physical full-scale value mapping */
-static const float gyro_FSR_value[]		= {2000.0f, 1000.0f, 500.0f, 250.0f, 125.0f, 65.5f, 31.25f, 15.625f};
-static const float accel_FSR_value[]	= {16.0f, 8.0f, 4.0f, 2.0f};
-
-
-/*
- * =============================================================================
  * 					  			PRIVATE HELPERS
  * =============================================================================
  */
 static inline void ICM42688_CS_Low(ICM42688_Handle_t *handle){
-	HAL_GPIO_WritePin(handle -> spi_io.cs_port, handle -> spi_io.cs_pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(handle -> spi_config.cs_port, handle -> spi_config.cs_pin, GPIO_PIN_RESET);
 }
 
 
 static inline void ICM42688_CS_High(ICM42688_Handle_t *handle){
-	HAL_GPIO_WritePin(handle -> spi_io.cs_port, handle -> spi_io.cs_pin, GPIO_PIN_SET);
-}
-
-
-/*
- * @brief Ensure a register bank is selected (and cache is in sync)
- *
- * @param handle   Device handle
- * @param bank     Target bank
- *
- * @return		HAL_OK on success
- * 				HAL_ERROR on invalid args or SPI failure
- */
-static HAL_StatusTypeDef ICM42688_EnsureRegBank(ICM42688_Handle_t* handle, ICM42688_RegBank_t bank){
-	if(!handle) return HAL_ERROR;
-	if((bank > REG_BANK_4) || (bank == REG_BANK_3)) return HAL_ERROR;
-
-	/* Fast path: if cache already says correct bank and you trust cache,
-	 * you could skip the sensor-read. But your IsRegBank() resyncs, so
-	 * we keep it deterministic */
-	if(ICM42688_IsRegBank(handle, bank) == HAL_OK) return HAL_OK;
-
-	return ICM42688_Set_RegBank(handle, bank);
+	HAL_GPIO_WritePin(handle -> spi_config.cs_port, handle -> spi_config.cs_pin, GPIO_PIN_SET);
 }
 
 
@@ -72,7 +40,7 @@ static HAL_StatusTypeDef ICM42688_EnsureRegBank(ICM42688_Handle_t* handle, ICM42
  */
 HAL_StatusTypeDef ICM42688_WriteReg(ICM42688_Handle_t *handle, uint8_t regAddr, uint8_t val){
 	/* Sanity Checks */
-	if((!handle) || ((handle -> spi_io.hspi) == NULL) || ((handle -> spi_io.cs_port) == NULL)) return HAL_ERROR;
+	if((!handle) || ((handle -> spi_config.hspi) == NULL) || ((handle -> spi_config.cs_port) == NULL)) return HAL_ERROR;
 
 	/* 1st sent is write command + register address
 	 * 2nd sent is data byte */
@@ -82,7 +50,7 @@ HAL_StatusTypeDef ICM42688_WriteReg(ICM42688_Handle_t *handle, uint8_t regAddr, 
 
 	/* Start to send tx[1 and tx[0] via SPI */
 	ICM42688_CS_Low(handle);
-	HAL_StatusTypeDef status = HAL_SPI_Transmit(handle -> spi_io.hspi, tx, 2, ICM42688_SPI_TIMEOUT_MS);
+	HAL_StatusTypeDef status = HAL_SPI_Transmit(handle -> spi_config.hspi, tx, 2, ICM42688_SPI_TIMEOUT_MS);
 	ICM42688_CS_High(handle);
 
 	return status;
@@ -101,19 +69,24 @@ HAL_StatusTypeDef ICM42688_WriteReg(ICM42688_Handle_t *handle, uint8_t regAddr, 
  */
 HAL_StatusTypeDef ICM42688_ReadReg(ICM42688_Handle_t* handle, uint8_t regAddr, uint8_t* outVal){
 	/* Sanity checks */
-	if((!handle) || ((handle -> spi_io.hspi) == NULL) || ((handle -> spi_io.cs_port) == NULL)) return HAL_ERROR;
+	if((!handle) ||
+	  ((handle -> spi_config.hspi) == NULL) ||
+	  ((handle -> spi_config.cs_port) == NULL) ||
+	  (!outVal)) return HAL_ERROR;
 
-	uint8_t addr = (uint8_t)(regAddr & ICM42688_SPI_ADDR_MASK) | ICM42688_SPI_READ_BIT;
+	uint8_t tx[2];
+	uint8_t rx[2];
 
-	/* Start to send the address byte in read command */
+	tx[0] = (uint8_t)((regAddr & ICM42688_SPI_ADDR_MASK) | (ICM42688_SPI_READ_BIT));
+	tx[1] = 0x00U;	//Dummy to clock out data
+
+	/* Start to send the address byte in read command and receive returned byte*/
 	ICM42688_CS_Low(handle);
-	HAL_StatusTypeDef status = HAL_SPI_Transmit(handle -> spi_io.hspi, &addr, 1, ICM42688_SPI_TIMEOUT_MS);
-
-	/* Read a single byte */
-	if(status == HAL_OK){
-		status = HAL_SPI_Receive(handle -> spi_io.hspi, outVal, 1, ICM42688_SPI_TIMEOUT_MS);
-	}
+	HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(handle -> spi_config.hspi, tx, rx, 2, ICM42688_SPI_TIMEOUT_MS);
 	ICM42688_CS_High(handle);
+
+	if(status == HAL_OK) *outVal = rx[1]; //rx[0] corresponding to address phase (dummy)/undefined value
+
 	return status;
 }
 
@@ -127,18 +100,25 @@ HAL_StatusTypeDef ICM42688_ReadReg(ICM42688_Handle_t* handle, uint8_t regAddr, u
  * @param	bufLength		Size/length/No. of Elements of/in the buffer
  *
  */
-HAL_StatusTypeDef ICM42688_ReadRegs(ICM42688_Handle_t* handle, uint8_t startRegAddr, uint8_t* buf, uint16_t bufLength){
-	if((!handle) || (!handle -> spi_io.hspi) || (!handle -> spi_io.cs_port) || (!buf) || (bufLength == 0U)) return HAL_ERROR;
+HAL_StatusTypeDef ICM42688_ReadRegs(ICM42688_Handle_t* handle,
+									uint8_t startRegAddr,
+									uint8_t* buf,
+									uint16_t bufLength){
+	if((!handle) ||
+	(!handle -> spi_config.hspi) 	||
+	(!handle -> spi_config.cs_port) ||
+	(!buf) ||
+	(bufLength == 0U)) return HAL_ERROR;
 
 	uint8_t addr = (uint8_t)((startRegAddr & ICM42688_SPI_ADDR_MASK) | ICM42688_SPI_READ_BIT);
 
 	/* Start to send the address byte and read command */
 	ICM42688_CS_Low(handle);
-	HAL_StatusTypeDef status = HAL_SPI_Transmit(handle -> spi_io.hspi, &addr, 1, ICM42688_SPI_TIMEOUT_MS);
+	HAL_StatusTypeDef status = HAL_SPI_Transmit(handle -> spi_config.hspi, &addr, 1, ICM42688_SPI_TIMEOUT_MS);
 
 	/* Burst read */
 	if(status == HAL_OK){
-		status = HAL_SPI_Receive(handle -> spi_io.hspi, buf, bufLength, ICM42688_SPI_TIMEOUT_MS);
+		status = HAL_SPI_Receive(handle -> spi_config.hspi, buf, bufLength, ICM42688_SPI_TIMEOUT_MS);
 	}
 
 	ICM42688_CS_High(handle);
@@ -178,30 +158,10 @@ HAL_StatusTypeDef ICM42688_Set_RegBank(ICM42688_Handle_t* handle, ICM42688_RegBa
 
 	/* Write the selected register bank to the register */
 	HAL_StatusTypeDef status = ICM42688_WriteReg(handle, ICM42688_UB0_REG_BANK_SEL, (uint8_t)regBank);
+
 	/* Save the selected register bank to update cache only if success*/
 	if(status == HAL_OK) handle -> regBank = regBank;
 	return status;
-}
-
-
-/*
- * @brief	Get the currently existing cached register bank
- *
- *
- * @note	Returns the register bank value stored in the driver cache.
- * 			This function does NOT access the sensor hardware and
- * 			therefore does not guarantee that the cached value matches
- * 			the actual bank currently selected on the sensor.
- *
- * 			Intended for fast checks or debugging purposes.
- *
- * @param	handle	Pointer to ICM42688 handle
- *
- * @retVal	Cached register bank value
- * 			REG_BANK_0 is returned if handle is NULL.
- */
-inline ICM42688_RegBank_t ICM42688_Get_RegBankCached(const ICM42688_Handle_t* handle){
-	return handle ? handle -> regBank : REG_BANK_0;
 }
 
 
@@ -219,45 +179,22 @@ HAL_StatusTypeDef ICM42688_Get_RegBankSensor(ICM42688_Handle_t* handle, ICM42688
 	/* Sanity Check */
 	if((!handle) || (!regBank)) return HAL_ERROR;
 
-	uint8_t val = 0U;
-	HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB0_REG_BANK_SEL, &val);
+	uint8_t reg = 0U;
+	HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB0_REG_BANK_SEL, &reg);
 	if(status != HAL_OK) return status;
 
-	*regBank = (ICM42688_RegBank_t)(val & 0x07U);
+	*regBank = (ICM42688_RegBank_t)(reg & 0x07U);
+
+	/* Update cache */
+	handle -> regBank = (ICM42688_RegBank_t)*regBank;
 
 	return status;
 }
 
 
 /*
- * @brief	Verify and synchronize the active register bank
- *
- * @param	handle					Pointer to a valid ICM42688 handle
- * @param	targetRegBankToCheck	Register bank expected to be active
- *
- * @retVal	HAL_OK		Sensor is currently operating in the target bank
- * 			HAL_ERROR	Invalid parameters
- * 						SPI failure
- * 						Bank mismatch
- */
-HAL_StatusTypeDef ICM42688_IsRegBank(ICM42688_Handle_t* handle, ICM42688_RegBank_t targetRegBankToCheck){
-	/* Sanity check */
-	if(!handle) return HAL_ERROR;
-	if((targetRegBankToCheck > REG_BANK_4) || (targetRegBankToCheck == REG_BANK_3)) return HAL_ERROR;
-
-	ICM42688_RegBank_t regBankSensor = REG_BANK_0;
-	if(ICM42688_Get_RegBankSensor(handle, &regBankSensor) != HAL_OK) return HAL_ERROR;
-
-	/* Resync cache */
-	handle -> regBank = regBankSensor;
-
-	return(regBankSensor == targetRegBankToCheck) ? HAL_OK : HAL_ERROR;
-}
-
-
-/*
  * =============================================================================
- * 							IDENTITY / RESET / SPI CONFIG
+ * 								IDENTITY / RESET /
  * =============================================================================
  */
 /*
@@ -269,8 +206,12 @@ HAL_StatusTypeDef ICM42688_IsRegBank(ICM42688_Handle_t* handle, ICM42688_RegBank
  * @retVal	HAL_OK		On success
  * 			HAL_ERROR	Invalid handle or who_val pointer
  */
-inline HAL_StatusTypeDef ICM42688_Get_WhoAmI(ICM42688_Handle_t* handle, uint8_t* who_val){
+static inline HAL_StatusTypeDef ICM42688_Get_WhoAmI(ICM42688_Handle_t* handle, uint8_t* who_val){
 	if(!handle || !who_val) return HAL_ERROR;
+
+	/* Check if the cached bank matches the target bank */
+	if((handle -> regBank) != REG_BANK_0) return HAL_ERROR;
+
 	return ICM42688_ReadReg(handle, ICM42688_UB0_WHO_AM_I, who_val);
 }
 
@@ -307,46 +248,6 @@ HAL_StatusTypeDef ICM42688_IsAlive(ICM42688_Handle_t* handle){
 
 
 /*
- * @brief	Select the desired SPI mode in DEVICE_CONFIG
- * 			- SPI_MODE_0_3 => SPI_MODE bit = 0
- * 			- SPI_MODE_1_2 => SPI_MODE bit = 1
- * 			THe function performs a read-modify-write so other bits are preserved
- */
-HAL_StatusTypeDef ICM42688_Set_SPI_Mode(ICM42688_Handle_t* handle, ICM42688_SPI_Mode_t spiMode){
-	/* Sanity checks */
-	if(!handle) return HAL_ERROR;
-
-	/* Force write for the first time */
-	if(handle -> isInitialized == true){
-		/* Skip writing if SPI mode is already set in cache */
-		if(spiMode == (handle -> config.spiMode)){
-			return HAL_OK;
-		}
-	}
-
-	/* Check if it is Register Bank 0 */
-	if(ICM42688_IsRegBank(handle, REG_BANK_0) != HAL_OK){
-		if(ICM42688_Set_RegBank(handle, REG_BANK_0) != HAL_OK) return HAL_ERROR;
-	}
-
-	/* The target SPI mode differs from cached SPI mode */
-	uint8_t reg = 0U;
-	HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB0_DEVICE_CONF, &reg);
-	if(status != HAL_OK) return status;
-
-	/* Clear bit and start to write the target SPI mode to the sensor */
-	reg &= (uint8_t)~ICM42688_DEVICE_CONFIG_SPI_MODE_Msk;
-	reg |= ICM42688_DEVICE_CONFIG_SPI_MODE_Val(spiMode);
-	status = ICM42688_WriteReg(handle, ICM42688_UB0_DEVICE_CONF, reg);
-
-	/* Update Cache */
-	if(status == HAL_OK) handle -> config.spiMode = spiMode;
-
-	return status;
-}
-
-
-/*
  * @brief	Software reset ICM42688
  * @note	After triggering soft reset, wait 1ms for it to be effective
  * @param	handle	Pointer to ICM42688 handle
@@ -356,10 +257,8 @@ HAL_StatusTypeDef ICM42688_Set_SPI_Mode(ICM42688_Handle_t* handle, ICM42688_SPI_
 HAL_StatusTypeDef ICM42688_SoftReset(ICM42688_Handle_t* handle){
 	if(!handle) return HAL_ERROR;
 
-	/* Check if it is Register Bank 0 */
-	if(ICM42688_IsRegBank(handle, REG_BANK_0) != HAL_OK){
-		if(ICM42688_Set_RegBank(handle, REG_BANK_0) != HAL_OK) return HAL_ERROR;
-	}
+	/* Check if the cached bank matches the target bank */
+	if((handle -> regBank) != REG_BANK_0) return HAL_ERROR;
 
 	/* Extract the current soft-reset bit setting */
 	uint8_t reg = 0U;
@@ -385,6 +284,49 @@ HAL_StatusTypeDef ICM42688_SoftReset(ICM42688_Handle_t* handle){
 
 
 /*
+ * =============================================================================
+ * 									SPI CONFIG
+ * =============================================================================
+ */
+/*
+ * @brief	Select the desired SPI mode in DEVICE_CONFIG
+ * 			- SPI_MODE_0_3 => SPI_MODE bit = 0
+ * 			- SPI_MODE_1_2 => SPI_MODE bit = 1
+ * 			The function performs a read-modify-write so other bits are preserved
+ */
+HAL_StatusTypeDef ICM42688_Set_SPI_Mode(ICM42688_Handle_t* handle, ICM42688_SPI_Mode_t spiMode){
+	/* Sanity checks */
+	if(!handle) return HAL_ERROR;
+
+	/* Check if the cached bank matches the target bank */
+	if((handle -> regBank) != REG_BANK_0) return HAL_ERROR;
+
+	/* Force write for the first time */
+	if(handle -> isInitialized == true){
+		/* Skip writing if SPI mode is already set in cache */
+		if(spiMode == (handle -> spi_config.spiMode)){
+			return HAL_OK;
+		}
+	}
+
+	/* The target SPI mode differs from cached SPI mode */
+	uint8_t reg = 0U;
+	HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB0_DEVICE_CONF, &reg);
+	if(status != HAL_OK) return status;
+
+	/* Clear bit and start to write the target SPI mode to the sensor */
+	reg &= (uint8_t)~ICM42688_DEVICE_CONFIG_SPI_MODE_Msk;
+	reg |= ICM42688_DEVICE_CONFIG_SPI_MODE_Val(spiMode);
+	status = ICM42688_WriteReg(handle, ICM42688_UB0_DEVICE_CONF, reg);
+
+	/* Update Cache */
+	if(status == HAL_OK) handle -> spi_config.spiMode = spiMode;
+
+	return status;
+}
+
+
+/*
  * @brief	Get the current slew rate setting from the sensor
  *
  * @param	handle		Pointer to handle struct
@@ -396,10 +338,8 @@ HAL_StatusTypeDef ICM42688_SoftReset(ICM42688_Handle_t* handle){
 HAL_StatusTypeDef ICM42688_Get_SPI_SlewRate(ICM42688_Handle_t* handle, ICM42688_SPI_SLEWRATE_t* slewRate){
 	if(!handle || !slewRate) return HAL_ERROR;
 
-	/* Check if it is Register Bank 0 */
-	if(ICM42688_IsRegBank(handle, REG_BANK_0) != HAL_OK){
-		if(ICM42688_Set_RegBank(handle, REG_BANK_0) != HAL_OK) return HAL_ERROR;
-	}
+	/* Check if the cached bank matches the target bank */
+	if((handle -> regBank) != REG_BANK_0) return HAL_ERROR;
 
 	uint8_t reg = 0U;
 	HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB0_DRIVE_CONF, &reg);
@@ -424,17 +364,17 @@ HAL_StatusTypeDef ICM42688_Get_SPI_SlewRate(ICM42688_Handle_t* handle, ICM42688_
 HAL_StatusTypeDef ICM42688_Set_SPI_SlewRate(ICM42688_Handle_t* handle, ICM42688_SPI_SLEWRATE_t slewRate){
 	/* Sanity Checks */
 	if(!handle) return HAL_ERROR;
-	if((uint8_t)slewRate > 5U) return HAL_ERROR;
+
+	uint8_t spi_slewRateMax = 5U;
+	if((uint8_t)slewRate > spi_slewRateMax) return HAL_ERROR;
+
+	/* Check if the cached bank matches the target bank */
+	if((handle -> regBank) != REG_BANK_0) return HAL_ERROR;
 
 	/* Force write for the first time */
 	if(handle -> isInitialized == true){
 		/* Skip writing if SPI Slew Rate is already set in cache */
-		if(slewRate == (handle -> config.spiSlewRate)) return HAL_OK;
-	}
-
-	/* Check if it is Register Bank 0 */
-	if(ICM42688_IsRegBank(handle, REG_BANK_0) != HAL_OK){
-		if(ICM42688_Set_RegBank(handle, REG_BANK_0) != HAL_OK) return HAL_ERROR;
+		if(slewRate == (handle -> spi_config.spiSlewRate)) return HAL_OK;
 	}
 
 	/* Extract the current setting of slew rate from the sensor */
@@ -448,7 +388,7 @@ HAL_StatusTypeDef ICM42688_Set_SPI_SlewRate(ICM42688_Handle_t* handle, ICM42688_
 	status = ICM42688_WriteReg(handle, ICM42688_UB0_DRIVE_CONF, reg);
 
 	/* If succeed, update cached */
-	if(status == HAL_OK) handle -> config.spiSlewRate = (ICM42688_SPI_SLEWRATE_t)slewRate;
+	if(status == HAL_OK) handle -> spi_config.spiSlewRate = (ICM42688_SPI_SLEWRATE_t)slewRate;
 	return status;
 }
 
@@ -471,15 +411,13 @@ HAL_StatusTypeDef ICM42688_Set_GyroMode(ICM42688_Handle_t* handle, ICM42688_Gyro
 	if(!handle) return HAL_ERROR;
 	if(((uint8_t)mode > 3U) || ((uint8_t)mode == 2U)) return HAL_ERROR;
 
+	/* Check if the cached bank matches the target bank */
+	if((handle -> regBank) != REG_BANK_0) return HAL_ERROR;
+
 	/* Force write for the first time */
 	if(handle -> isInitialized == true){
 		/* Skip writing if Gyro Mode is already set in cache */
-		if(mode == (handle -> config.gyro_mode)) return HAL_OK;
-	}
-
-	/* Check if it is Register Bank 0 */
-	if(ICM42688_IsRegBank(handle, REG_BANK_0) != HAL_OK){
-		if(ICM42688_Set_RegBank(handle, REG_BANK_0) != HAL_OK) return HAL_ERROR;
+		if(mode == (handle -> gyro_config.gyro_mode)) return HAL_OK;
 	}
 
 	/* Extract the bit field of the whole register */
@@ -491,7 +429,7 @@ HAL_StatusTypeDef ICM42688_Set_GyroMode(ICM42688_Handle_t* handle, ICM42688_Gyro
 	reg &= (uint8_t)~ICM42688_GYRO_MODE_Msk;
 	reg |= (uint8_t)ICM42688_GYRO_MODE_Val(mode);
 	status = ICM42688_WriteReg(handle, ICM42688_UB0_PWR_MGMT0, reg);
-	if(status == HAL_OK) handle -> config.gyro_mode = (ICM42688_GyroMode_t)mode;
+	if(status == HAL_OK) handle -> gyro_config.gyro_mode = (ICM42688_GyroMode_t)mode;
 
 	return status;
 }
@@ -508,15 +446,13 @@ HAL_StatusTypeDef ICM42688_Set_GyroODR(ICM42688_Handle_t* handle, ICM42688_GyroO
 	  ((uint8_t)odr == 0x0DU) ||
 	  ((uint8_t)odr == 0x0EU)) return HAL_ERROR;
 
+	/* Check if the cached bank matches the target bank */
+	if((handle -> regBank) != REG_BANK_0) return HAL_ERROR;
+
 	/* Force write for the first time */
 	if(handle -> isInitialized == true){
 		/* Skip writing if Gyro ODR is already set in cache */
-		if(odr == (handle -> config.gyro_odr)) return HAL_OK;
-	}
-
-	/* Check if it is Register Bank 0 */
-	if(ICM42688_IsRegBank(handle, REG_BANK_0) != HAL_OK){
-		if(ICM42688_Set_RegBank(handle, REG_BANK_0) != HAL_OK) return HAL_ERROR;
+		if(odr == (handle -> gyro_config.gyro_odr)) return HAL_OK;
 	}
 
 	/* Extract the bit field of the whole register */
@@ -528,7 +464,7 @@ HAL_StatusTypeDef ICM42688_Set_GyroODR(ICM42688_Handle_t* handle, ICM42688_GyroO
 	reg &= (uint8_t)~ICM42688_GYRO_ODR_Msk;
 	reg |= (uint8_t)ICM42688_GYRO_ODR_Val(odr);
 	status = ICM42688_WriteReg(handle, ICM42688_UB0_GYRO_CONF0, reg);
-	if(status == HAL_OK) handle -> config.gyro_odr = (ICM42688_GyroODR_t)odr;
+	if(status == HAL_OK) handle -> gyro_config.gyro_odr = (ICM42688_GyroODR_t)odr;
 
 	return status;
 }
@@ -542,15 +478,13 @@ HAL_StatusTypeDef ICM42688_Set_GyroFS(ICM42688_Handle_t* handle, ICM42688_GyroFS
 	if(!handle) return HAL_ERROR;
 	if((uint8_t)fullScale > (uint8_t)GYRO_FSR_15dps625) return HAL_ERROR;
 
+	/* Check if the cached bank matches the target bank */
+	if((handle -> regBank) != REG_BANK_0) return HAL_ERROR;
+
 	/* Force write for the first time */
 	if(handle -> isInitialized == true){
 		/* Skip writing if Gyro full scale is already set in cache */
-		if(fullScale == (handle -> config.gyro_fsr)) return HAL_OK;
-	}
-
-	/* Check if it is Register Bank 0 */
-	if(ICM42688_IsRegBank(handle, REG_BANK_0) != HAL_OK){
-		if(ICM42688_Set_RegBank(handle, REG_BANK_0) != HAL_OK) return HAL_ERROR;
+		if(fullScale == (handle -> gyro_config.gyro_fsr)) return HAL_OK;
 	}
 
 	/* Extract the bit field of the whole register */
@@ -562,9 +496,90 @@ HAL_StatusTypeDef ICM42688_Set_GyroFS(ICM42688_Handle_t* handle, ICM42688_GyroFS
 	reg &= (uint8_t)~ICM42688_GYRO_FS_SEL_Msk;
 	reg |= (uint8_t)ICM42688_GYRO_FS_SEL_Val(fullScale);
 	status = ICM42688_WriteReg(handle, ICM42688_UB0_GYRO_CONF0, reg);
-	if(status == HAL_OK) handle -> config.gyro_fsr = (ICM42688_GyroFSR_t)fullScale;
+	if(status == HAL_OK) handle -> gyro_config.gyro_fsr = (ICM42688_GyroFSR_t)fullScale;
 
 	return status;
+}
+
+
+/*
+ * @brief	Configure gyro mode, odr, fullscale selection at once
+ * 			An improved version optimizes the performance
+ */
+HAL_StatusTypeDef ICM42688_Set_GyroConfig(ICM42688_Handle_t* handle,
+										  ICM42688_GyroMode_t mode,
+										  ICM42688_GyroODR_t odr,
+										  ICM42688_GyroFSR_t fsr){
+	/* Sanity checks */
+	if(!handle) return HAL_ERROR;
+
+	/* Validate arguments */
+	if(((uint8_t)mode > 3U) || ((uint8_t)mode == 2U)) return HAL_ERROR;
+
+	if((((uint8_t)odr > (uint8_t)GYRO_ODR_500Hz)) ||
+		((uint8_t)odr == 0x0CU) ||
+		((uint8_t)odr == 0x0DU) ||
+		((uint8_t)odr == 0x0EU)) return HAL_ERROR;
+
+	if((uint8_t)fsr > (uint8_t)GYRO_FSR_15dps625) return HAL_ERROR;
+
+	/* Ensure correct bank */
+	if(handle -> regBank != REG_BANK_0) return HAL_ERROR;
+
+	HAL_StatusTypeDef status;
+
+	/*-------------------------------------
+	 * 1) PWR_MGMT0: Set Gyro Mode
+	 * ------------------------------------*/
+	{
+		/* Skip if already cached & initialized */
+		if(((handle -> isInitialized) == true) && (mode == (handle -> gyro_config.gyro_mode))){
+			//Skip, do nothing
+		} else{
+			/* Extract and read current setting of register PWR_MGMT0 */
+			uint8_t reg = 0U;
+			status = ICM42688_ReadReg(handle, ICM42688_UB0_PWR_MGMT0, &reg);
+			if(status != HAL_OK) return status;
+
+			/* Prepare and write the new setting to PWR_MGMT0 */
+			reg &= (uint8_t)~ICM42688_GYRO_MODE_Msk;
+			reg |= (uint8_t)ICM42688_GYRO_MODE_Val(mode);
+			status = ICM42688_WriteReg(handle, ICM42688_UB0_PWR_MGMT0, reg);
+			if(status != HAL_OK) return status;
+
+			/* Update cached */
+			handle -> gyro_config.gyro_mode = mode;
+		}
+	}
+
+	/*----------------------------------------
+	 * 2) GYRO_CONF0: Set ODR + FSR together
+	 * ---------------------------------------*/
+	{
+		/* Skip if already cached & initialized */
+		if(((handle -> isInitialized) == true) &&
+			(odr == (handle -> gyro_config.gyro_odr)) &&
+			(fsr == (handle -> gyro_config.gyro_fsr))){
+			return HAL_OK; //Everything requested is already set
+		}
+
+		/* Extract and read current setting of register GYRO_CONFIG0 */
+		uint8_t reg = 0U;
+		status = ICM42688_ReadReg(handle, ICM42688_UB0_GYRO_CONF0, &reg);
+		if(status != HAL_OK) return status;
+
+		/* Prepare and write to register GYRO_CONF0 */
+		reg &= (uint8_t)~(ICM42688_GYRO_ODR_Msk | ICM42688_GYRO_FS_SEL_Msk);
+		reg |= (uint8_t)ICM42688_GYRO_ODR_Val(odr);
+		reg |= (uint8_t)ICM42688_GYRO_FS_SEL_Val(fsr);
+		status = ICM42688_WriteReg(handle, ICM42688_UB0_GYRO_CONF0, reg);
+		if(status != HAL_OK) return status;
+
+		/* Update cached */
+		handle -> gyro_config.gyro_odr = odr;
+		handle -> gyro_config.gyro_fsr = fsr;
+	}
+	return HAL_OK;
 }
 
 
@@ -586,15 +601,13 @@ HAL_StatusTypeDef ICM42688_Set_AccelMode(ICM42688_Handle_t* handle, ICM42688_Acc
 	if(!handle) return HAL_ERROR;
 	if((uint8_t)mode > 3U) return HAL_ERROR;
 
+	/* Check if the cached bank matches the target bank */
+	if((handle -> regBank) != REG_BANK_0) return HAL_ERROR;
+
 	/* Force write for the first time */
 	if(handle -> isInitialized == true){
 		/* Skip writing if Accel Mode is already set in cache */
-		if(mode == (handle -> config.accel_mode)) return HAL_OK;
-	}
-
-	/* Check if it is Register Bank 0 */
-	if(ICM42688_IsRegBank(handle, REG_BANK_0) != HAL_OK){
-		if(ICM42688_Set_RegBank(handle, REG_BANK_0) != HAL_OK) return HAL_ERROR;
+		if(mode == (handle -> accel_config.accel_mode)) return HAL_OK;
 	}
 
 	/* Extract the bit field of the whole register */
@@ -606,7 +619,7 @@ HAL_StatusTypeDef ICM42688_Set_AccelMode(ICM42688_Handle_t* handle, ICM42688_Acc
 	reg &= (uint8_t)~ICM42688_ACCEL_MODE_Msk;
 	reg |= (uint8_t)ICM42688_ACCEL_MODE_Val(mode);
 	status = ICM42688_WriteReg(handle, ICM42688_UB0_PWR_MGMT0, reg);
-	if(status == HAL_OK) handle -> config.accel_mode = (ICM42688_AccelMode_t)mode;
+	if(status == HAL_OK) handle -> accel_config.accel_mode = (ICM42688_AccelMode_t)mode;
 
 	return status;
 }
@@ -620,15 +633,13 @@ HAL_StatusTypeDef ICM42688_Set_AccelODR(ICM42688_Handle_t* handle, ICM42688_Acce
 	if(!handle) return HAL_ERROR;
 	if(((uint8_t)odr > (uint8_t)ACCEL_ODR_500Hz) || ((uint8_t)odr == 0x00U)) return HAL_ERROR;
 
+	/* Check if the cached bank matches the target bank */
+	if((handle -> regBank) != REG_BANK_0) return HAL_ERROR;
+
 	/* Force write for the first time */
 	if(handle -> isInitialized == true){
 		/* Skip writing if Accel ODR is already set in cache */
-		if(odr == (handle -> config.accel_odr)) return HAL_OK;
-	}
-
-	/* Check if it is Register Bank 0 */
-	if(ICM42688_IsRegBank(handle, REG_BANK_0) != HAL_OK){
-		if(ICM42688_Set_RegBank(handle, REG_BANK_0) != HAL_OK) return HAL_ERROR;
+		if(odr == (handle -> accel_config.accel_odr)) return HAL_OK;
 	}
 
 	/* Extract the bit field of the whole register */
@@ -640,7 +651,7 @@ HAL_StatusTypeDef ICM42688_Set_AccelODR(ICM42688_Handle_t* handle, ICM42688_Acce
 	reg &= (uint8_t)~ICM42688_ACCEL_ODR_Msk;
 	reg |= (uint8_t)ICM42688_ACCEL_ODR_Val(odr);
 	status = ICM42688_WriteReg(handle, ICM42688_UB0_ACCEL_CONF0, reg);
-	if(status == HAL_OK) handle -> config.accel_odr = (ICM42688_AccelODR_t)odr;
+	if(status == HAL_OK) handle -> accel_config.accel_odr = (ICM42688_AccelODR_t)odr;
 
 	return status;
 }
@@ -654,15 +665,13 @@ HAL_StatusTypeDef ICM42688_Set_AccelFS(ICM42688_Handle_t* handle, ICM42688_Accel
 	if(!handle) return HAL_ERROR;
 	if((uint8_t)fullScale > (uint8_t)ACCEL_FSR_2g) return HAL_ERROR;
 
+	/* Check if the cached bank matches the target bank */
+	if((handle -> regBank) != REG_BANK_0) return HAL_ERROR;
+
 	/* Force write for the first time */
 	if(handle -> isInitialized == true){
 		/* Skip writing if Accel full scale is already set in cache */
-		if(fullScale == (handle -> config.accel_fsr)) return HAL_OK;
-	}
-
-	/* Check if it is Register Bank 0 */
-	if(ICM42688_IsRegBank(handle, REG_BANK_0) != HAL_OK){
-		if(ICM42688_Set_RegBank(handle, REG_BANK_0) != HAL_OK) return HAL_ERROR;
+		if(fullScale == (handle -> accel_config.accel_fsr)) return HAL_OK;
 	}
 
 	/* Extract the bit field of the whole register */
@@ -674,55 +683,182 @@ HAL_StatusTypeDef ICM42688_Set_AccelFS(ICM42688_Handle_t* handle, ICM42688_Accel
 	reg &= (uint8_t)~ICM42688_ACCEL_FS_SEL_Msk;
 	reg |= (uint8_t)ICM42688_ACCEL_FS_SEL_Val(fullScale);
 	status = ICM42688_WriteReg(handle, ICM42688_UB0_ACCEL_CONF0, reg);
-	if(status == HAL_OK) handle -> config.accel_fsr = (ICM42688_AccelFSR_t)fullScale;
+	if(status == HAL_OK) handle -> accel_config.accel_fsr = (ICM42688_AccelFSR_t)fullScale;
 
 	return status;
 }
 
 
 /*
+ * @brief	Configure Accel mode, odr, and fsr at once
+ */
+HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle,
+										   ICM42688_AccelMode_t mode,
+										   ICM42688_AccelODR_t odr,
+										   ICM42688_AccelFSR_t fsr){
+	/* Sanity checks */
+	if(!handle) return HAL_ERROR;
+
+	/* Validate arguments */
+	if((uint8_t)mode > 3U) return HAL_ERROR;
+	if(((uint8_t)odr > (uint8_t)ACCEL_ODR_500Hz) || ((uint8_t)odr == 0x00U)) return HAL_ERROR;
+	if((uint8_t)fsr > (uint8_t)ACCEL_FSR_2g) return HAL_ERROR;
+
+	/* Ensure correct bank */
+	if(handle -> regBank != REG_BANK_0) return HAL_ERROR;
+
+	HAL_StatusTypeDef status;
+
+    /* -----------------------------------------
+     * 1) PWR_MGMT0: set Accel Mode (RMW)
+     * ----------------------------------------- */
+	{
+		if((handle -> isInitialized == true) && (mode == handle -> accel_config.accel_mode)){
+			/* Skip */
+		} else{
+			/* Extract the bit field of the whole register */
+			uint8_t reg = 0U;
+			status = ICM42688_ReadReg(handle, ICM42688_UB0_PWR_MGMT0, &reg);
+			if(status != HAL_OK) return status;
+
+			/* Start writing */
+			reg &= (uint8_t)~ICM42688_ACCEL_MODE_Msk;
+			reg |= (uint8_t)ICM42688_ACCEL_MODE_Val(mode);
+			status = ICM42688_WriteReg(handle, ICM42688_UB0_PWR_MGMT0, reg);
+			if(status != HAL_OK) return status;
+
+			handle -> accel_config.accel_mode = mode;
+		}
+	}
+
+	/*
+	 * ----------------------------------------------
+	 * 2) ACCEL_CONF0: set ODR and FSR together
+	 * ----------------------------------------------*/
+	{
+		if((handle -> isInitialized == true) &&
+		   (odr == (handle -> accel_config.accel_odr)) &&
+		   (fsr == (handle -> accel_config.accel_fsr))) return HAL_OK;
+
+		uint8_t reg = 0U;
+		status = ICM42688_ReadReg(handle, ICM42688_UB0_ACCEL_CONF0, &reg);
+		if(status != HAL_OK) return status;
+
+		/* Start writing */
+		reg &= (uint8_t)~(ICM42688_ACCEL_ODR_Msk | ICM42688_ACCEL_FS_SEL_Msk);
+		reg |= (uint8_t)ICM42688_ACCEL_ODR_Val(odr);
+		reg |= (uint8_t)ICM42688_ACCEL_FS_SEL_Val(fsr);
+		status = ICM42688_WriteReg(handle, ICM42688_UB0_ACCEL_CONF0, reg);
+		if(status != HAL_OK) return status;
+
+		/* Update cache	 */
+		handle -> accel_config.accel_odr = odr;
+		handle -> accel_config.accel_fsr = fsr;
+	}
+
+	return HAL_OK;
+}
+
+
+/*
  * =============================================================================
- * 								  INITIALIZE
+ * 									INTERRUPT CONFIG
  * =============================================================================
  */
 /*
- * @brief	Initialize and reset ICM42688 Sensor to the default settings
+ * @brief
  */
-HAL_StatusTypeDef ICM42688_Init(ICM42688_Handle_t* handle){
-	/* Sanity Checks */
-	if(!handle) return HAL_ERROR;
+HAL_StatusTypeDef ICM42688_Set_Int1_Config(ICM42688_Handle_t* handle,
+										   ICM42688_Int_Polarity_t polarity,
+										   ICM42688_Int_Drive_Circuit_t drive,
+										   ICM42688_Int_Mode_t mode){
+	/* Sanity chekcs */
+	if((!handle) ||
+	   ((uint8_t)polarity >= INT_POL_MAX) ||
+	   ((uint8_t)drive >= INT_DRIVE_MAX) ||
+	   ((uint8_t)mode >= INT_MODE_MAX)) return HAL_ERROR;
 
-	/* Check if the sensor is alive */
-	if(ICM42688_IsAlive(handle) != HAL_OK) return HAL_ERROR;
+	/* Check if Interrupt 1 is already configured */
+	if((handle -> isInitialized) &&
+	  ((uint8_t)polarity == (uint8_t)(handle -> int1_config.int1_polarity)) &&
+	  ((uint8_t)drive) == ((uint8_t)(handle -> int1_config.int1_drive)) &&
+	  ((uint8_t)mode) == ((uint8_t)(handle -> int1_config.int1_mode))){
+		return HAL_OK;
+	}
 
-	/* Soft reset the whole sensor */
-	if(ICM42688_SoftReset(handle) != HAL_OK) return HAL_ERROR;
+	/* Ensure correct bank */
+	if(handle -> regBank != REG_BANK_0) return HAL_ERROR;
 
-	/* Recheck if the sensor is alive after reset */
-	if(ICM42688_IsAlive(handle) != HAL_OK) return HAL_ERROR;
+	/* Start extracting the current bit field of INT_CONFIG */
+	uint8_t reg = 0U;
+	HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB0_INT_CONF, &reg);
+	if(status != HAL_OK) return status;
 
-	/* Force the sensors OFF */
-	if(ICM42688_Set_GyroMode(handle, GYRO_OFF) != HAL_OK) return HAL_ERROR;
-	if(ICM42688_Set_AccelMode(handle, ACCEL_OFF) != HAL_OK) return HAL_ERROR;
+	/* Start to write the target configuration to the register */
+	reg &= (uint8_t)~(ICM42688_INT1_POL_Msk | ICM42688_INT1_DRIVE_Msk | ICM42688_INT1_MODE_Msk);
+	reg |= (uint8_t)(ICM42688_INT1_POL_Val(polarity) |
+					 ICM42688_INT1_DRIVE_Val(drive) |
+					 ICM42688_INT1_MODE_Val(mode));
+	status = ICM42688_WriteReg(handle, ICM42688_UB0_INT_CONF, reg);
+	if(status != HAL_OK) return status;
 
-	/* Configure Default */
-	if(ICM42688_Set_RegBank(handle, REG_BANK_0) != HAL_OK) return HAL_ERROR;
-	if(ICM42688_Set_SPI_Mode(handle, SPI_MODE_0_3) != HAL_OK) return HAL_ERROR;
-	if(ICM42688_Set_SPI_SlewRate(handle, SPI_SR_2NS) != HAL_OK) return HAL_ERROR;
+	/* Update cache */
+	handle -> int1_config.int1_polarity = polarity;
+	handle -> int1_config.int1_drive = drive;
+	handle -> int1_config.int1_mode = mode;
 
-	/* Configure Gyro */
-	ICM42688_Set_GyroODR(handle, GYRO_ODR_1KHz);
-	ICM42688_Set_GyroFS(handle, GYRO_FSR_1000dps);
-
-	/* Configure Accel */
-	ICM42688_Set_AccelODR(handle, ACCEL_ODR_1KHz);
-	ICM42688_Set_AccelFS(handle, ACCEL_FSR_16g);
-
-	/* Precalculate sensitivity multiplier of Gyro and Accel
-	 * Formula:	MAX FSR / 32768.0 */
-	handle -> gyro_lsb_to_dps	= (float)(gyro_FSR_value[handle -> config.gyro_fsr] / ICM42688_SENSITIVITY_SCALE_FACTOR);
-	handle -> accel_lsb_to_g	= (float)(accel_FSR_value[handle -> config.accel_fsr] / ICM42688_SENSITIVITY_SCALE_FACTOR);
-
-	handle -> isInitialized = true;
-	return HAL_OK;
+	return status;
 }
+
+
+/*
+ * @brief
+ */
+HAL_StatusTypeDef ICM42688_Set_Int2_Config(ICM42688_Handle_t* handle,
+										   ICM42688_Int_Polarity_t polarity,
+										   ICM42688_Int_Drive_Circuit_t drive,
+										   ICM42688_Int_Mode_t mode){
+	/* Sanity chekcs */
+	if((!handle) ||
+	   ((uint8_t)polarity >= INT_POL_MAX) ||
+	   ((uint8_t)drive >= INT_DRIVE_MAX) ||
+	   ((uint8_t)mode >= INT_MODE_MAX)) return HAL_ERROR;
+
+	/* Check if Interrupt 2 is already configured */
+	if((handle -> isInitialized) &&
+	  ((uint8_t)polarity == (uint8_t)(handle -> int2_config.int2_polarity)) &&
+	  ((uint8_t)drive) == ((uint8_t)(handle -> int2_config.int2_drive)) &&
+	  ((uint8_t)mode) == ((uint8_t)(handle -> int2_config.int2_mode))){
+		return HAL_OK;
+	}
+
+	/* Ensure correct bank */
+	if(handle -> regBank != REG_BANK_0) return HAL_ERROR;
+
+	/* Start extracting the current bit field of INT_CONFIG */
+	uint8_t reg = 0U;
+	HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB0_INT_CONF, &reg);
+	if(status != HAL_OK) return status;
+
+	/* Start to write the target configuration to the register */
+	reg &= (uint8_t)~(ICM42688_INT2_POL_Msk | ICM42688_INT2_DRIVE_Msk | ICM42688_INT2_MODE_Msk);
+	reg |= (uint8_t)(ICM42688_INT2_POL_Val(polarity) |
+					 ICM42688_INT2_DRIVE_Val(drive) |
+					 ICM42688_INT2_MODE_Val(mode));
+	status = ICM42688_WriteReg(handle, ICM42688_UB0_INT_CONF, reg);
+	if(status != HAL_OK) return status;
+
+	/* Update cache */
+	handle -> int2_config.int2_polarity = polarity;
+	handle -> int2_config.int2_drive = drive;
+	handle -> int2_config.int2_mode = mode;
+
+	return status;
+}
+
+
+
+
+
+
+
