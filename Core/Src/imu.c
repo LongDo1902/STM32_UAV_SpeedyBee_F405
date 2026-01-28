@@ -82,7 +82,19 @@ ICM42688_Handle_t ICM42688_Handle = {
 				.cs_port 		= GPIOA,
 				.cs_pin			= GPIO_PIN_4,
 				.spiMode 		= SPI_MODE_0_3,		//Default
-				.spiSlewRate	= SPI_SR_2NS		//Default
+				.spiSlewRate	= SPI_SR_2NS,		//Default
+		},
+
+		.int1_config = {
+				.int1_polarity	= INT1_DEFAULT.int1_polarity,
+				.int1_drive		= INT1_DEFAULT.int1_drive,
+				.int1_mode		= INT1_DEFAULT.int1_mode,
+		},
+
+		.int2_config = {
+				.int2_polarity	= INT2_DEFAULT.int2_polarity,
+				.int2_drive		= INT2_DEFAULT.int2_drive,
+				.int2_mode		= INT2_DEFAULT.int2_mode,
 		},
 
 		.gyro_lsb_to_dps 	= 0.0f,
@@ -90,7 +102,7 @@ ICM42688_Handle_t ICM42688_Handle = {
 
 		.isInitialized		= false,
 		.isAlive			= false,
-		.regBank			= REG_BANK_0	//Default
+		.regBank			= REG_BANK_0,	//Default
 };
 
 
@@ -119,21 +131,20 @@ HAL_StatusTypeDef ICM42688_Init(ICM42688_Handle_t* handle){
 	if(ICM42688_IsAlive(handle) != HAL_OK) return HAL_ERROR;
 
 	/* Force the sensors OFF */
-	if(ICM42688_Set_GyroMode(handle, GYRO_OFF) != HAL_OK) return HAL_ERROR;
-	if(ICM42688_Set_AccelMode(handle, ACCEL_OFF) != HAL_OK) return HAL_ERROR;
+	if(ICM42688_Set_GyroMode(handle, GYRO_DEFAULT.gyro_mode) != HAL_OK) return HAL_ERROR;
+	if(ICM42688_Set_AccelMode(handle, ACCEL_DEFAULT.accel_mode) != HAL_OK) return HAL_ERROR;
 
 	/* Configure Default */
-	if(ICM42688_Set_RegBank(handle, REG_BANK_0) != HAL_OK) return HAL_ERROR;
 	if(ICM42688_Set_SPI_Mode(handle, SPI_MODE_0_3) != HAL_OK) return HAL_ERROR;
 	if(ICM42688_Set_SPI_SlewRate(handle, SPI_SR_2NS) != HAL_OK) return HAL_ERROR;
 
 	/* Configure Gyro */
-	ICM42688_Set_GyroODR(handle, GYRO_ODR_1KHz);
-	ICM42688_Set_GyroFS(handle, GYRO_FSR_1000dps);
+	ICM42688_Set_GyroODR(handle, GYRO_DEFAULT.gyro_odr);
+	ICM42688_Set_GyroFS(handle, GYRO_DEFAULT.gyro_fsr);
 
 	/* Configure Accel */
-	ICM42688_Set_AccelODR(handle, ACCEL_ODR_1KHz);
-	ICM42688_Set_AccelFS(handle, ACCEL_FSR_16g);
+	ICM42688_Set_AccelODR(handle, ACCEL_DEFAULT.accel_odr);
+	ICM42688_Set_AccelFS(handle, ACCEL_DEFAULT.accel_fsr);
 
 	/* Precalculate sensitivity multiplier of Gyro and Accel
 	 * Formula:	MAX FSR / 32768.0 */
