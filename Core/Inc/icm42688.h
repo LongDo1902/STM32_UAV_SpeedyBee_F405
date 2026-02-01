@@ -149,12 +149,17 @@ typedef enum{
  * 							REGISTER BANK 0 ENUMS
  * ============================================================================
  */
+/* Sensor Selection */
+typedef enum{
+	GYRO = 0,
+	ACCEL = 1
+}ICM42688_SensorSel_t;
+
 /* DEVICE_CONFIG Defines */
 typedef enum{
 	SPI_MODE_0_3 = 0U,
 	SPI_MODE_1_2 = 1U
 }ICM42688_SPI_Mode_t;
-
 
 /* DRIVE_CONFIG Defines */
 typedef enum{
@@ -273,8 +278,8 @@ typedef struct{
 	ICM42688_Int2_Config_t	int2_config;
 
 	/* Other runtime setups */
-	float 	gyro_lsb_to_dps;	//Scale factor: raw gyro LSB -> dps
-	float 	accel_lsb_to_g;		//Scale factor: raw accel LSB -> g
+	float 	gyro_dps_per_lsb;	//Scale factor: raw gyro LSB -> dps
+	float 	accel_g_per_lsb;	//Scale factor: raw accel LSB -> g
 
 	/* Flags/variable to check */
 	bool				isInitialized;
@@ -550,6 +555,45 @@ typedef struct{
  * 							PUBLIC APIs
  * =============================================================
  */
+HAL_StatusTypeDef ICM42688_WriteReg(ICM42688_Handle_t *handle, uint8_t regAddr, uint8_t val);
+HAL_StatusTypeDef ICM42688_ReadReg(ICM42688_Handle_t* handle, uint8_t regAddr, uint8_t* outVal);
+HAL_StatusTypeDef ICM42688_ReadRegs(ICM42688_Handle_t* handle, uint8_t startRegAddr, uint8_t* buf, uint16_t bufLength);
+
+HAL_StatusTypeDef ICM42688_Set_RegBank(ICM42688_Handle_t* handle, ICM42688_RegBank_t regBank);
+HAL_StatusTypeDef ICM42688_Get_RegBankSensor(ICM42688_Handle_t* handle, ICM42688_RegBank_t* regBank);
+HAL_StatusTypeDef ICM42688_IsAlive(ICM42688_Handle_t* handle);
+HAL_StatusTypeDef ICM42688_SoftReset(ICM42688_Handle_t* handle);
+
+HAL_StatusTypeDef ICM42688_Set_SPI_Mode(ICM42688_Handle_t* handle, ICM42688_SPI_Mode_t spiMode);
+HAL_StatusTypeDef ICM42688_Get_SPI_SlewRate(ICM42688_Handle_t* handle, ICM42688_SPI_SLEWRATE_t* slewRate);
+HAL_StatusTypeDef ICM42688_Set_SPI_SlewRate(ICM42688_Handle_t* handle, ICM42688_SPI_SLEWRATE_t slewRate);
+
+
+HAL_StatusTypeDef ICM42688_Set_GyroMode(ICM42688_Handle_t* handle, ICM42688_GyroMode_t mode);
+HAL_StatusTypeDef ICM42688_Set_GyroODR(ICM42688_Handle_t* handle, ICM42688_GyroODR_t odr);
+HAL_StatusTypeDef ICM42688_Set_GyroFS(ICM42688_Handle_t* handle, ICM42688_GyroFSR_t fullScale);
+HAL_StatusTypeDef ICM42688_Set_GyroConfig(ICM42688_Handle_t* handle,
+										  ICM42688_GyroMode_t mode,
+										  ICM42688_GyroODR_t odr,
+										  ICM42688_GyroFSR_t fsr);
+
+HAL_StatusTypeDef ICM42688_Set_AccelMode(ICM42688_Handle_t* handle, ICM42688_AccelMode_t mode);
+HAL_StatusTypeDef ICM42688_Set_AccelODR(ICM42688_Handle_t* handle, ICM42688_AccelODR_t odr);
+HAL_StatusTypeDef ICM42688_Set_AccelFS(ICM42688_Handle_t* handle, ICM42688_AccelFSR_t fullScale);
+HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle,
+										   ICM42688_AccelMode_t mode,
+										   ICM42688_AccelODR_t odr,
+										   ICM42688_AccelFSR_t fsr);
+
+HAL_StatusTypeDef ICM42688_Set_Int1_Config(ICM42688_Handle_t* handle,
+										   ICM42688_Int_Polarity_t polarity,
+										   ICM42688_Int_Drive_Circuit_t drive,
+										   ICM42688_Int_Mode_t mode);
+
+HAL_StatusTypeDef ICM42688_Set_Int2_Config(ICM42688_Handle_t* handle,
+										   ICM42688_Int_Polarity_t polarity,
+										   ICM42688_Int_Drive_Circuit_t drive,
+										   ICM42688_Int_Mode_t mode);
 
 #endif /* INC_ICM42688_H_ */
 

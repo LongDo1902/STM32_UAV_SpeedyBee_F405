@@ -7,6 +7,31 @@
 
 #include "icm42688.h"
 
+
+/*
+ * =============================================================================
+ * 								PRIVATE CONST DECLARATIONS
+ * =============================================================================
+ */
+static const float gyroFSR_value[] = {
+		2000.0f,
+		1000.0f,
+		500.0f,
+		250.0f,
+		125.0f,
+		62.5f,
+		31.25f,
+		15.625f,
+};
+
+static const float accelFSR_value[] = {
+		16.0f,
+		8.0f,
+		4.0f,
+		2.0f,
+};
+
+
 /*
  * =============================================================================
  * 					  			PRIVATE HELPERS
@@ -19,6 +44,33 @@ static inline void ICM42688_CS_Low(ICM42688_Handle_t *handle){
 
 static inline void ICM42688_CS_High(ICM42688_Handle_t *handle){
 	HAL_GPIO_WritePin(handle -> spi_config.cs_port, handle -> spi_config.cs_pin, GPIO_PIN_SET);
+}
+
+
+/*
+ * @brief	Private helper to calculate and update fullscale range dps per lsb
+ * @note	Only call this helper after successful HW write
+ *
+ * @param	handle			Pointer to handle struct
+ * @param	gyro_or_accel	0 for configuring gyro fullscale range
+ * 							1 for configuring accel fullscale range
+ */
+static inline void ICM42688_Update_ScaleFactor(ICM42688_Handle_t* handle, ICM42688_SensorSel_t gyro_or_accel){
+	/* Assumes handle valid
+	 * 1 lsb	? FSR (?dps)
+	 * 32768	FSR (e.g., 2000dps)
+	 */
+	switch(gyro_or_accel){
+		case GYRO: //Gyro
+			handle -> gyro_dps_per_lsb = (float)(gyroFSR_value[(uint8_t)handle -> gyro_config.gyro_fsr] / ICM42688_SENSITIVITY_SCALE_FACTOR);
+			break;
+
+		case ACCEL: //Accel
+			handle -> accel_g_per_lsb = (float)(accelFSR_value[(uint8_t)handle -> accel_config.accel_fsr] / ICM42688_SENSITIVITY_SCALE_FACTOR);
+			break;
+
+		default: return;
+	}
 }
 
 
@@ -399,7 +451,7 @@ HAL_StatusTypeDef ICM42688_Set_SPI_SlewRate(ICM42688_Handle_t* handle, ICM42688_
  * =============================================================================
  */
 /*
- * @brief	Configure Gyro Mode
+ * @brief	Configure Gyro Mode (e.g., Low Noise, Standby)
  *
  * @param	handle	Pointer to handle struct
  * @param	mode	Target/desired gyro mode to be set
@@ -436,7 +488,13 @@ HAL_StatusTypeDef ICM42688_Set_GyroMode(ICM42688_Handle_t* handle, ICM42688_Gyro
 
 
 /*
- * @brief	Configure Output Data Rate of Gyro
+ * @brief	Configure Output Data Rate (ODR) of Gyroscope
+ *
+ * @param	handle	Pointer to the device handle structure
+ * @param	odr		Target Output Data Rate
+ *
+ * @retVal	HAL_OK		success
+ * 			HAL_ERROR	Failure or invalid arguments
  */
 HAL_StatusTypeDef ICM42688_Set_GyroODR(ICM42688_Handle_t* handle, ICM42688_GyroODR_t odr){
 	/* Sanity check */
@@ -471,12 +529,18 @@ HAL_StatusTypeDef ICM42688_Set_GyroODR(ICM42688_Handle_t* handle, ICM42688_GyroO
 
 
 /*
- * @brief	Configure Full Scale of Gyro
+ * @brief	Configure Full Scale (FSR) of Gyroscope
+ *
+ * @param	handle	Pointer to the device handle structure
+ * @param	fsr		Target FSR (e.g., +-2000dps, +-15.625dps)
+ *
+ * @retVal	HAL_OK		Success
+ * 			HAL_ERROR	Otherwise
  */
-HAL_StatusTypeDef ICM42688_Set_GyroFS(ICM42688_Handle_t* handle, ICM42688_GyroFSR_t fullScale){
+HAL_StatusTypeDef ICM42688_Set_GyroFS(ICM42688_Handle_t* handle, ICM42688_GyroFSR_t fsr){
 	/* Sanity check */
 	if(!handle) return HAL_ERROR;
-	if((uint8_t)fullScale > (uint8_t)GYRO_FSR_15dps625) return HAL_ERROR;
+	if((uint8_t)fsr > (uint8_t)GYRO_FSR_15dps625) return HAL_ERROR;
 
 	/* Check if the cached bank matches the target bank */
 	if((handle -> regBank) != REG_BANK_0) return HAL_ERROR;
@@ -484,7 +548,7 @@ HAL_StatusTypeDef ICM42688_Set_GyroFS(ICM42688_Handle_t* handle, ICM42688_GyroFS
 	/* Force write for the first time */
 	if(handle -> isInitialized == true){
 		/* Skip writing if Gyro full scale is already set in cache */
-		if(fullScale == (handle -> gyro_config.gyro_fsr)) return HAL_OK;
+		if(fsr == (handle -> gyro_config.gyro_fsr)) return HAL_OK;
 	}
 
 	/* Extract the bit field of the whole register */
@@ -494,17 +558,30 @@ HAL_StatusTypeDef ICM42688_Set_GyroFS(ICM42688_Handle_t* handle, ICM42688_GyroFS
 
 	/* Start writting */
 	reg &= (uint8_t)~ICM42688_GYRO_FS_SEL_Msk;
-	reg |= (uint8_t)ICM42688_GYRO_FS_SEL_Val(fullScale);
+	reg |= (uint8_t)ICM42688_GYRO_FS_SEL_Val(fsr);
 	status = ICM42688_WriteReg(handle, ICM42688_UB0_GYRO_CONF0, reg);
-	if(status == HAL_OK) handle -> gyro_config.gyro_fsr = (ICM42688_GyroFSR_t)fullScale;
+	if(status != HAL_OK) return status;
 
-	return status;
+	/* Update cache + scale factor after successful HW write */
+	handle -> gyro_config.gyro_fsr	= fsr;
+	ICM42688_Update_ScaleFactor(handle, 0);
+
+	return HAL_OK;
 }
 
 
 /*
  * @brief	Configure gyro mode, odr, fullscale selection at once
- * 			An improved version optimizes the performance
+ * 			An improved version optimizes the performance by combining ODR and FSR writes
+ * 			into a single register access (GYRO_CONF0)
+ *
+ * @param	handle		Pointer to device handle struct
+ * @param	mode		Desired Gyro Mode
+ * @param	odr			Desired Output Data Rate
+ * @param	fsr			Desired Full Scale Range
+ *
+ * @retVal	HAL_OK		On success
+ * 			HAL_ERROR	On failure
  */
 HAL_StatusTypeDef ICM42688_Set_GyroConfig(ICM42688_Handle_t* handle,
 										  ICM42688_GyroMode_t mode,
@@ -575,11 +652,12 @@ HAL_StatusTypeDef ICM42688_Set_GyroConfig(ICM42688_Handle_t* handle,
 		status = ICM42688_WriteReg(handle, ICM42688_UB0_GYRO_CONF0, reg);
 		if(status != HAL_OK) return status;
 
-		/* Update cached */
+		/* Update cache + scale factor after successful HW write */
 		handle -> gyro_config.gyro_odr = odr;
 		handle -> gyro_config.gyro_fsr = fsr;
+		ICM42688_Update_ScaleFactor(handle, 0);
 	}
-	return HAL_OK;
+	return status;
 }
 
 
@@ -627,6 +705,11 @@ HAL_StatusTypeDef ICM42688_Set_AccelMode(ICM42688_Handle_t* handle, ICM42688_Acc
 
 /*
  * @brief	Configure Output Data Rate of Accel
+ *
+ * @param	handle		Pointer to device handle
+ * @param	odr			Target Accelerometer ODR
+ *
+ * @retVal	HAL_OK	/ HAL_ERROR
  */
 HAL_StatusTypeDef ICM42688_Set_AccelODR(ICM42688_Handle_t* handle, ICM42688_AccelODR_t odr){
 	/* Sanity check */
@@ -659,6 +742,11 @@ HAL_StatusTypeDef ICM42688_Set_AccelODR(ICM42688_Handle_t* handle, ICM42688_Acce
 
 /*
  * @brief	Configure Full Scale of Accel
+ *
+ * @param   handle      Pointer to device handle
+ * @param   fullScale   Target Accel FSR (e.g., +/- 16g, +/- 2g)
+ *
+ * @retVal	HAL_OK	/	HAL_ERROR
  */
 HAL_StatusTypeDef ICM42688_Set_AccelFS(ICM42688_Handle_t* handle, ICM42688_AccelFSR_t fullScale){
 	/* Sanity check */
@@ -690,7 +778,13 @@ HAL_StatusTypeDef ICM42688_Set_AccelFS(ICM42688_Handle_t* handle, ICM42688_Accel
 
 
 /*
- * @brief	Configure Accel mode, odr, and fsr at once
+ * @brief	Configure Accel mode, odr, and fsr at once.
+ * Efficiently combines ODR and FSR into one register write.
+ *
+ * @param   handle  Pointer to device handle
+ * @param   mode    Accel Mode
+ * @param   odr     Accel ODR
+ * @param   fsr     Accel FSR
  */
 HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle,
 										   ICM42688_AccelMode_t mode,
@@ -766,7 +860,14 @@ HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle,
  * =============================================================================
  */
 /*
- * @brief
+ * @brief	Configure Interrupt Pin 1 (INT1)
+ *
+ * @param   handle    Pointer to device handle
+ * @param   polarity  Active Low (0) or Active High (1)
+ * @param   drive     Push-Pull (0) or Open-Drain (1)
+ * @param   mode      Pulse (0) or Latch (1)
+ *
+ * @retVal  HAL_OK / HAL_ERROR
  */
 HAL_StatusTypeDef ICM42688_Set_Int1_Config(ICM42688_Handle_t* handle,
 										   ICM42688_Int_Polarity_t polarity,
@@ -812,7 +913,14 @@ HAL_StatusTypeDef ICM42688_Set_Int1_Config(ICM42688_Handle_t* handle,
 
 
 /*
- * @brief
+ * @brief	Configure Interrupt Pin 2 (INT2)
+ *
+ * @param   handle    Pointer to device handle
+ * @param   polarity  Active Low (0) or Active High (1)
+ * @param   drive     Push-Pull (0) or Open-Drain (1)
+ * @param   mode      Pulse (0) or Latch (1)
+ *
+ * @retVal  HAL_OK / HAL_ERROR
  */
 HAL_StatusTypeDef ICM42688_Set_Int2_Config(ICM42688_Handle_t* handle,
 										   ICM42688_Int_Polarity_t polarity,
@@ -855,10 +963,3 @@ HAL_StatusTypeDef ICM42688_Set_Int2_Config(ICM42688_Handle_t* handle,
 
 	return status;
 }
-
-
-
-
-
-
-
