@@ -58,8 +58,7 @@ static inline void ICM42688_CS_High(ICM42688_Handle_t *handle){
 static inline void ICM42688_Update_ScaleFactor(ICM42688_Handle_t* handle, ICM42688_SensorSel_t gyro_or_accel){
 	/* Assumes handle valid
 	 * 1 lsb	? FSR (?dps)
-	 * 32768	FSR (e.g., 2000dps)
-	 */
+	 * 32768	FSR (e.g., 2000dps) */
 	switch(gyro_or_accel){
 		case GYRO: //Gyro
 			handle -> gyro_dps_per_lsb = (float)(gyroFSR_value[(uint8_t)handle -> gyro_config.gyro_fsr] / ICM42688_SENSITIVITY_SCALE_FACTOR);
@@ -564,7 +563,7 @@ HAL_StatusTypeDef ICM42688_Set_GyroFS(ICM42688_Handle_t* handle, ICM42688_GyroFS
 
 	/* Update cache + scale factor after successful HW write */
 	handle -> gyro_config.gyro_fsr	= fsr;
-	ICM42688_Update_ScaleFactor(handle, 0);
+	ICM42688_Update_ScaleFactor(handle, GYRO);
 
 	return HAL_OK;
 }
@@ -655,7 +654,7 @@ HAL_StatusTypeDef ICM42688_Set_GyroConfig(ICM42688_Handle_t* handle,
 		/* Update cache + scale factor after successful HW write */
 		handle -> gyro_config.gyro_odr = odr;
 		handle -> gyro_config.gyro_fsr = fsr;
-		ICM42688_Update_ScaleFactor(handle, 0);
+		ICM42688_Update_ScaleFactor(handle, GYRO);
 	}
 	return status;
 }
@@ -744,11 +743,11 @@ HAL_StatusTypeDef ICM42688_Set_AccelODR(ICM42688_Handle_t* handle, ICM42688_Acce
  * @brief	Configure Full Scale of Accel
  *
  * @param   handle      Pointer to device handle
- * @param   fullScale   Target Accel FSR (e.g., +/- 16g, +/- 2g)
+ * @param   fsr   Target Accel FSR (e.g., +/- 16g, +/- 2g)
  *
  * @retVal	HAL_OK	/	HAL_ERROR
  */
-HAL_StatusTypeDef ICM42688_Set_AccelFS(ICM42688_Handle_t* handle, ICM42688_AccelFSR_t fullScale){
+HAL_StatusTypeDef ICM42688_Set_AccelFS(ICM42688_Handle_t* handle, ICM42688_AccelFSR_t fsr){
 	/* Sanity check */
 	if(!handle) return HAL_ERROR;
 	if((uint8_t)fullScale > (uint8_t)ACCEL_FSR_2g) return HAL_ERROR;
@@ -759,7 +758,7 @@ HAL_StatusTypeDef ICM42688_Set_AccelFS(ICM42688_Handle_t* handle, ICM42688_Accel
 	/* Force write for the first time */
 	if(handle -> isInitialized == true){
 		/* Skip writing if Accel full scale is already set in cache */
-		if(fullScale == (handle -> accel_config.accel_fsr)) return HAL_OK;
+		if(fsr == (handle -> accel_config.accel_fsr)) return HAL_OK;
 	}
 
 	/* Extract the bit field of the whole register */
@@ -769,11 +768,15 @@ HAL_StatusTypeDef ICM42688_Set_AccelFS(ICM42688_Handle_t* handle, ICM42688_Accel
 
 	/* Start writting */
 	reg &= (uint8_t)~ICM42688_ACCEL_FS_SEL_Msk;
-	reg |= (uint8_t)ICM42688_ACCEL_FS_SEL_Val(fullScale);
+	reg |= (uint8_t)ICM42688_ACCEL_FS_SEL_Val(fsr);
 	status = ICM42688_WriteReg(handle, ICM42688_UB0_ACCEL_CONF0, reg);
-	if(status == HAL_OK) handle -> accel_config.accel_fsr = (ICM42688_AccelFSR_t)fullScale;
+	if(status != HAL_OK) return status;
 
-	return status;
+	/* Update cache + scale factor after successful HW write */
+	handle -> accel_config.accel_fsr = (ICM42688_AccelFSR_t)fsr;
+	ICM42688_Update_ScaleFactor(handle, ACCEL);
+
+	return HAL_OK;
 }
 
 
@@ -845,9 +848,10 @@ HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle,
 		status = ICM42688_WriteReg(handle, ICM42688_UB0_ACCEL_CONF0, reg);
 		if(status != HAL_OK) return status;
 
-		/* Update cache	 */
+		/* Update cache	and scale factor */
 		handle -> accel_config.accel_odr = odr;
 		handle -> accel_config.accel_fsr = fsr;
+		ICM42688_Update_ScaleFactor(handle, ACCEL);
 	}
 
 	return HAL_OK;
@@ -855,9 +859,9 @@ HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle,
 
 
 /*
- * =============================================================================
+ * ==================================================================================
  * 									INTERRUPT CONFIG
- * =============================================================================
+ * ==================================================================================
  */
 /*
  * @brief	Configure Interrupt Pin 1 (INT1)

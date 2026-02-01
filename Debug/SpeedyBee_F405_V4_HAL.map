@@ -392,7 +392,7 @@ Discarded input sections
                 0x00000000      0x108 ./Core/Src/icm42688.o
  .text.ICM42688_Set_Int2_Config
                 0x00000000      0x10c ./Core/Src/icm42688.o
- .debug_info    0x00000000     0x15b8 ./Core/Src/icm42688.o
+ .debug_info    0x00000000     0x15e0 ./Core/Src/icm42688.o
  .debug_abbrev  0x00000000      0x297 ./Core/Src/icm42688.o
  .debug_aranges
                 0x00000000       0xd8 ./Core/Src/icm42688.o
@@ -462,7 +462,7 @@ Discarded input sections
  .debug_macro   0x00000000      0x12d ./Core/Src/icm42688.o
  .debug_macro   0x00000000      0x4fa ./Core/Src/icm42688.o
  .debug_line    0x00000000     0x132e ./Core/Src/icm42688.o
- .debug_str     0x00000000    0xc425c ./Core/Src/icm42688.o
+ .debug_str     0x00000000    0xc427c ./Core/Src/icm42688.o
  .comment       0x00000000       0x44 ./Core/Src/icm42688.o
  .debug_frame   0x00000000      0x374 ./Core/Src/icm42688.o
  .ARM.attributes
@@ -550,7 +550,7 @@ Discarded input sections
                 0x00000000       0x30 ./Core/Src/imu.o
  .text.ICM42688_Init
                 0x00000000       0xd6 ./Core/Src/imu.o
- .debug_info    0x00000000      0xe47 ./Core/Src/imu.o
+ .debug_info    0x00000000      0xe4a ./Core/Src/imu.o
  .debug_abbrev  0x00000000      0x1af ./Core/Src/imu.o
  .debug_aranges
                 0x00000000       0x20 ./Core/Src/imu.o
