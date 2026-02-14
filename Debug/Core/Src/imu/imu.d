@@ -1,5 +1,6 @@
-Core/Src/imu.o: ../Core/Src/imu.c ../Core/Inc/imu.h \
- ../Core/Inc/icm42688.h \
+Core/Src/imu/imu.o: ../Core/Src/imu/imu.c ../Core/Inc/imu/imu.h \
+ ../Core/Inc/imu/icm42688.h ../Core/Inc/imu/icm42688_registers.h \
+ ../Core/Inc/imu/icm42688.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h \
  ../Core/Inc/stm32f4xx_hal_conf.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h \
@@ -30,8 +31,10 @@ Core/Src/imu.o: ../Core/Src/imu.c ../Core/Inc/imu.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_spi.h \
  ../Core/Inc/spi.h ../Core/Inc/main.h
-../Core/Inc/imu.h:
-../Core/Inc/icm42688.h:
+../Core/Inc/imu/imu.h:
+../Core/Inc/imu/icm42688.h:
+../Core/Inc/imu/icm42688_registers.h:
+../Core/Inc/imu/icm42688.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
 ../Core/Inc/stm32f4xx_hal_conf.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h:

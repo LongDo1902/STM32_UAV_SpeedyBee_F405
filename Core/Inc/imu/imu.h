@@ -12,6 +12,7 @@
 #include <stdio.h>
 
 #include "icm42688.h"
+#include "imu/imu.h"
 
 extern const ICM42688_Gyro_Config_t 	GYRO_DEFAULT;
 extern const ICM42688_Accel_Config_t 	ACCEL_DEFAULT;

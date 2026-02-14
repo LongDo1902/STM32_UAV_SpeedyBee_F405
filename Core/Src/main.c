@@ -17,7 +17,7 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include <imu.h>
+#include <imu/imu.h>
 #include "main.h"
 #include "adc.h"
 #include "dma.h"

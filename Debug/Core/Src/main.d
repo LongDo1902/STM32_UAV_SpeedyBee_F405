@@ -1,5 +1,6 @@
-Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/imu.h \
- ../Core/Inc/icm42688.h \
+Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/imu/imu.h \
+ ../Core/Inc/imu/icm42688.h ../Core/Inc/imu/icm42688_registers.h \
+ ../Core/Inc/imu/icm42688.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h \
  ../Core/Inc/stm32f4xx_hal_conf.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h \
@@ -30,10 +31,12 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/imu.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_spi.h \
  ../Core/Inc/spi.h ../Core/Inc/main.h ../Core/Inc/main.h \
- ../Core/Inc/adc.h ../Core/Inc/dma.h ../Core/Inc/spi.h ../Core/Inc/gpio.h \
+ ../Core/Inc/adc.h ../Core/Inc/dma.h ../Core/Inc/gpio.h \
  ../Core/Inc/leds.h ../Core/Inc/temperature.h ../Core/Inc/adc.h
-../Core/Inc/imu.h:
-../Core/Inc/icm42688.h:
+../Core/Inc/imu/imu.h:
+../Core/Inc/imu/icm42688.h:
+../Core/Inc/imu/icm42688_registers.h:
+../Core/Inc/imu/icm42688.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
 ../Core/Inc/stm32f4xx_hal_conf.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h:
@@ -68,7 +71,6 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/imu.h \
 ../Core/Inc/main.h:
 ../Core/Inc/adc.h:
 ../Core/Inc/dma.h:
-../Core/Inc/spi.h:
 ../Core/Inc/gpio.h:
 ../Core/Inc/leds.h:
 ../Core/Inc/temperature.h:
