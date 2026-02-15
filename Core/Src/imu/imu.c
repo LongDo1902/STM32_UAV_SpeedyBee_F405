@@ -55,6 +55,10 @@ const ICM42688_Int2_Config_t INT2_DEFAULT = {
 };
 
 
+const ICM42688_Temp_Config_t TEMPERATURE_DEFAULT = {
+		.temp_state = ENABLE,
+};
+
 /*
  * ===================================================================
  * 			GLOBAL INITIAL IDENTITIES/PROPERTIES OF ICM42688
@@ -69,11 +73,13 @@ ICM42688_Handle_t ICM42688_Handle = {
 		.int2_config	= INT2_DEFAULT,
 
 		.gyro_dps_per_lsb 	= 0.0f,
-		.accel_g_per_lsb 	= 0.0f,
+		.accel_g_per_lsb	= 0.0f,
 
 		.is_initialized		= false,
 		.is_reset			= false,
-		.is_alive			= false
+		.is_alive			= false,
+
+		.temp_config		= TEMPERATURE_DEFAULT
 };
 
 

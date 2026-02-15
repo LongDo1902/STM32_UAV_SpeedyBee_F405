@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <math.h>
 
 #include "imu/icm42688_registers.h"
 #include "stm32f4xx_hal.h"
@@ -26,10 +27,6 @@
 #define ICM42688_WRITE_READ_WITH_BANKED		1
 #endif
 
-#define ICM42688_RETURN_IF_ERROR(expression) do {	\
-	HAL_StatusTypeDef _status = (expression);		\
-	if(_status != HAL_OK) return _status;			\
-} while(0)
 
 #define ICM42688_VDD				1800U	//In mV
 
@@ -46,6 +43,7 @@
 #define ICM42688_SPI_ADDR_MASK				0x7FU
 #define ICM42688_SPI_READ_BIT				0x80U
 #define ICM42688_WHO_AM_I_DEFAULT			0x47U
+#define ICM42688_TEMP_RAW_INVALID			((int16_t)INT16_MIN)
 
 
 
@@ -229,8 +227,8 @@ typedef enum{
 
 /* TEMPERATURE Enable/Disable */
 typedef enum{
-	TEMP_DISABLE	= 0x00U,
-	TEMP_ENABLE		= 0x01U,
+	TEMP_ENABLE		= 0x00U,
+	TEMP_DISABLE	= 0x01U,
 }ICM42688_Temp_t;
 
 /* Temperature Filter Bandwidth */
@@ -289,6 +287,10 @@ typedef struct{
 }ICM42688_Int2_Config_t;
 
 typedef struct{
+	ICM42688_Temp_t		temp_state;
+}ICM42688_Temp_Config_t;
+
+typedef struct{
 	/* Gyro and Accel config */
 	ICM42688_Gyro_Config_t	gyro_config;
 	ICM42688_Accel_Config_t	accel_config;
@@ -308,6 +310,9 @@ typedef struct{
 	bool is_initialized;
 	bool is_reset;
 	bool is_alive;
+
+	/* Temperature settings */
+	ICM42688_Temp_Config_t temp_config;
 }ICM42688_Handle_t;
 
 

@@ -873,7 +873,7 @@ HAL_StatusTypeDef ICM42688_Set_Int1_Config(ICM42688_Handle_t* handle, ICM42688_I
 	handle -> int1_config.int1_drive = drive;
 	handle -> int1_config.int1_mode = mode;
 
-	return status;
+	return HAL_OK;
 }
 
 
@@ -919,30 +919,68 @@ HAL_StatusTypeDef ICM42688_Set_Int2_Config(ICM42688_Handle_t* handle, ICM42688_I
 	handle -> int2_config.int2_drive = drive;
 	handle -> int2_config.int2_mode = mode;
 
-	return status;
+	return HAL_OK;
 }
 
 
-///*
-// * ==================================================================================
-// * 									INTERRUPT CONFIG
-// * ==================================================================================
-// */
-//HAL_StatusTypeDef ICM42688_Set_Temperature_Config(ICM42688_Handle_t handles)
-//{
-//
-//}
 
 
+/*
+ * ==================================================================================
+ * 									TEMPERATURE CONFIG
+ * ==================================================================================
+ */
+HAL_StatusTypeDef ICM42688_Set_Temperature_Enable(ICM42688_Handle_t* handle, ICM42688_Temp_t state)
+{
+	if(!handle) return HAL_ERROR;
+
+	if(handle -> is_initialized && handle -> temp_config.temp_state == state){
+		//Skip
+	} else{
+		HAL_StatusTypeDef status = HAL_OK;
+		#if !ICM42688_WRITE_READ_WITH_BANKED
+			status = ICM42688_Set_RegBank(handle, REG_BANK_0);
+			if(status != HAL_OK) return status;
+		#endif
+
+		uint8_t reg = 0;
+		status = ICM42688_ReadReg(handle, ICM42688_UB0_PWR_MGMT0, &reg);
+		if(status != HAL_OK) return status;
+
+		reg &= (uint8_t)~(ICM42688_TEMP_Msk);
+		reg |= (uint8_t)ICM42688_TEMP_Val(state);
+		status = ICM42688_WriteReg(handle, ICM42688_UB0_PWR_MGMT0, reg);
+		if(status != HAL_OK) return status;
+
+		/* Update cache */
+		handle -> temp_config.temp_state = state;
+	}
+	return HAL_OK;
+}
 
 
+int16_t ICM42688_Get_Temperature_Raw(ICM42688_Handle_t* handle)
+{
+	if(!handle) return ICM42688_TEMP_RAW_INVALID;
+
+	#if !ICM42688_WRITE_READ_WITH_BANKED
+		HAL_StatusTypeDef status = ICM42688_Set_RegBank(handle, REG_BANK_0);
+		if(status != HAL_OK) return ICM42688_TEMP_RAW_INVALID;
+	#endif
+
+	uint8_t buf[2] = {0};
+	HAL_StatusTypeDef status = ICM42688_ReadRegs(handle, ICM42688_UB0_TEMP_DATA1, buf, 2);
+	if(status != HAL_OK) return ICM42688_TEMP_RAW_INVALID;
+
+	return (int16_t)((uint16_t)(buf[0] << 8) | (uint16_t)buf[1]);
+}
 
 
+float ICM42688_Get_Temperature_C(ICM42688_Handle_t* handle){
+	if(!handle) return NAN;
 
+	int16_t raw = ICM42688_Get_Temperature_Raw(handle);
+	if(raw == ICM42688_TEMP_RAW_INVALID) return NAN;
 
-
-
-
-
-
-
+	return (float)((raw / 132.48f) + 25.0f);
+}

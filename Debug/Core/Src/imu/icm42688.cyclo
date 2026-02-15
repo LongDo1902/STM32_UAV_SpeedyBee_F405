@@ -21,3 +21,5 @@
 ../Core/Src/imu/icm42688.c:757:19:ICM42688_Set_AccelConfig	15
 ../Core/Src/imu/icm42688.c:834:19:ICM42688_Set_Int1_Config	11
 ../Core/Src/imu/icm42688.c:880:19:ICM42688_Set_Int2_Config	11
+../Core/Src/imu/icm42688.c:931:19:ICM42688_Set_Temperature_Enable	6
+../Core/Src/imu/icm42688.c:960:9:ICM42688_Get_Temperature_Raw	3
