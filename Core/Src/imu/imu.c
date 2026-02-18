@@ -56,7 +56,7 @@ const ICM42688_Int2_Config_t INT2_DEFAULT = {
 
 
 const ICM42688_Temp_Config_t TEMPERATURE_DEFAULT = {
-		.temp_state = ENABLE,
+		.temp_state = TEMP_ENABLE,
 };
 
 /*
@@ -72,8 +72,11 @@ ICM42688_Handle_t ICM42688_Handle = {
 		.int1_config	= INT1_DEFAULT,
 		.int2_config	= INT2_DEFAULT,
 
-		.gyro_dps_per_lsb 	= 0.0f,
-		.accel_g_per_lsb	= 0.0f,
+		.gyro_dps_per_lsb 			= 0.0f,
+		.gyro_lsb_per_dps_dtsheet	= 0.0f,
+
+		.accel_g_per_lsb			= 0.0f,
+		.accel_lsb_per_g_dtsheet	= 0.0f,
 
 		.is_initialized		= false,
 		.is_reset			= false,
@@ -81,54 +84,3 @@ ICM42688_Handle_t ICM42688_Handle = {
 
 		.temp_config		= TEMPERATURE_DEFAULT
 };
-
-
-/*
- * =============================================================================
- * 								  INITIALIZE
- * =============================================================================
- */
-/*
- * @brief	Initialize and reset ICM42688 Sensor to the default settings
- */
-//HAL_StatusTypeDef ICM42688_Init(ICM42688_Handle_t* handle){
-//	/* Sanity Checks */
-//	if(!handle) return HAL_ERROR;
-//
-//	/* Check if the sensor is alive */
-//	HAL_StatusTypeDef status = ICM42688_IsAlive(handle);
-//	if(status != HAL_OK) return status;
-//
-//	/* Soft reset the whole sensor */
-//	status = ICM42688_SoftReset(handle);
-//	if(status != HAL_OK) return status;
-//
-//	/* Immediately FORCE set to bank 0 */
-//	status = ICM42688_Set_RegBank(handle, REG_BANK_0);
-//	if(status != HAL_OK) return status;
-//
-//	/* Recheck if the sensor is alive after reset */
-//	status = ICM42688_IsAlive(handle);
-//	if(status != HAL_OK) return status;
-//
-//	/* Configure SPI */
-//	status = ICM42688_Set_SPI_Mode(handle, SPI_MODE_0_3);
-//	if(status != HAL_OK) return status;
-//	status = ICM42688_Set_SPI_SlewRate(handle, SPI_SR_2NS);
-//	if(status != HAL_OK) return status;
-//
-//	/* Configure Gyro */
-//	status = ICM42688_Set_GyroConfig(handle, GYRO_OFF, GYRO_ODR_8KHz, GYRO_FSR_1000dps);
-//	if(status != HAL_OK) return status;
-//
-//	/* Configure Accel */
-//	status = ICM42688_Set_AccelConfig(handle, ACCEL_OFF, ACCEL_ODR_8KHz, ACCEL_FSR_8g);
-//	if(status != HAL_OK) return status;
-//
-//	/* Initialization is completed and update cache */
-//	handle -> is_initialized = true;
-//	handle -> is_reset = false;
-//	return HAL_OK;
-//}
-
-

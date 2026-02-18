@@ -43,7 +43,7 @@
 #define ICM42688_SPI_ADDR_MASK				0x7FU
 #define ICM42688_SPI_READ_BIT				0x80U
 #define ICM42688_WHO_AM_I_DEFAULT			0x47U
-#define ICM42688_TEMP_RAW_INVALID			((int16_t)INT16_MIN)
+#define ICM42688_RAW_INVALID			((int16_t)INT16_MIN)
 
 
 
@@ -304,7 +304,10 @@ typedef struct{
 
 	/* Other runtime setups */
 	float 	gyro_dps_per_lsb;	//Scale factor: raw gyro LSB -> dps
+	float	gyro_lsb_per_dps_dtsheet;
+
 	float 	accel_g_per_lsb;	//Scale factor: raw accel LSB -> g
+	float	accel_lsb_per_g_dtsheet;
 
 	/* Flags/variable to check and reference parameters */
 	bool is_initialized;

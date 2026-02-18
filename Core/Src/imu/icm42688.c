@@ -12,25 +12,23 @@
  * 								PRIVATE CONST DECLARATIONS
  * =============================================================================
  */
-static const float gyroFSR_value[] =
-{
-		2000.0f,
-		1000.0f,
-		500.0f,
-		250.0f,
-		125.0f,
-		62.5f,
-		31.25f,
-		15.625f,
+static const float lsb_per_dps[] = {
+		16.4f,		//2000
+		32.8f,		//1000
+		65.5f,		//500
+		131.0f,		//250
+		262.0f,		//125
+		524.3f,		//62.5
+		1048.6f,	//31.25
+		2097.2f		//15.625
 };
 
-static const float accelFSR_value[] =
-{
-		16.0f,
-		8.0f,
-		4.0f,
-		2.0f,
 
+static const float lsb_per_g[] = {
+		2048.0f,	//16
+		4096.0f,	//8
+		8192.0f,	//4
+		16384.0f	//2
 };
 
 
@@ -59,14 +57,19 @@ static inline void ICM42688_Update_ScaleFactor(ICM42688_Handle_t* handle, ICM426
 	 * 1 lsb	? FSR (?dps)
 	 * 32768	FSR (e.g., 2000dps) */
 	switch(gyro_or_accel){
-		case GYRO: //Gyro
-			handle -> gyro_dps_per_lsb = (float)(gyroFSR_value[(uint8_t)handle -> gyro_config.gyro_fsr] / ICM42688_SENSITIVITY_SCALE_FACTOR);
+		case GYRO: {
+			uint8_t idx = (uint8_t)handle -> gyro_config.gyro_fsr;
+			handle -> gyro_lsb_per_dps_dtsheet = (float)lsb_per_dps[idx];
+			handle -> gyro_dps_per_lsb = (float)(1.0f / (handle -> gyro_lsb_per_dps_dtsheet));
 			break;
+		}
 
-		case ACCEL: //Accel
-			handle -> accel_g_per_lsb = (float)(accelFSR_value[(uint8_t)handle -> accel_config.accel_fsr] / ICM42688_SENSITIVITY_SCALE_FACTOR);
+		case ACCEL: {
+			uint8_t idx = (uint8_t)handle -> accel_config.accel_fsr;
+			handle -> accel_lsb_per_g_dtsheet = (float)lsb_per_g[idx];
+			handle -> accel_g_per_lsb = (float)(1.0f / (handle -> accel_lsb_per_g_dtsheet));
 			break;
-
+		}
 		default: return;
 	}
 }
@@ -362,6 +365,33 @@ HAL_StatusTypeDef ICM42688_SoftReset(ICM42688_Handle_t* handle)
 	HAL_Delay(5);
 
 	/* After reset, set every flag to a default/known state */
+	handle -> gyro_config.gyro_odr			= GYRO_ODR_1KHz;
+	handle -> gyro_config.gyro_fsr			= GYRO_FSR_2000dps;
+	handle -> gyro_config.gyro_notch		= GYRO_NOTCHBW_680Hz;
+	handle -> gyro_config.gyro_filt_order 	= GYRO_SECOND_ORDER;
+	handle -> gyro_config.gyro_mode 		= GYRO_OFF;
+
+	handle -> accel_config.accel_odr		= ACCEL_ODR_1KHz;
+	handle -> accel_config.accel_fsr		= ACCEL_FSR_16g;
+	handle -> accel_config.accel_filt_order	= ACCEL_SECOND_ORDER;
+	handle -> accel_config.accel_mode		= ACCEL_OFF;
+
+	handle -> int1_config.int1_polarity		= INT_ACTIVE_LOW;
+	handle -> int1_config.int1_drive		= INT_OPEN_DRAIN;
+	handle -> int1_config.int1_mode			= INT_PUSHED;
+
+	handle -> int2_config.int2_polarity		= INT_ACTIVE_LOW;
+	handle -> int2_config.int2_drive		= INT_OPEN_DRAIN;
+	handle -> int2_config.int2_mode			= INT_PUSHED;
+
+	handle -> gyro_dps_per_lsb			= 0.0f;
+	handle -> gyro_lsb_per_dps_dtsheet	= 0.0f;
+
+	handle -> accel_g_per_lsb 			= 0.0f;
+	handle -> accel_lsb_per_g_dtsheet	= 0.0f;
+
+	handle -> temp_config.temp_state	= TEMP_ENABLE;
+
 	handle -> is_reset			= true;
 	handle -> is_initialized 	= false;
 	handle -> is_alive 			= false;
@@ -471,109 +501,8 @@ HAL_StatusTypeDef ICM42688_Set_SPI_SlewRate(ICM42688_Handle_t* handle, ICM42688_
  * 									GYRO CONFIG
  * =============================================================================
  */
-HAL_StatusTypeDef ICM42688_Set_GyroMode(ICM42688_Handle_t* handle, ICM42688_GyroMode_t mode)
-{
-	if(!handle) return HAL_ERROR;
-	if(((uint8_t)mode > 3U) || ((uint8_t)mode == 2U)) return HAL_ERROR;
-
-	HAL_StatusTypeDef status = HAL_OK;
-
-	#if !ICM42688_WRITE_READ_WITH_BANKED
-		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
-		if(status != HAL_OK) return status;
-	#endif
-
-	if((handle -> is_initialized) && ((handle -> gyro_config.gyro_mode) == mode)) return HAL_OK;
-
-	/* Force write for the first time */
-	/* Extract the bit field of the whole register */
-	uint8_t reg = 0U;
-	status = ICM42688_ReadReg(handle, ICM42688_UB0_PWR_MGMT0, &reg);
-	if(status != HAL_OK) return status;
-
-	/* Start to write */
-	reg &= (uint8_t)~ICM42688_GYRO_MODE_Msk;
-	reg |= (uint8_t)ICM42688_GYRO_MODE_Val(mode);
-	status = ICM42688_WriteReg(handle, ICM42688_UB0_PWR_MGMT0, reg);
-	if(status == HAL_OK) handle -> gyro_config.gyro_mode = (ICM42688_GyroMode_t)mode;
-
-	return status;
-}
-
-
-HAL_StatusTypeDef ICM42688_Set_GyroODR(ICM42688_Handle_t* handle, ICM42688_GyroODR_t odr)
-{
-	/* Sanity check */
-	if(!handle) return HAL_ERROR;
-	if(((uint8_t)odr > (uint8_t)GYRO_ODR_500Hz) ||
-	  ((uint8_t)odr == 0x0CU) ||
-	  ((uint8_t)odr == 0x0DU) ||
-	  ((uint8_t)odr == 0x0EU)) return HAL_ERROR;
-
-	HAL_StatusTypeDef status = HAL_OK;
-
-	#if !ICM42688_WRITE_READ_WITH_BANKED
-		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
-		if(status != HAL_OK) return status;
-	#endif
-
-	if((handle -> is_initialized) && ((handle -> gyro_config.gyro_odr) == odr)) return HAL_OK;
-
-	/* Force write for the first time */
-	/* Extract the bit field of the whole register */
-	uint8_t reg = 0U;
-	status = ICM42688_ReadReg(handle, ICM42688_UB0_GYRO_CONF0, &reg);
-	if(status != HAL_OK) return status;
-
-	/* Start writting */
-	reg &= (uint8_t)~ICM42688_GYRO_ODR_Msk;
-	reg |= (uint8_t)ICM42688_GYRO_ODR_Val(odr);
-	status = ICM42688_WriteReg(handle, ICM42688_UB0_GYRO_CONF0, reg);
-	if(status == HAL_OK) handle -> gyro_config.gyro_odr = (ICM42688_GyroODR_t)odr;
-
-	return status;
-}
-
-
-HAL_StatusTypeDef ICM42688_Set_GyroFS(ICM42688_Handle_t* handle, ICM42688_GyroFSR_t fsr)
-{
-	/* Sanity check */
-	if(!handle) return HAL_ERROR;
-	if((uint8_t)fsr > (uint8_t)GYRO_FSR_15dps625) return HAL_ERROR;
-
-	HAL_StatusTypeDef status = HAL_OK;
-
-	#if !ICM42688_WRITE_READ_WITH_BANKED
-		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
-		if(status != HAL_OK) return status;
-	#endif
-
-	if((handle -> is_initialized) && ((handle -> gyro_config.gyro_fsr) == fsr)) return HAL_OK;
-
-	/* Force write for the first time */
-	/* Extract the bit field of the whole register */
-	uint8_t reg = 0U;
-	status = ICM42688_ReadReg(handle, ICM42688_UB0_GYRO_CONF0, &reg);
-	if(status != HAL_OK) return status;
-
-	/* Start writting */
-	reg &= (uint8_t)~ICM42688_GYRO_FS_SEL_Msk;
-	reg |= (uint8_t)ICM42688_GYRO_FS_SEL_Val(fsr);
-	status = ICM42688_WriteReg(handle, ICM42688_UB0_GYRO_CONF0, reg);
-	if(status != HAL_OK) return status;
-
-	/* Update cache + scale factor after successful HW write */
-	handle -> gyro_config.gyro_fsr	= fsr;
-	ICM42688_Update_ScaleFactor(handle, GYRO);
-
-	return HAL_OK;
-}
-
-
-HAL_StatusTypeDef ICM42688_Set_GyroConfig(ICM42688_Handle_t* handle,
-										  ICM42688_GyroMode_t mode,
-										  ICM42688_GyroODR_t odr,
-										  ICM42688_GyroFSR_t fsr)
+HAL_StatusTypeDef ICM42688_Set_GyroConfig(ICM42688_Handle_t* handle, ICM42688_GyroMode_t mode,
+										  ICM42688_GyroODR_t odr, ICM42688_GyroFSR_t fsr)
 {
 	/* Sanity checks */
 	if(!handle) return HAL_ERROR;
@@ -598,11 +527,13 @@ HAL_StatusTypeDef ICM42688_Set_GyroConfig(ICM42688_Handle_t* handle,
 	/*-------------------------------------
 	 * 1) PWR_MGMT0: Set Gyro Mode
 	 * ------------------------------------*/
+	ICM42688_GyroMode_t prevMode = handle -> gyro_config.gyro_mode;
+	ICM42688_GyroMode_t currMode = mode;
+	bool need_write_mode = (!(handle -> is_initialized) || (currMode != prevMode));
+
 	{
 		/* Skip if already cached & initialized */
-		if((handle -> is_initialized) && (mode == (handle -> gyro_config.gyro_mode))){
-			//Skip, do nothing
-		} else{
+		if(need_write_mode == true){
 			/* Extract and read current setting of register PWR_MGMT0 */
 			uint8_t reg = 0U;
 			status = ICM42688_ReadReg(handle, ICM42688_UB0_PWR_MGMT0, &reg);
@@ -616,40 +547,89 @@ HAL_StatusTypeDef ICM42688_Set_GyroConfig(ICM42688_Handle_t* handle,
 
 			/* Update cached */
 			handle -> gyro_config.gyro_mode = mode;
+
+			if((prevMode == GYRO_OFF) && (currMode != GYRO_OFF)){
+				/* Add a >= 200us delay according to datasheet */
+				HAL_Delay(1); //1000us
+			}
 		}
 	}
 
 	/*----------------------------------------
 	 * 2) GYRO_CONF0: Set ODR + FSR together
 	 * ---------------------------------------*/
+	bool need_write_conf = (!(handle -> is_initialized) ||
+						(odr != (handle -> gyro_config.gyro_odr)) ||
+						(fsr != (handle -> gyro_config.gyro_fsr)));
+
 	{
-		/* Skip if already cached & initialized */
-		if((handle -> is_initialized) &&
-			(odr == (handle -> gyro_config.gyro_odr)) &&
-			(fsr == (handle -> gyro_config.gyro_fsr))){
-			return HAL_OK; //Everything requested is already set
+		if(need_write_conf == true){
+			/* Extract and read current setting of register GYRO_CONFIG0 */
+			uint8_t reg = 0U;
+			status = ICM42688_ReadReg(handle, ICM42688_UB0_GYRO_CONF0, &reg);
+			if(status != HAL_OK) return status;
+
+			/* Prepare and write to register GYRO_CONF0 */
+			reg &= (uint8_t)~(ICM42688_GYRO_ODR_Msk | ICM42688_GYRO_FS_SEL_Msk);
+			reg |= (uint8_t)ICM42688_GYRO_ODR_Val(odr);
+			reg |= (uint8_t)ICM42688_GYRO_FS_SEL_Val(fsr);
+			status = ICM42688_WriteReg(handle, ICM42688_UB0_GYRO_CONF0, reg);
+			if(status != HAL_OK) return status;
+
+			/* Update cache + scale factor after successful HW write */
+			handle -> gyro_config.gyro_odr = odr;
+			handle -> gyro_config.gyro_fsr = fsr;
+			ICM42688_Update_ScaleFactor(handle, GYRO);
 		}
-
-		/* Extract and read current setting of register GYRO_CONFIG0 */
-		uint8_t reg = 0U;
-		status = ICM42688_ReadReg(handle, ICM42688_UB0_GYRO_CONF0, &reg);
-		if(status != HAL_OK) return status;
-
-		/* Prepare and write to register GYRO_CONF0 */
-		reg &= (uint8_t)~(ICM42688_GYRO_ODR_Msk | ICM42688_GYRO_FS_SEL_Msk);
-		reg |= (uint8_t)ICM42688_GYRO_ODR_Val(odr);
-		reg |= (uint8_t)ICM42688_GYRO_FS_SEL_Val(fsr);
-		status = ICM42688_WriteReg(handle, ICM42688_UB0_GYRO_CONF0, reg);
-		if(status != HAL_OK) return status;
-
-		/* Update cache + scale factor after successful HW write */
-		handle -> gyro_config.gyro_odr = odr;
-		handle -> gyro_config.gyro_fsr = fsr;
-		ICM42688_Update_ScaleFactor(handle, GYRO);
 	}
 	return status;
 }
 
+
+HAL_StatusTypeDef ICM42688_Get_Gyro_XYZ(ICM42688_Handle_t* handle, int16_t* buf)
+{
+	if(!handle || !buf) return HAL_ERROR;
+
+	HAL_StatusTypeDef status = HAL_OK;
+
+	#if !ICM42688_WRITE_READ_WITH_BANKED
+		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
+		if(status != HAL_OK) return HAL_ERROR;
+	#endif
+
+	uint8_t raw[6] = {0};
+	status = ICM42688_ReadRegs(handle, ICM42688_UB0_GYRO_DATA_X1, raw, 6);
+	if(status != HAL_OK) return status;
+
+	/* Extract Gyro X */
+	buf[0] = (int16_t)(raw[0] << 8 | raw[1]);
+
+	/* Extract Gyro Y */
+	buf[1] = (int16_t)(raw[2] << 8 | raw[3]);
+
+	/* Extract Gyro Z */
+	buf[2] = (int16_t)(raw[4] << 8 | raw[5]);
+
+	return HAL_OK;
+}
+
+
+HAL_StatusTypeDef ICM42688_Get_Gyro_DPS(ICM42688_Handle_t* handle, float dps[3])
+{
+	if(!handle || !dps) return HAL_ERROR;
+
+	int16_t raw[3];
+	HAL_StatusTypeDef status = ICM42688_Get_Gyro_XYZ(handle, raw);
+	if(status != HAL_OK) return status;
+
+	/* Extract gyro X, Y and Z dps */
+	const float s = handle -> gyro_dps_per_lsb;
+	dps[0] = (float)(raw[0] * s);
+	dps[1] = (float)(raw[1] * s);
+	dps[2] = (float)(raw[2] * s);
+
+	return HAL_OK;
+}
 
 
 
@@ -658,102 +638,6 @@ HAL_StatusTypeDef ICM42688_Set_GyroConfig(ICM42688_Handle_t* handle,
  * 								    ACCEL CONFIG
  * =============================================================================
  */
-HAL_StatusTypeDef ICM42688_Set_AccelMode(ICM42688_Handle_t* handle, ICM42688_AccelMode_t mode)
-{
-	if(!handle) return HAL_ERROR;
-	if((uint8_t)mode > 3U) return HAL_ERROR;
-
-	HAL_StatusTypeDef status = HAL_OK;
-
-	#if !ICM42688_WRITE_READ_WITH_BANKED
-		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
-		if(status != HAL_OK) return status;
-	#endif
-
-	if((handle -> is_initialized) && ((handle -> accel_config.accel_mode) == mode)) return HAL_OK;
-
-	/* Force write for the first time */
-	/* Extract the bit field of the whole register */
-	uint8_t reg = 0U;
-	status = ICM42688_ReadReg(handle, ICM42688_UB0_PWR_MGMT0, &reg);
-	if(status != HAL_OK) return status;
-
-	/* Start to write */
-	reg &= (uint8_t)~ICM42688_ACCEL_MODE_Msk;
-	reg |= (uint8_t)ICM42688_ACCEL_MODE_Val(mode);
-	status = ICM42688_WriteReg(handle, ICM42688_UB0_PWR_MGMT0, reg);
-	if(status == HAL_OK) handle -> accel_config.accel_mode = (ICM42688_AccelMode_t)mode;
-
-	return status;
-}
-
-
-HAL_StatusTypeDef ICM42688_Set_AccelODR(ICM42688_Handle_t* handle, ICM42688_AccelODR_t odr)
-{
-	/* Sanity check */
-	if(!handle) return HAL_ERROR;
-	if(((uint8_t)odr > (uint8_t)ACCEL_ODR_500Hz) || ((uint8_t)odr == 0x00U)) return HAL_ERROR;
-
-	HAL_StatusTypeDef status = HAL_OK;
-
-	#if !ICM42688_WRITE_READ_WITH_BANKED
-		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
-		if(status != HAL_OK) return status;
-	#endif
-
-	if((handle -> is_initialized) && ((handle -> accel_config.accel_odr) == odr)) return HAL_OK;
-
-	/* Force write for the first time */
-	/* Extract the bit field of the whole register */
-	uint8_t reg = 0U;
-	status = ICM42688_ReadReg(handle, ICM42688_UB0_ACCEL_CONF0, &reg);
-	if(status != HAL_OK) return status;
-
-	/* Start writting */
-	reg &= (uint8_t)~ICM42688_ACCEL_ODR_Msk;
-	reg |= (uint8_t)ICM42688_ACCEL_ODR_Val(odr);
-	status = ICM42688_WriteReg(handle, ICM42688_UB0_ACCEL_CONF0, reg);
-	if(status == HAL_OK) handle -> accel_config.accel_odr = (ICM42688_AccelODR_t)odr;
-
-	return status;
-}
-
-
-HAL_StatusTypeDef ICM42688_Set_AccelFS(ICM42688_Handle_t* handle, ICM42688_AccelFSR_t fsr)
-{
-	/* Sanity check */
-	if(!handle) return HAL_ERROR;
-	if((uint8_t)fsr > (uint8_t)ACCEL_FSR_2g) return HAL_ERROR;
-
-	HAL_StatusTypeDef status = HAL_OK;
-
-	#if !ICM42688_WRITE_READ_WITH_BANKED
-		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
-		if(status != HAL_OK) return status;
-	#endif
-
-	if((handle -> is_initialized) && ((handle -> accel_config.accel_fsr) == fsr)) return HAL_OK;
-
-	/* Force write for the first time */
-	/* Extract the bit field of the whole register */
-	uint8_t reg = 0U;
-	status = ICM42688_ReadReg(handle, ICM42688_UB0_ACCEL_CONF0, &reg);
-	if(status != HAL_OK) return status;
-
-	/* Start writting */
-	reg &= (uint8_t)~ICM42688_ACCEL_FS_SEL_Msk;
-	reg |= (uint8_t)ICM42688_ACCEL_FS_SEL_Val(fsr);
-	status = ICM42688_WriteReg(handle, ICM42688_UB0_ACCEL_CONF0, reg);
-	if(status != HAL_OK) return status;
-
-	/* Update cache + scale factor after successful HW write */
-	handle -> accel_config.accel_fsr = (ICM42688_AccelFSR_t)fsr;
-	ICM42688_Update_ScaleFactor(handle, ACCEL);
-
-	return HAL_OK;
-}
-
-
 HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle, ICM42688_AccelMode_t mode,
 										   ICM42688_AccelODR_t odr, ICM42688_AccelFSR_t fsr)
 {
@@ -775,10 +659,12 @@ HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle, ICM42688_A
     /* -----------------------------------------
      * 1) PWR_MGMT0: set Accel Mode (RMW)
      * ----------------------------------------- */
+	ICM42688_AccelMode_t prevMode = handle -> accel_config.accel_mode;
+	ICM42688_AccelMode_t currMode = mode;
+	bool need_write_mode = (!(handle -> is_initialized) || (currMode != prevMode));
+
 	{
-		if((handle -> is_initialized) && (mode == handle -> accel_config.accel_mode)){
-			/* Skip */
-		} else{
+		if(need_write_mode){
 			/* Extract the bit field of the whole register */
 			uint8_t reg = 0U;
 			status = ICM42688_ReadReg(handle, ICM42688_UB0_PWR_MGMT0, &reg);
@@ -798,27 +684,70 @@ HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle, ICM42688_A
 	 * ----------------------------------------------
 	 * 2) ACCEL_CONF0: set ODR and FSR together
 	 * ----------------------------------------------*/
+	bool need_write_config = (!(handle -> is_initialized) ||
+							(odr != handle -> accel_config.accel_odr) ||
+							(fsr != handle -> accel_config.accel_odr));
 	{
-		if((handle -> is_initialized) &&
-		   (odr == (handle -> accel_config.accel_odr)) &&
-		   (fsr == (handle -> accel_config.accel_fsr))) return HAL_OK;
+		if(need_write_config){
+			uint8_t reg = 0U;
+			status = ICM42688_ReadReg(handle, ICM42688_UB0_ACCEL_CONF0, &reg);
+			if(status != HAL_OK) return status;
 
-		uint8_t reg = 0U;
-		status = ICM42688_ReadReg(handle, ICM42688_UB0_ACCEL_CONF0, &reg);
-		if(status != HAL_OK) return status;
+			/* Start writing */
+			reg &= (uint8_t)~(ICM42688_ACCEL_ODR_Msk | ICM42688_ACCEL_FS_SEL_Msk);
+			reg |= (uint8_t)ICM42688_ACCEL_ODR_Val(odr);
+			reg |= (uint8_t)ICM42688_ACCEL_FS_SEL_Val(fsr);
+			status = ICM42688_WriteReg(handle, ICM42688_UB0_ACCEL_CONF0, reg);
+			if(status != HAL_OK) return status;
 
-		/* Start writing */
-		reg &= (uint8_t)~(ICM42688_ACCEL_ODR_Msk | ICM42688_ACCEL_FS_SEL_Msk);
-		reg |= (uint8_t)ICM42688_ACCEL_ODR_Val(odr);
-		reg |= (uint8_t)ICM42688_ACCEL_FS_SEL_Val(fsr);
-		status = ICM42688_WriteReg(handle, ICM42688_UB0_ACCEL_CONF0, reg);
-		if(status != HAL_OK) return status;
+			/* Update cache	and scale factor */
+			handle -> accel_config.accel_odr = odr;
+			handle -> accel_config.accel_fsr = fsr;
+			ICM42688_Update_ScaleFactor(handle, ACCEL);
+		}
 
-		/* Update cache	and scale factor */
-		handle -> accel_config.accel_odr = odr;
-		handle -> accel_config.accel_fsr = fsr;
-		ICM42688_Update_ScaleFactor(handle, ACCEL);
 	}
+	return HAL_OK;
+}
+
+
+HAL_StatusTypeDef ICM42688_Get_Accel_XYZ(ICM42688_Handle_t* handle, int16_t* buf){
+	if(!handle || !buf) return HAL_ERROR;
+	HAL_StatusTypeDef status = HAL_OK;
+
+	#if !ICM42688_WRITE_READ_WITH_BANKED
+		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
+		if(status != HAL_OK) return HAL_ERROR;
+	#endif
+
+	uint8_t raw[6] = {0};
+	status = ICM42688_ReadRegs(handle, ICM42688_UB0_ACCEL_DATA_X1, raw, 6);
+	if(status != HAL_OK) return HAL_ERROR;
+
+	/* Extract Accel X */
+	buf[0] = (int16_t)(raw[0] << 8 | raw[1]);
+
+	/* Extract Accel Y */
+	buf[1] = (int16_t)(raw[2] << 8 | raw[3]);
+
+	/* Extract Accel Z */
+	buf[2] = (int16_t)(raw[4] << 8 | raw[5]);
+
+	return HAL_OK;
+}
+
+
+HAL_StatusTypeDef ICM42688_Get_Accel_G(ICM42688_Handle_t* handle, float g[3]){
+	if(!handle || !g) return HAL_ERROR;
+
+	int16_t raw[3];
+	HAL_StatusTypeDef status = ICM42688_Get_Accel_XYZ(handle, raw);
+	if(status != HAL_OK) return status;
+
+	const float s = handle -> accel_g_per_lsb;
+	g[0] = (float)(raw[0] * s);
+	g[1] = (float)(raw[1] * s);
+	g[2] = (float)(raw[2] * s);
 
 	return HAL_OK;
 }
@@ -961,26 +890,31 @@ HAL_StatusTypeDef ICM42688_Set_Temperature_Enable(ICM42688_Handle_t* handle, ICM
 
 int16_t ICM42688_Get_Temperature_Raw(ICM42688_Handle_t* handle)
 {
-	if(!handle) return ICM42688_TEMP_RAW_INVALID;
+	if(!handle) return ICM42688_RAW_INVALID;
 
 	#if !ICM42688_WRITE_READ_WITH_BANKED
 		HAL_StatusTypeDef status = ICM42688_Set_RegBank(handle, REG_BANK_0);
-		if(status != HAL_OK) return ICM42688_TEMP_RAW_INVALID;
+		if(status != HAL_OK) return ICM42688_RAW_INVALID;
 	#endif
 
 	uint8_t buf[2] = {0};
 	HAL_StatusTypeDef status = ICM42688_ReadRegs(handle, ICM42688_UB0_TEMP_DATA1, buf, 2);
-	if(status != HAL_OK) return ICM42688_TEMP_RAW_INVALID;
+	if(status != HAL_OK) return ICM42688_RAW_INVALID;
 
 	return (int16_t)((uint16_t)(buf[0] << 8) | (uint16_t)buf[1]);
 }
 
 
-float ICM42688_Get_Temperature_C(ICM42688_Handle_t* handle){
+float ICM42688_Get_Temperature_C(ICM42688_Handle_t* handle)
+{
 	if(!handle) return NAN;
 
 	int16_t raw = ICM42688_Get_Temperature_Raw(handle);
-	if(raw == ICM42688_TEMP_RAW_INVALID) return NAN;
+	if(raw == ICM42688_RAW_INVALID) return NAN;
 
 	return (float)((raw / 132.48f) + 25.0f);
 }
+
+
+
+
