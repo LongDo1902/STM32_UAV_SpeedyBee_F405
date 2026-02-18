@@ -22,3 +22,5 @@
 ../Core/Src/imu/icm42688_low_level.c:867:19:ICM42688_Set_Temperature_Enable	6
 ../Core/Src/imu/icm42688_low_level.c:896:9:ICM42688_Get_Temperature_Raw	3
 ../Core/Src/imu/icm42688_low_level.c:913:7:ICM42688_Get_Temperature_C	3
+../Core/Src/imu/icm42688_low_level.c:931:19:ICM42688_Set_Gyro_UIFilt_BW	4
+../Core/Src/imu/icm42688_low_level.c:963:19:ICM42688_Set_Accel_UIFilt_BW	4

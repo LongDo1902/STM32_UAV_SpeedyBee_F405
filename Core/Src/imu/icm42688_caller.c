@@ -18,6 +18,7 @@ const ICM42688_Gyro_Config_t GYRO_DEFAULT = {
 		.gyro_notch 		= GYRO_NOTCHBW_680Hz,
 		.gyro_filt_order 	= GYRO_SECOND_ORDER,
 		.gyro_mode			= GYRO_OFF,
+		.gyro_uifilt_bw		= BW_400Hz_ODR_DIV_4,
 };
 
 
@@ -27,6 +28,7 @@ const ICM42688_Accel_Config_t ACCEL_DEFAULT = {
 		.accel_fsr			= ACCEL_FSR_16g,
 		.accel_filt_order	= ACCEL_SECOND_ORDER,
 		.accel_mode			= ACCEL_OFF,
+		.accel_uifilt_bw	= BW_400Hz_ODR_DIV_4,
 };
 
 

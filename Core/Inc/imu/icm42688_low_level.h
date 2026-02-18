@@ -106,6 +106,20 @@ typedef enum{
 }ICM42688_GyroMode_t;
 
 
+typedef enum{
+	BW_ODR_DIV_2		= 0x00,
+	BW_400Hz_ODR_DIV_4	= 0x01,
+	BW_400Hz_ODR_DIV_5 	= 0x02,
+	BW_400Hz_ODR_DIV_8	= 0x03,
+	BW_400Hz_ODR_DIV_10	= 0x04,
+	BW_400Hz_ODR_DIV_16	= 0x05,
+	BW_400Hz_ODR_DIV_20	= 0x06,
+	BW_400Hz_ODR_DIV_40	= 0x07,
+	LOW_LATENCY_DEC2_400Hz_ODR = 0x0E,
+	LOW_LATENCY_DEC2_200Hz_ODR = 0x0F
+}ICM42688_UIFilt_BW_t;
+
+
 
 
 /*
@@ -245,6 +259,8 @@ typedef enum{
 
 
 
+
+
 /*
  * ===============================================================================
  * 		   STRUCT HOLDS EVERY DEFINED/CACHED/DEFAULT VALUES OF ICM42688P
@@ -265,6 +281,7 @@ typedef struct{
 	ICM42688_GyroNotch_t			gyro_notch;
 	ICM42688_GyroUIFiltOrder_t		gyro_filt_order;
 	ICM42688_GyroMode_t				gyro_mode;
+	ICM42688_UIFilt_BW_t			gyro_uifilt_bw;
 }ICM42688_Gyro_Config_t;
 
 typedef struct{
@@ -272,6 +289,7 @@ typedef struct{
 	ICM42688_AccelFSR_t				accel_fsr;
 	ICM42688_AccelUIFiltOrder_t		accel_filt_order;
 	ICM42688_AccelMode_t			accel_mode;
+	ICM42688_UIFilt_BW_t			accel_uifilt_bw;
 }ICM42688_Accel_Config_t;
 
 typedef struct{
@@ -426,10 +444,14 @@ typedef uint16_t ICM42688_Reg_t;
 #define ICM42688_ZG_DISABLE_Pos		5U
 
 
-/* GYRO_CONFIG1 fields */
-#define ICM42688_GYRO_DEC2_M2_ORD_Pos	0U
-#define ICM42688_GYRO_UI_FILT_ORD_Pos	2U
-#define ICM42688_TEMP_FILT_BW_Pos
+/* GYRO_ACCEL_CONFIG0 */
+#define ICM42688_GYRO_UI_FILT_BW_Pos		0U
+#define ICM42688_GYRO_UI_FILT_BW_Msk		ICM42688_FIELD_MSK(ICM42688_GYRO_UI_FILT_BW_Pos, 4U)
+#define ICM42688_GYRO_UI_FILT_BW_Val(val)	ICM42688_FIELD_VAL(val, ICM42688_GYRO_UI_FILT_BW_Pos, ICM42688_GYRO_UI_FILT_BW_Msk)
+
+#define ICM42688_ACCEL_UI_FILT_BW_Pos		4u
+#define ICM42688_ACCEL_UI_FILT_BW_Msk		ICM42688_FIELD_MSK(ICM42688_ACCEL_UI_FILT_BW_Pos, 4U)
+#define ICM42688_ACCEL_UI_FILT_BW_Val(val)	ICM42688_FIELD_VAL(val, ICM42688_ACCEL_UI_FILT_BW_Pos, ICM42688_ACCEL_UI_FILT_BW_Msk)
 
 
 

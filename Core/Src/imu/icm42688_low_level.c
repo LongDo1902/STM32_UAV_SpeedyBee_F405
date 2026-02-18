@@ -919,3 +919,68 @@ float ICM42688_Get_Temperature_C(ICM42688_Handle_t* handle)
 
 	return (float)((raw / 132.48f) + 25.0f);
 }
+
+
+
+
+/*
+ * ==================================================================================
+ * 								GYRO FILTERING CONFIG
+ * ==================================================================================
+ */
+HAL_StatusTypeDef ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t* handle, ICM42688_UIFilt_BW_t bw){
+	if(!handle) return HAL_ERROR;
+	HAL_StatusTypeDef status = HAL_OK;
+
+	#if !ICM42688_WRITE_READ_WITH_BANKED
+		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
+		if(status != HAL_OK) return status;
+	#endif
+
+	uint8_t reg = 0U;
+	status = ICM42688_ReadReg(handle, ICM42688_UB0_GYRO_ACCEL_CONF0, &reg);
+	if(status != HAL_OK) return status;
+
+	reg &= (uint8_t)~ICM42688_GYRO_UI_FILT_BW_Msk;
+	reg |= (uint8_t)~ICM42688_GYRO_UI_FILT_BW_Val(bw);
+	status = ICM42688_WriteReg(handle, ICM42688_UB0_GYRO_ACCEL_CONF0, reg);
+	if(status != HAL_OK) return status;
+
+	/* Update cache */
+	handle -> gyro_config.gyro_uifilt_bw = bw;
+
+	return HAL_OK;
+}
+
+
+
+
+/*
+ * ==================================================================================
+ * 								ACCEL FILTERING CONFIG
+ * ==================================================================================
+ */
+HAL_StatusTypeDef ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t* handle, ICM42688_UIFilt_BW_t bw){
+	if(!handle) return HAL_ERROR;
+	HAL_StatusTypeDef status = HAL_OK;
+
+	#if !ICM42688_WRITE_READ_WITH_BANKED
+		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
+		if(status != HAL_OK) return status;
+	#endif
+
+	uint8_t reg = 0U;
+	status = ICM42688_ReadReg(handle, ICM42688_UB0_GYRO_ACCEL_CONF0, &reg);
+	if(status != HAL_OK) return status;
+
+	reg &= (uint8_t)~ICM42688_ACCEL_UI_FILT_BW_Msk;
+	reg |= (uint8_t)~ICM42688_ACCEL_UI_FILT_BW_Val(bw);
+	status = ICM42688_WriteReg(handle, ICM42688_UB0_GYRO_ACCEL_CONF0, reg);
+	if(status != HAL_OK) return status;
+
+	/* Update cache */
+	handle -> accel_config.accel_uifilt_bw = bw;
+
+	return HAL_OK;
+}
+
