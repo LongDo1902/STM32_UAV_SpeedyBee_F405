@@ -8,7 +8,7 @@
 #ifndef INC_IMU_ICM42688_REGISTERS_H_
 #define INC_IMU_ICM42688_REGISTERS_H_
 
-#include "imu/icm42688.h"
+#include "imu/icm42688_low_level.h"
 
 /*
  * ===================================================================================

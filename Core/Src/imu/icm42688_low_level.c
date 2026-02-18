@@ -5,7 +5,7 @@
  *      Author: dobao
  */
 
-#include "imu/icm42688.h"
+#include "imu/icm42688_low_level.h"
 
 /*
  * =============================================================================
@@ -676,7 +676,13 @@ HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle, ICM42688_A
 			status = ICM42688_WriteReg(handle, ICM42688_UB0_PWR_MGMT0, reg);
 			if(status != HAL_OK) return status;
 
+			/* Update cache */
 			handle -> accel_config.accel_mode = mode;
+
+			/* Wait 200us if mode changes from OFF to any other mode */
+			if((prevMode == ACCEL_OFF) && (currMode != ACCEL_OFF)){
+				HAL_Delay(1); //1000us > 200us (according to datasheet)
+			}
 		}
 	}
 
@@ -686,7 +692,7 @@ HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle, ICM42688_A
 	 * ----------------------------------------------*/
 	bool need_write_config = (!(handle -> is_initialized) ||
 							(odr != handle -> accel_config.accel_odr) ||
-							(fsr != handle -> accel_config.accel_odr));
+							(fsr != handle -> accel_config.accel_fsr));
 	{
 		if(need_write_config){
 			uint8_t reg = 0U;
@@ -705,7 +711,6 @@ HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle, ICM42688_A
 			handle -> accel_config.accel_fsr = fsr;
 			ICM42688_Update_ScaleFactor(handle, ACCEL);
 		}
-
 	}
 	return HAL_OK;
 }
@@ -914,7 +919,3 @@ float ICM42688_Get_Temperature_C(ICM42688_Handle_t* handle)
 
 	return (float)((raw / 132.48f) + 25.0f);
 }
-
-
-
-

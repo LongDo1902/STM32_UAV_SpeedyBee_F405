@@ -17,7 +17,7 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include <imu/imu.h>
+#include <imu/icm42688_caller.h>
 #include "main.h"
 #include "adc.h"
 #include "dma.h"

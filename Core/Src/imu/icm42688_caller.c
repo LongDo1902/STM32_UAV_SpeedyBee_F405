@@ -4,7 +4,7 @@
  *  Created on: Jan 3, 2026
  *      Author: dobao
  */
-#include <imu/imu.h>
+#include "imu/icm42688_caller.h"
 
 /*
  * =============================================================================
@@ -55,7 +55,7 @@ const ICM42688_Int2_Config_t INT2_DEFAULT = {
 };
 
 
-const ICM42688_Temp_Config_t TEMPERATURE_DEFAULT = {
+const ICM42688_Temp_Config_t TEMP_DEFAULT = {
 		.temp_state = TEMP_ENABLE,
 };
 
@@ -65,10 +65,12 @@ const ICM42688_Temp_Config_t TEMPERATURE_DEFAULT = {
  * ===================================================================
  */
 /* @brief	Initially, this struct stores default values */
-ICM42688_Handle_t ICM42688_Handle = {
+ICM42688_Handle_t ICM42688_HANDLE = {
+		.spi_config		= SPI_DEFAULT,
+
 		.gyro_config	= GYRO_DEFAULT,
 		.accel_config	= ACCEL_DEFAULT,
-		.spi_config		= SPI_DEFAULT,
+
 		.int1_config	= INT1_DEFAULT,
 		.int2_config	= INT2_DEFAULT,
 
@@ -82,5 +84,5 @@ ICM42688_Handle_t ICM42688_Handle = {
 		.is_reset			= false,
 		.is_alive			= false,
 
-		.temp_config		= TEMPERATURE_DEFAULT
+		.temp_config		= TEMP_DEFAULT
 };

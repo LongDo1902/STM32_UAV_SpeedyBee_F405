@@ -291,12 +291,12 @@ typedef struct{
 }ICM42688_Temp_Config_t;
 
 typedef struct{
+	/* SPI config */
+	ICM42688_SPI_Config_t	spi_config;
+
 	/* Gyro and Accel config */
 	ICM42688_Gyro_Config_t	gyro_config;
 	ICM42688_Accel_Config_t	accel_config;
-
-	/* SPI config */
-	ICM42688_SPI_Config_t	spi_config;
 
 	/* Interrupt config */
 	ICM42688_Int1_Config_t	int1_config;
@@ -457,7 +457,6 @@ HAL_StatusTypeDef ICM42688_Set_SPI_Mode(ICM42688_Handle_t* handle, ICM42688_SPI_
 HAL_StatusTypeDef ICM42688_Get_SPI_SlewRate(ICM42688_Handle_t* handle, ICM42688_SPI_SLEWRATE_t* slewRate);
 HAL_StatusTypeDef ICM42688_Set_SPI_SlewRate(ICM42688_Handle_t* handle, ICM42688_SPI_SLEWRATE_t slewRate);
 
-
 HAL_StatusTypeDef ICM42688_Set_GyroMode(ICM42688_Handle_t* handle, ICM42688_GyroMode_t mode);
 HAL_StatusTypeDef ICM42688_Set_GyroODR(ICM42688_Handle_t* handle, ICM42688_GyroODR_t odr);
 HAL_StatusTypeDef ICM42688_Set_GyroFS(ICM42688_Handle_t* handle, ICM42688_GyroFSR_t fullScale);
@@ -483,8 +482,6 @@ HAL_StatusTypeDef ICM42688_Set_Int2_Config(ICM42688_Handle_t* handle,
 										   ICM42688_Int_Polarity_t polarity,
 										   ICM42688_Int_Drive_Circuit_t drive,
 										   ICM42688_Int_Mode_t mode);
-
-
 #endif /* INC_ICM42688_H_ */
 
 
