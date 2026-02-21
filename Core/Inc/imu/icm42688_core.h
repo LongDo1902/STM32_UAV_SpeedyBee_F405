@@ -14,6 +14,7 @@
 #include <math.h>
 
 #include "imu/icm42688_registers.h"
+#include "imu/icm42688_masks.h"
 #include "stm32f4xx_hal.h"
 #include "spi.h"
 
@@ -104,20 +105,6 @@ typedef enum{
 	GYRO_STANDBY	= (uint8_t)0x01,
 	GYRO_LOW_NOISE	= (uint8_t)0x03
 }ICM42688_GyroMode_t;
-
-
-typedef enum{
-	BW_ODR_DIV_2		= 0x00,
-	BW_400Hz_ODR_DIV_4	= 0x01,
-	BW_400Hz_ODR_DIV_5 	= 0x02,
-	BW_400Hz_ODR_DIV_8	= 0x03,
-	BW_400Hz_ODR_DIV_10	= 0x04,
-	BW_400Hz_ODR_DIV_16	= 0x05,
-	BW_400Hz_ODR_DIV_20	= 0x06,
-	BW_400Hz_ODR_DIV_40	= 0x07,
-	LOW_LATENCY_DEC2_400Hz_ODR = 0x0E,
-	LOW_LATENCY_DEC2_200Hz_ODR = 0x0F
-}ICM42688_UIFilt_BW_t;
 
 
 
@@ -257,6 +244,41 @@ typedef enum{
 }ICM42688_Temp_Filt_BW_t;
 
 
+typedef enum{
+	BW_ODR_DIV_2		= 0x00,
+	BW_400Hz_ODR_DIV_4	= 0x01,
+	BW_1x_AVG_FILT		= 0x01,
+	BW_400Hz_ODR_DIV_5 	= 0x02,
+	BW_400Hz_ODR_DIV_8	= 0x03,
+	BW_400Hz_ODR_DIV_10	= 0x04,
+	BW_400Hz_ODR_DIV_16	= 0x05,
+	BW_400Hz_ODR_DIV_20	= 0x06,
+	BW_16x_AVG_FILT		= 0x06,
+	BW_400Hz_ODR_DIV_40	= 0x07,
+	LOW_LATENCY_DEC2_400Hz_ODR = 0x0E,
+	LOW_LATENCY_DEC2_200Hz_ODR = 0x0F,
+}ICM42688_UIFilt_BW_t;
+
+typedef enum{
+	FIFO_GAT_DISABLE = 0x00, // GAT = Gyro Accel Temperature
+	FIFO_GAT_ENABLE = 0x01,
+}ICM42688_FIFO_GAT_En_t;
+
+//HAVE TO CHECK THIS AGAIN!!!!!!!
+typedef enum{
+	FIFO_WM_GREATER_THS_ONESHOT	= 0x00,
+	FIFO_WM_GREATER_THS_REPEAT	= 0x01,
+}ICM42688_FIFO_WM_Mode_t;
+
+typedef enum{
+	FIFO_HIRES_DISABLE	= 0x00,	//FIFO stores normal (16bits) accel/gyro + temp
+	FIFO_HIRES_ENABLE	= 0x01,	//FIFO stores extended: +3 bytes for an extended 20-bit accel/gyro + 1 byte temp
+}ICM42688_FIFO_Hires_En_t;
+
+typedef enum{
+	FIFO_PARTIAL_READ_DISABLE	= 0x00,	//Partial FIFO read disable: must re-read the entire FIFO
+	FIFO_PARTIAL_READ_ENABLE	= 0x01,	//Partial FIFO read enable: resume from the last read point
+}ICM42688_FIFO_Resume_Read_t;
 
 
 
@@ -275,6 +297,7 @@ typedef struct{
 	ICM42688_SPI_SLEWRATE_t	spi_slew_rate;
 }ICM42688_SPI_Config_t;
 
+
 typedef struct{
 	ICM42688_GyroODR_t 				gyro_odr;
 	ICM42688_GyroFSR_t				gyro_fsr;
@@ -284,6 +307,7 @@ typedef struct{
 	ICM42688_UIFilt_BW_t			gyro_uifilt_bw;
 }ICM42688_Gyro_Config_t;
 
+
 typedef struct{
 	ICM42688_AccelODR_t				accel_odr;
 	ICM42688_AccelFSR_t				accel_fsr;
@@ -292,11 +316,13 @@ typedef struct{
 	ICM42688_UIFilt_BW_t			accel_uifilt_bw;
 }ICM42688_Accel_Config_t;
 
+
 typedef struct{
 	ICM42688_Int_Polarity_t			int1_polarity;
 	ICM42688_Int_Drive_Circuit_t	int1_drive;
 	ICM42688_Int_Mode_t				int1_mode;
 }ICM42688_Int1_Config_t;
+
 
 typedef struct{
 	ICM42688_Int_Polarity_t			int2_polarity;
@@ -304,9 +330,22 @@ typedef struct{
 	ICM42688_Int_Mode_t				int2_mode;
 }ICM42688_Int2_Config_t;
 
+
 typedef struct{
 	ICM42688_Temp_t		temp_state;
 }ICM42688_Temp_Config_t;
+
+
+typedef struct{
+	ICM42688_FIFO_GAT_En_t		fifo_gyro_state;
+	ICM42688_FIFO_GAT_En_t		fifo_accel_state;
+	ICM42688_FIFO_GAT_En_t		fifo_temp_state;
+
+	ICM42688_FIFO_WM_Mode_t		fifo_wm_mode;
+	ICM42688_FIFO_Hires_En_t	fifo_hires_state;
+	ICM42688_FIFO_Resume_Read_t	fifo_partial_read_state;
+}ICM42688_FIFO_Config_t;
+
 
 typedef struct{
 	/* SPI config */
@@ -334,124 +373,11 @@ typedef struct{
 
 	/* Temperature settings */
 	ICM42688_Temp_Config_t temp_config;
+
+	/* FIFO configs */
+	ICM42688_FIFO_Config_t fifo_config;
 }ICM42688_Handle_t;
 
-
-
-
-/*
- * ===================================================================================
- *							ICM42688 MASKS
- * ===================================================================================
- */
-/* Generic Helpers */
-#define ICM42688_BIT(pos)							(1U << (pos))
-#define	ICM42688_FIELD_MSK(pos, width)				(((1U << (width)) - 1U) << (pos))
-#define ICM42688_FIELD_VAL(val, pos, msk)			((uint8_t)((val << pos) & msk))
-
-typedef uint16_t ICM42688_Reg_t;
-#define ICM42688_REG(bank, addr)	((ICM42688_Reg_t)((((uint16_t)(bank)) << 8) | ((uint8_t)(addr))))
-#define ICM42688_REG_BANK(r)		((ICM42688_RegBank_t)(((r) >> 8) & 0xFF))
-#define ICM42688_REG_ADDR(r)		((uint8_t)((r) & 0xFF))
-
-/* DEVICE_CONFIG Fields */
-#define ICM42688_DEVICE_CONFIG_SOFT_RESET_Pos		0U
-#define ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk		ICM42688_BIT(ICM42688_DEVICE_CONFIG_SOFT_RESET_Pos)
-
-#define	ICM42688_DEVICE_CONFIG_SPI_MODE_Pos			4U
-#define	ICM42688_DEVICE_CONFIG_SPI_MODE_Msk			ICM42688_BIT(ICM42688_DEVICE_CONFIG_SPI_MODE_Pos)
-#define ICM42688_DEVICE_CONFIG_SPI_MODE_Val(val)	ICM42688_FIELD_VAL((val), ICM42688_DEVICE_CONFIG_SPI_MODE_Pos, ICM42688_DEVICE_CONFIG_SPI_MODE_Msk)
-
-/* DRIVE_CONFIG Fields */
-#define ICM42688_DRIVE_CONFIG_SPI_SR_Pos			0U
-#define ICM42688_DRIVE_CONFIG_SPI_SR_Msk			ICM42688_FIELD_MSK(ICM42688_DRIVE_CONFIG_SPI_SR_Pos, 3U)
-#define ICM42688_DRIVE_CONFIG_SPI_SR_Val(val)		ICM42688_FIELD_VAL(val, ICM42688_DRIVE_CONFIG_SPI_SR_Pos, ICM42688_DRIVE_CONFIG_SPI_SR_Msk)
-
-#define ICM42688_DRIVE_CONFIG_I2C_SR_Pos			3U
-#define ICM42688_DRIVE_CONFIG_I2C_SR_Msk			ICM42688_FIELD_MSK(ICM42688_DRIVE_CONFIG_I2C_SR_Pos, 3U)
-#define ICM42688_DRIVE_CONFIG_I2C_SR_Val(val)		ICM42688_FIELD_VAL(val, ICM42688_DRIVE_CONFIG_I2C_SR_Pos, ICM42688_DRIVE_CONFIG_I2C_SR_Msk)
-
-/* INT_CONFIG Fields */
-#define ICM42688_INT1_POL_Pos			0U
-#define ICM42688_INT1_POL_Msk			ICM42688_BIT(ICM42688_INT1_POL_Pos)
-#define ICM42688_INT1_POL_Val(val)		ICM42688_FIELD_VAL(val, ICM42688_INT1_POL_Pos, ICM42688_INT1_POL_Msk)
-
-#define ICM42688_INT1_DRIVE_Pos			1U
-#define ICM42688_INT1_DRIVE_Msk			ICM42688_BIT(ICM42688_INT1_DRIVE_Pos)
-#define ICM42688_INT1_DRIVE_Val(val)	ICM42688_FIELD_VAL(val, ICM42688_INT1_DRIVE_Pos, ICM42688_INT1_DRIVE_Msk)
-
-#define ICM42688_INT1_MODE_Pos			2U
-#define ICM42688_INT1_MODE_Msk			ICM42688_BIT(ICM42688_INT1_MODE_Pos)
-#define ICM42688_INT1_MODE_Val(val)		ICM42688_FIELD_VAL(val, ICM42688_INT1_MODE_Pos, ICM42688_INT1_MODE_Msk)
-
-#define ICM42688_INT2_POL_Pos			3U
-#define ICM42688_INT2_POL_Msk			ICM42688_BIT(ICM42688_INT2_POL_Pos)
-#define ICM42688_INT2_POL_Val(val)		ICM42688_FIELD_VAL(val, ICM42688_INT2_POL_Pos, ICM42688_INT2_POL_Msk)
-
-#define ICM42688_INT2_DRIVE_Pos			4U
-#define ICM42688_INT2_DRIVE_Msk			ICM42688_BIT(ICM42688_INT2_DRIVE_Pos)
-#define ICM42688_INT2_DRIVE_Val(val)	ICM42688_FIELD_VAL(val, ICM42688_INT2_DRIVE_Pos, ICM42688_INT2_DRIVE_Msk)
-
-#define ICM42688_INT2_MODE_Pos			5U
-#define ICM42688_INT2_MODE_Msk			ICM42688_BIT(ICM42688_INT2_MODE_Pos)
-#define ICM42688_INT2_MODE_Val(val)		ICM42688_FIELD_VAL(val, ICM42688_INT2_MODE_Pos, ICM42688_INT2_MODE_Msk)
-
-
-/* GYRO_CONFIG0 fields */
-#define ICM42688_GYRO_ODR_Pos			0U
-#define ICM42688_GYRO_ODR_Msk			ICM42688_FIELD_MSK(ICM42688_GYRO_ODR_Pos, 4U)
-#define ICM42688_GYRO_ODR_Val(val)		ICM42688_FIELD_VAL(val, ICM42688_GYRO_ODR_Pos, ICM42688_GYRO_ODR_Msk)
-
-#define ICM42688_GYRO_FS_SEL_Pos		5U
-#define ICM42688_GYRO_FS_SEL_Msk		ICM42688_FIELD_MSK(ICM42688_GYRO_FS_SEL_Pos, 3U)
-#define ICM42688_GYRO_FS_SEL_Val(val)	ICM42688_FIELD_VAL(val, ICM42688_GYRO_FS_SEL_Pos, ICM42688_GYRO_FS_SEL_Msk)
-
-
-/* ACCEL_CONFIG0 fields */
-#define ICM42688_ACCEL_ODR_Pos			0U
-#define ICM42688_ACCEL_ODR_Msk			ICM42688_FIELD_MSK(ICM42688_ACCEL_ODR_Pos, 4U)
-#define ICM42688_ACCEL_ODR_Val(val) 	ICM42688_FIELD_VAL(val, ICM42688_ACCEL_ODR_Pos, ICM42688_ACCEL_ODR_Msk)
-
-#define ICM42688_ACCEL_FS_SEL_Pos		5U
-#define ICM42688_ACCEL_FS_SEL_Msk		ICM42688_FIELD_MSK(ICM42688_ACCEL_FS_SEL_Pos, 3U)
-#define ICM42688_ACCEL_FS_SEL_Val(val)	ICM42688_FIELD_VAL(val, ICM42688_ACCEL_FS_SEL_Pos, ICM42688_ACCEL_FS_SEL_Msk)
-
-
-/* PWR_MGMT0 fields */
-#define ICM42688_ACCEL_MODE_Pos			0U
-#define ICM42688_ACCEL_MODE_Msk			ICM42688_FIELD_MSK(ICM42688_ACCEL_MODE_Pos, 2U)
-#define ICM42688_ACCEL_MODE_Val(val)	ICM42688_FIELD_VAL(val, ICM42688_ACCEL_MODE_Pos, ICM42688_ACCEL_MODE_Msk)
-
-#define ICM42688_GYRO_MODE_Pos			2U
-#define ICM42688_GYRO_MODE_Msk			ICM42688_FIELD_MSK(ICM42688_GYRO_MODE_Pos, 2U)
-#define ICM42688_GYRO_MODE_Val(val)		ICM42688_FIELD_VAL(val, ICM42688_GYRO_MODE_Pos, ICM42688_GYRO_MODE_Msk)
-
-#define ICM42688_IDLE_Pos				4U
-#define ICM42688_IDLE_Msk				ICM42688_BIT(ICM42688_IDLE_Pos)
-#define ICM42688_IDLE_Val(val)			ICM42688_FIELD_VAL(val, ICM42688_IDLE_Pos, ICM42688_IDLE_Msk)
-
-#define ICM42688_TEMP_Pos				5U
-#define ICM42688_TEMP_Msk				ICM42688_BIT(ICM42688_TEMP_Pos)
-#define ICM42688_TEMP_Val(val)			ICM42688_FIELD_VAL(val, ICM42688_TEMP_Pos, ICM42688_TEMP_Msk)
-
-
-/* SENSOR_CONFIG0 fields */
-#define ICM42688_XA_DISABLE_Pos		0U
-#define ICM42688_YA_DISABLE_Pos		1U
-#define ICM42688_ZA_DISABLE_Pos		2U
-#define ICM42688_XG_DISABLE_Pos		3U
-#define	ICM42688_YG_DISABLE_Pos		4U
-#define ICM42688_ZG_DISABLE_Pos		5U
-
-
-/* GYRO_ACCEL_CONFIG0 */
-#define ICM42688_GYRO_UI_FILT_BW_Pos		0U
-#define ICM42688_GYRO_UI_FILT_BW_Msk		ICM42688_FIELD_MSK(ICM42688_GYRO_UI_FILT_BW_Pos, 4U)
-#define ICM42688_GYRO_UI_FILT_BW_Val(val)	ICM42688_FIELD_VAL(val, ICM42688_GYRO_UI_FILT_BW_Pos, ICM42688_GYRO_UI_FILT_BW_Msk)
-
-#define ICM42688_ACCEL_UI_FILT_BW_Pos		4u
-#define ICM42688_ACCEL_UI_FILT_BW_Msk		ICM42688_FIELD_MSK(ICM42688_ACCEL_UI_FILT_BW_Pos, 4U)
-#define ICM42688_ACCEL_UI_FILT_BW_Val(val)	ICM42688_FIELD_VAL(val, ICM42688_ACCEL_UI_FILT_BW_Pos, ICM42688_ACCEL_UI_FILT_BW_Msk)
 
 
 
@@ -470,40 +396,6 @@ typedef uint16_t ICM42688_Reg_t;
 	HAL_StatusTypeDef ICM42688_ReadRegs(ICM42688_Handle_t* handle, uint8_t startRegAddr, uint8_t* buf, uint16_t bufLength);
 #endif
 
-HAL_StatusTypeDef ICM42688_Set_RegBank(ICM42688_Handle_t* handle, ICM42688_RegBank_t regBank);
-HAL_StatusTypeDef ICM42688_Get_RegBankSensor(ICM42688_Handle_t* handle, ICM42688_RegBank_t* regBank);
-HAL_StatusTypeDef ICM42688_IsAlive(ICM42688_Handle_t* handle);
-HAL_StatusTypeDef ICM42688_SoftReset(ICM42688_Handle_t* handle);
-
-HAL_StatusTypeDef ICM42688_Set_SPI_Mode(ICM42688_Handle_t* handle, ICM42688_SPI_Mode_t spiMode);
-HAL_StatusTypeDef ICM42688_Get_SPI_SlewRate(ICM42688_Handle_t* handle, ICM42688_SPI_SLEWRATE_t* slewRate);
-HAL_StatusTypeDef ICM42688_Set_SPI_SlewRate(ICM42688_Handle_t* handle, ICM42688_SPI_SLEWRATE_t slewRate);
-
-HAL_StatusTypeDef ICM42688_Set_GyroMode(ICM42688_Handle_t* handle, ICM42688_GyroMode_t mode);
-HAL_StatusTypeDef ICM42688_Set_GyroODR(ICM42688_Handle_t* handle, ICM42688_GyroODR_t odr);
-HAL_StatusTypeDef ICM42688_Set_GyroFS(ICM42688_Handle_t* handle, ICM42688_GyroFSR_t fullScale);
-HAL_StatusTypeDef ICM42688_Set_GyroConfig(ICM42688_Handle_t* handle,
-										  ICM42688_GyroMode_t mode,
-										  ICM42688_GyroODR_t odr,
-										  ICM42688_GyroFSR_t fsr);
-
-HAL_StatusTypeDef ICM42688_Set_AccelMode(ICM42688_Handle_t* handle, ICM42688_AccelMode_t mode);
-HAL_StatusTypeDef ICM42688_Set_AccelODR(ICM42688_Handle_t* handle, ICM42688_AccelODR_t odr);
-HAL_StatusTypeDef ICM42688_Set_AccelFS(ICM42688_Handle_t* handle, ICM42688_AccelFSR_t fullScale);
-HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle,
-										   ICM42688_AccelMode_t mode,
-										   ICM42688_AccelODR_t odr,
-										   ICM42688_AccelFSR_t fsr);
-
-HAL_StatusTypeDef ICM42688_Set_Int1_Config(ICM42688_Handle_t* handle,
-										   ICM42688_Int_Polarity_t polarity,
-										   ICM42688_Int_Drive_Circuit_t drive,
-										   ICM42688_Int_Mode_t mode);
-
-HAL_StatusTypeDef ICM42688_Set_Int2_Config(ICM42688_Handle_t* handle,
-										   ICM42688_Int_Polarity_t polarity,
-										   ICM42688_Int_Drive_Circuit_t drive,
-										   ICM42688_Int_Mode_t mode);
 #endif /* INC_ICM42688_H_ */
 
 

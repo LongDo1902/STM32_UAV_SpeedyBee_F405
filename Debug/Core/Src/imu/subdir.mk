@@ -6,15 +6,15 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../Core/Src/imu/icm42688_caller.c \
-../Core/Src/imu/icm42688_low_level.c 
+../Core/Src/imu/icm42688_core.c 
 
 OBJS += \
 ./Core/Src/imu/icm42688_caller.o \
-./Core/Src/imu/icm42688_low_level.o 
+./Core/Src/imu/icm42688_core.o 
 
 C_DEPS += \
 ./Core/Src/imu/icm42688_caller.d \
-./Core/Src/imu/icm42688_low_level.d 
+./Core/Src/imu/icm42688_core.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -24,7 +24,7 @@ Core/Src/imu/%.o Core/Src/imu/%.su Core/Src/imu/%.cyclo: ../Core/Src/imu/%.c Cor
 clean: clean-Core-2f-Src-2f-imu
 
 clean-Core-2f-Src-2f-imu:
-	-$(RM) ./Core/Src/imu/icm42688_caller.cyclo ./Core/Src/imu/icm42688_caller.d ./Core/Src/imu/icm42688_caller.o ./Core/Src/imu/icm42688_caller.su ./Core/Src/imu/icm42688_low_level.cyclo ./Core/Src/imu/icm42688_low_level.d ./Core/Src/imu/icm42688_low_level.o ./Core/Src/imu/icm42688_low_level.su
+	-$(RM) ./Core/Src/imu/icm42688_caller.cyclo ./Core/Src/imu/icm42688_caller.d ./Core/Src/imu/icm42688_caller.o ./Core/Src/imu/icm42688_caller.su ./Core/Src/imu/icm42688_core.cyclo ./Core/Src/imu/icm42688_core.d ./Core/Src/imu/icm42688_core.o ./Core/Src/imu/icm42688_core.su
 
 .PHONY: clean-Core-2f-Src-2f-imu
 

@@ -8,11 +8,11 @@
 #ifndef INC_IMU_H_
 #define INC_IMU_H_
 
+#include <imu/icm42688_core.h>
 #include <stdint.h>
 #include <stdio.h>
 
 #include "imu/icm42688_caller.h"
-#include "imu/icm42688_low_level.h"
 
 extern ICM42688_Handle_t ICM42688_HANDLE;
 

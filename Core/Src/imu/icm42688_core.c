@@ -1,15 +1,21 @@
 /*
- * icm42688p.c
+ * icm42688_core.c
  *
  *  Created on: Dec 22, 2025
  *      Author: dobao
  */
 
-#include "imu/icm42688_low_level.h"
+#include <imu/icm42688_core.h>
+
 
 /*
  * =============================================================================
- * 								PRIVATE CONST DECLARATIONS
+ *	PRIVATE CONSTANT: datasheet sensitivities (LSB per unit)
+ *
+ *	lsb_per_dps[] and lsb_per_g[] must match the enum order of your FSR enums.
+ *	Example:
+ *		gyro_fsr = GYRO_FSR_2000dps		-> idx = 0 -> 16.4 LSB/dps
+ *		accel_fsr = ACCEL_FSR_16g		-> idx = 0 -> 2048 LSB/g
  * =============================================================================
  */
 static const float lsb_per_dps[] = {
@@ -36,26 +42,32 @@ static const float lsb_per_g[] = {
 
 /*
  * =============================================================================
- * 					  			PRIVATE HELPERS
+ *	PRIVATE HELPERS
  * =============================================================================
  */
 static inline void ICM42688_CS_Low(ICM42688_Handle_t *handle)
 {
+	//Pull CS low to start an SPI transaction
 	HAL_GPIO_WritePin(handle -> spi_config.cs_port, handle -> spi_config.cs_pin, GPIO_PIN_RESET);
 }
 
 
 static inline void ICM42688_CS_High(ICM42688_Handle_t *handle)
 {
+	//Pull CS high to end an SPI transaction
 	HAL_GPIO_WritePin(handle -> spi_config.cs_port, handle -> spi_config.cs_pin, GPIO_PIN_SET);
 }
 
 
+/*
+ * @brief	Update cache scale factors (used by Get_Gyro_DPS / Get_Accel_G)
+ * Important:
+ * 		gyro_dps_per_lsb	= 1 / LSB per dps
+ * 		accel_g_per_lsb		= 1 / LSB per g
+ * @note	Called only after a successful HW write of FSR to keep cache consistent
+ */
 static inline void ICM42688_Update_ScaleFactor(ICM42688_Handle_t* handle, ICM42688_SensorSel_t gyro_or_accel)
 {
-	/* Assumes handle valid
-	 * 1 lsb	? FSR (?dps)
-	 * 32768	FSR (e.g., 2000dps) */
 	switch(gyro_or_accel){
 		case GYRO: {
 			uint8_t idx = (uint8_t)handle -> gyro_config.gyro_fsr;
@@ -79,7 +91,7 @@ static inline void ICM42688_Update_ScaleFactor(ICM42688_Handle_t* handle, ICM426
 
 /*
  * =============================================================================
- * 					 		 LOW-LEVEL REGISTER ACCESS
+ *	LOW-LEVEL REGISTER ACCESS
  * =============================================================================
  */
 #if ICM42688_WRITE_READ_WITH_BANKED
@@ -264,7 +276,7 @@ static inline void ICM42688_Update_ScaleFactor(ICM42688_Handle_t* handle, ICM426
 
 /*
  * =============================================================================
- * 						  		 BANK MANAGEMENTS
+ *	BANK MANAGEMENTS
  * =============================================================================
  */
 #if !ICM42688_WRITE_READ_WITH_BANKED
@@ -300,7 +312,7 @@ static inline void ICM42688_Update_ScaleFactor(ICM42688_Handle_t* handle, ICM426
 
 /*
  * =============================================================================
- * 								IDENTITY / RESET /
+ *	IDENTITY / RESET /
  * =============================================================================
  */
 static inline HAL_StatusTypeDef ICM42688_Get_WhoAmI(ICM42688_Handle_t* handle, uint8_t* who_val)
@@ -404,7 +416,7 @@ HAL_StatusTypeDef ICM42688_SoftReset(ICM42688_Handle_t* handle)
 
 /*
  * =============================================================================
- * 									SPI CONFIG
+ *	SPI CONFIG
  * =============================================================================
  */
 HAL_StatusTypeDef ICM42688_Set_SPI_Mode(ICM42688_Handle_t* handle, ICM42688_SPI_Mode_t spiMode)
@@ -498,7 +510,7 @@ HAL_StatusTypeDef ICM42688_Set_SPI_SlewRate(ICM42688_Handle_t* handle, ICM42688_
 
 /*
  * =============================================================================
- * 									GYRO CONFIG
+ *	GYRO CONFIG
  * =============================================================================
  */
 HAL_StatusTypeDef ICM42688_Set_GyroConfig(ICM42688_Handle_t* handle, ICM42688_GyroMode_t mode,
@@ -586,6 +598,30 @@ HAL_StatusTypeDef ICM42688_Set_GyroConfig(ICM42688_Handle_t* handle, ICM42688_Gy
 }
 
 
+HAL_StatusTypeDef ICM42688_Get_Gyro_Mode(ICM42688_Handle_t* handle, uint8_t* modeInfo){
+	if(!handle || !modeInfo) return HAL_ERROR;
+
+	HAL_StatusTypeDef status = HAL_OK;
+
+	#if !ICM42688_WRITE_READ_WITH_BANKED
+		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
+		if(status != HAL_OK) return status;
+	#endif
+
+	uint8_t reg = 0U;
+	status = ICM42688_ReadReg(handle, ICM42688_UB0_PWR_MGMT0, &reg);
+	if(status != HAL_OK) return status;
+
+	reg &= ICM42688_GYRO_MODE_Msk;
+	*modeInfo = (uint8_t)(reg >> ICM42688_GYRO_MODE_Pos);
+
+	/* Update cache */
+	handle -> gyro_config.gyro_mode = (ICM42688_GyroMode_t)*modeInfo;
+
+	return HAL_OK;
+}
+
+
 HAL_StatusTypeDef ICM42688_Get_Gyro_XYZ(ICM42688_Handle_t* handle, int16_t* buf)
 {
 	if(!handle || !buf) return HAL_ERROR;
@@ -594,7 +630,7 @@ HAL_StatusTypeDef ICM42688_Get_Gyro_XYZ(ICM42688_Handle_t* handle, int16_t* buf)
 
 	#if !ICM42688_WRITE_READ_WITH_BANKED
 		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
-		if(status != HAL_OK) return HAL_ERROR;
+		if(status != HAL_OK) return status;
 	#endif
 
 	uint8_t raw[6] = {0};
@@ -633,9 +669,10 @@ HAL_StatusTypeDef ICM42688_Get_Gyro_DPS(ICM42688_Handle_t* handle, float dps[3])
 
 
 
+
 /*
  * =============================================================================
- * 								    ACCEL CONFIG
+ *	ACCEL CONFIG
  * =============================================================================
  */
 HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle, ICM42688_AccelMode_t mode,
@@ -712,22 +749,48 @@ HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle, ICM42688_A
 			ICM42688_Update_ScaleFactor(handle, ACCEL);
 		}
 	}
+	return status;
+}
+
+
+HAL_StatusTypeDef ICM42688_Get_Accel_Mode(ICM42688_Handle_t* handle, uint8_t* modeInfo)
+{
+	if(!handle || !modeInfo) return HAL_ERROR;
+
+	HAL_StatusTypeDef status = HAL_OK;
+
+	#if !ICM42688_WRITE_READ_WITH_BANKED
+		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
+		if(status != HAL_OK) return status;
+	#endif
+
+	uint8_t reg = 0;
+	status = ICM42688_ReadReg(handle, ICM42688_UB0_PWR_MGMT0, &reg);
+	if(status != HAL_OK) return status;
+
+	reg &= (uint8_t)ICM42688_ACCEL_MODE_Msk;
+	*modeInfo = (uint8_t)(reg >> ICM42688_ACCEL_MODE_Pos);
+
+	/* Update cache */
+	handle -> accel_config.accel_mode = (ICM42688_AccelMode_t)*modeInfo;
+
 	return HAL_OK;
 }
 
 
-HAL_StatusTypeDef ICM42688_Get_Accel_XYZ(ICM42688_Handle_t* handle, int16_t* buf){
+HAL_StatusTypeDef ICM42688_Get_Accel_XYZ(ICM42688_Handle_t* handle, int16_t* buf)
+{
 	if(!handle || !buf) return HAL_ERROR;
 	HAL_StatusTypeDef status = HAL_OK;
 
 	#if !ICM42688_WRITE_READ_WITH_BANKED
 		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
-		if(status != HAL_OK) return HAL_ERROR;
+		if(status != HAL_OK) return status;
 	#endif
 
 	uint8_t raw[6] = {0};
 	status = ICM42688_ReadRegs(handle, ICM42688_UB0_ACCEL_DATA_X1, raw, 6);
-	if(status != HAL_OK) return HAL_ERROR;
+	if(status != HAL_OK) return status;
 
 	/* Extract Accel X */
 	buf[0] = (int16_t)(raw[0] << 8 | raw[1]);
@@ -742,7 +805,8 @@ HAL_StatusTypeDef ICM42688_Get_Accel_XYZ(ICM42688_Handle_t* handle, int16_t* buf
 }
 
 
-HAL_StatusTypeDef ICM42688_Get_Accel_G(ICM42688_Handle_t* handle, float g[3]){
+HAL_StatusTypeDef ICM42688_Get_Accel_G(ICM42688_Handle_t* handle, float g[3])
+{
 	if(!handle || !g) return HAL_ERROR;
 
 	int16_t raw[3];
@@ -762,7 +826,7 @@ HAL_StatusTypeDef ICM42688_Get_Accel_G(ICM42688_Handle_t* handle, float g[3]){
 
 /*
  * ==================================================================================
- * 									INTERRUPT CONFIG
+ *	INTERRUPT CONFIG
  * ==================================================================================
  */
 HAL_StatusTypeDef ICM42688_Set_Int1_Config(ICM42688_Handle_t* handle, ICM42688_Int_Polarity_t polarity,
@@ -816,8 +880,8 @@ HAL_StatusTypeDef ICM42688_Set_Int2_Config(ICM42688_Handle_t* handle, ICM42688_I
 {
 	/* Sanity chekcs */
 	if((!handle) ||
-	   ((uint8_t)polarity >= INT_POL_MAX) ||
-	   ((uint8_t)drive >= INT_DRIVE_MAX) ||
+	   ((uint8_t)polarity >= INT_POL_MAX)	||
+	   ((uint8_t)drive >= INT_DRIVE_MAX)	||
 	   ((uint8_t)mode >= INT_MODE_MAX)) return HAL_ERROR;
 
 	/* Check if Interrupt 2 is already configured */
@@ -861,7 +925,7 @@ HAL_StatusTypeDef ICM42688_Set_Int2_Config(ICM42688_Handle_t* handle, ICM42688_I
 
 /*
  * ==================================================================================
- * 									TEMPERATURE CONFIG
+ * 	TEMPERATURE CONFIG
  * ==================================================================================
  */
 HAL_StatusTypeDef ICM42688_Set_Temperature_Enable(ICM42688_Handle_t* handle, ICM42688_Temp_t state)
@@ -897,13 +961,15 @@ int16_t ICM42688_Get_Temperature_Raw(ICM42688_Handle_t* handle)
 {
 	if(!handle) return ICM42688_RAW_INVALID;
 
+	HAL_StatusTypeDef status = HAL_OK;
+
 	#if !ICM42688_WRITE_READ_WITH_BANKED
-		HAL_StatusTypeDef status = ICM42688_Set_RegBank(handle, REG_BANK_0);
+		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
 		if(status != HAL_OK) return ICM42688_RAW_INVALID;
 	#endif
 
 	uint8_t buf[2] = {0};
-	HAL_StatusTypeDef status = ICM42688_ReadRegs(handle, ICM42688_UB0_TEMP_DATA1, buf, 2);
+	status = ICM42688_ReadRegs(handle, ICM42688_UB0_TEMP_DATA1, buf, 2);
 	if(status != HAL_OK) return ICM42688_RAW_INVALID;
 
 	return (int16_t)((uint16_t)(buf[0] << 8) | (uint16_t)buf[1]);
@@ -925,11 +991,13 @@ float ICM42688_Get_Temperature_C(ICM42688_Handle_t* handle)
 
 /*
  * ==================================================================================
- * 								GYRO FILTERING CONFIG
+ *	GYRO FILTERING CONFIG
  * ==================================================================================
  */
 HAL_StatusTypeDef ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t* handle, ICM42688_UIFilt_BW_t bw){
 	if(!handle) return HAL_ERROR;
+	if(((uint8_t)bw >= 8U) && ((uint8_t)bw <= 13U)) return HAL_ERROR; //These are reserved bits
+
 	HAL_StatusTypeDef status = HAL_OK;
 
 	#if !ICM42688_WRITE_READ_WITH_BANKED
@@ -942,7 +1010,7 @@ HAL_StatusTypeDef ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t* handle, ICM4268
 	if(status != HAL_OK) return status;
 
 	reg &= (uint8_t)~ICM42688_GYRO_UI_FILT_BW_Msk;
-	reg |= (uint8_t)~ICM42688_GYRO_UI_FILT_BW_Val(bw);
+	reg |= (uint8_t)ICM42688_GYRO_UI_FILT_BW_Val((uint8_t)bw);
 	status = ICM42688_WriteReg(handle, ICM42688_UB0_GYRO_ACCEL_CONF0, reg);
 	if(status != HAL_OK) return status;
 
@@ -957,11 +1025,15 @@ HAL_StatusTypeDef ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t* handle, ICM4268
 
 /*
  * ==================================================================================
- * 								ACCEL FILTERING CONFIG
+ *	ACCEL FILTERING CONFIG
  * ==================================================================================
  */
 HAL_StatusTypeDef ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t* handle, ICM42688_UIFilt_BW_t bw){
 	if(!handle) return HAL_ERROR;
+
+	uint8_t v = (uint8_t)bw;
+	if(((v >= 8U) && (v <= 13U)) || (v > 0x0F)) return HAL_ERROR; //These are reserved bits and invalid bits
+
 	HAL_StatusTypeDef status = HAL_OK;
 
 	#if !ICM42688_WRITE_READ_WITH_BANKED
@@ -972,9 +1044,24 @@ HAL_StatusTypeDef ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t* handle, ICM426
 	uint8_t reg = 0U;
 	status = ICM42688_ReadReg(handle, ICM42688_UB0_GYRO_ACCEL_CONF0, &reg);
 	if(status != HAL_OK) return status;
-
 	reg &= (uint8_t)~ICM42688_ACCEL_UI_FILT_BW_Msk;
-	reg |= (uint8_t)~ICM42688_ACCEL_UI_FILT_BW_Val(bw);
+
+	if(handle -> accel_config.accel_mode == ACCEL_LOW_NOISE){
+		if(bw == BW_1x_AVG_FILT) 		bw = BW_400Hz_ODR_DIV_4;
+		else if (bw == BW_16x_AVG_FILT)	bw = BW_400Hz_ODR_DIV_20;
+		reg |= (uint8_t)ICM42688_ACCEL_UI_FILT_BW_Val((uint8_t)bw);
+	}
+
+	else if(handle -> accel_config.accel_mode == ACCEL_LOW_POWER){
+		if(v == 1U)			bw = BW_1x_AVG_FILT;
+		else if(v == 6U)	bw = BW_16x_AVG_FILT;
+		else return HAL_ERROR;
+		reg |= (uint8_t)ICM42688_ACCEL_UI_FILT_BW_Val(v);
+	}
+
+	else return HAL_ERROR; //Accel off / invalid mode
+
+	/* Start to write */
 	status = ICM42688_WriteReg(handle, ICM42688_UB0_GYRO_ACCEL_CONF0, reg);
 	if(status != HAL_OK) return status;
 
@@ -983,4 +1070,96 @@ HAL_StatusTypeDef ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t* handle, ICM426
 
 	return HAL_OK;
 }
+
+
+
+
+/*
+ * ==================================================================================
+ *	FIFO CONFIG
+ * ==================================================================================
+ */
+static HAL_StatusTypeDef _fifo_config1_set_bit(ICM42688_Handle_t* handle, uint8_t mask, uint8_t val_masked)
+{
+	if(!handle) return HAL_ERROR;
+	HAL_StatusTypeDef status = HAL_OK;
+
+	#if !ICM42688_WRITE_READ_WITH_BANKED
+		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
+		if(status != HAL_OK) return status;
+	#endif
+
+	uint8_t reg = 0;
+	status = ICM42688_ReadReg(handle, ICM42688_UB0_FIFO_CONF1, &reg);
+	if(status != HAL_OK) return status;
+
+	reg = (uint8_t)((reg & (uint8_t)~mask) | val_masked);
+	return ICM42688_WriteReg(handle, ICM42688_UB0_FIFO_CONF1, reg);
+}
+
+
+HAL_StatusTypeDef ICM42688_Set_FIFO_Gyro_Enable(ICM42688_Handle_t* handle, ICM42688_FIFO_GAT_En_t state)
+{
+	if(!handle) return HAL_ERROR;
+
+	HAL_StatusTypeDef status = HAL_OK;
+	status = _fifo_config1_set_bit(handle, ICM42688_FIFO_GYRO_EN_Msk, ICM42688_FIFO_GYRO_EN_Val(state));
+	/* Update cache */
+	handle -> fifo_config.fifo_gyro_state = (ICM42688_FIFO_GAT_En_t)state;
+	return status;
+}
+
+
+HAL_StatusTypeDef ICM42688_Set_FIFO_Accel_Enable(ICM42688_Handle_t* handle, ICM42688_FIFO_GAT_En_t state)
+{
+	if(!handle) return HAL_ERROR;
+	HAL_StatusTypeDef status = HAL_OK;
+
+	#if !ICM42688_WRITE_READ_WITH_BANKED
+		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
+		if(status != HAL_OK) return status;
+	#endif
+
+	uint8_t reg = 0U;
+	status = ICM42688_ReadReg(handle, ICM42688_UB0_FIFO_CONF1, &reg);
+	if(status != HAL_OK) return status;
+
+	reg &= (uint8_t)~ICM42688_FIFO_ACCEL_EN_Msk;
+	reg |= (uint8_t)ICM42688_FIFO_ACCEL_EN_Val(state);
+	status = ICM42688_WriteReg(handle, ICM42688_UB0_FIFO_CONF1, reg);
+	if(status != HAL_OK) return status;
+
+	/* Update cache */
+	handle -> fifo_config.fifo_accel_state = (ICM42688_FIFO_GAT_En_t)state;
+
+	return HAL_OK;
+}
+
+
+HAL_StatusTypeDef ICM42688_Set_FIFO_Temp_Enable(ICM42688_Handle_t* handle, ICM42688_FIFO_GAT_En_t state)
+{
+	if(!handle) return HAL_ERROR;
+	HAL_StatusTypeDef status = HAL_OK;
+
+	#if !ICM42688_WRITE_READ_WITH_BANKED
+		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
+		if(status != HAL_OK) return status;
+	#endif
+
+	uint8_t reg = 0U;
+	status = ICM42688_ReadReg(handle, ICM42688_UB0_FIFO_CONF1, &reg);
+	if(status != HAL_OK) return status;
+
+	reg &= (uint8_t)~ICM42688_FIFO_TEMP_EN_Msk;
+	reg |= (uint8_t)ICM42688_FIFO_TEMP_EN_Val(state);
+	status = ICM42688_WriteReg(handle, ICM42688_UB0_FIFO_CONF1, reg);
+	if(status != HAL_OK) return status;
+
+	/* Update cache */
+	handle -> fifo_config.fifo_temp_state = (ICM42688_FIFO_GAT_En_t) state;
+
+	return HAL_OK;
+}
+
+
 

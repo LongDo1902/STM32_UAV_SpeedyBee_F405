@@ -1,6 +1,6 @@
 Core/Src/imu/icm42688_caller.o: ../Core/Src/imu/icm42688_caller.c \
- ../Core/Inc/imu/icm42688_caller.h ../Core/Inc/imu/icm42688_low_level.h \
- ../Core/Inc/imu/icm42688_registers.h \
+ ../Core/Inc/imu/icm42688_caller.h ../Core/Inc/imu/icm42688_core.h \
+ ../Core/Inc/imu/icm42688_registers.h ../Core/Inc/imu/icm42688_masks.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h \
  ../Core/Inc/stm32f4xx_hal_conf.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h \
@@ -32,8 +32,9 @@ Core/Src/imu/icm42688_caller.o: ../Core/Src/imu/icm42688_caller.c \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_spi.h \
  ../Core/Inc/spi.h ../Core/Inc/main.h
 ../Core/Inc/imu/icm42688_caller.h:
-../Core/Inc/imu/icm42688_low_level.h:
+../Core/Inc/imu/icm42688_core.h:
 ../Core/Inc/imu/icm42688_registers.h:
+../Core/Inc/imu/icm42688_masks.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
 ../Core/Inc/stm32f4xx_hal_conf.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h:

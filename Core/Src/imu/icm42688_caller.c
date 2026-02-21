@@ -61,6 +61,20 @@ const ICM42688_Temp_Config_t TEMP_DEFAULT = {
 		.temp_state = TEMP_ENABLE,
 };
 
+
+const ICM42688_FIFO_Config_t FIFO_DEFAULT = {
+		.fifo_gyro_state	= FIFO_GAT_DISABLE,
+		.fifo_accel_state	= FIFO_GAT_DISABLE,
+		.fifo_temp_state	= FIFO_GAT_DISABLE,
+
+		.fifo_wm_mode				= FIFO_WM_GREATER_THS_ONESHOT,
+		.fifo_hires_state			= FIFO_HIRES_DISABLE,
+		.fifo_partial_read_state	= FIFO_PARTIAL_READ_DISABLE,
+};
+
+
+
+
 /*
  * ===================================================================
  * 			GLOBAL INITIAL IDENTITIES/PROPERTIES OF ICM42688
@@ -86,5 +100,7 @@ ICM42688_Handle_t ICM42688_HANDLE = {
 		.is_reset			= false,
 		.is_alive			= false,
 
-		.temp_config		= TEMP_DEFAULT
+		.temp_config		= TEMP_DEFAULT,
+
+		.fifo_config 		= FIFO_DEFAULT,
 };
