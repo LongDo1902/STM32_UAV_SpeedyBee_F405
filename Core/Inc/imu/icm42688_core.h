@@ -209,6 +209,16 @@ typedef enum{
 	INT_MODE_MAX	= 2U	//Just for sanity check
 }ICM42688_Int_Mode_t;
 
+typedef enum{
+	INT_AGC_RDY			= 0U,
+	INT_FIFO_FULL 		= 1U,
+	INT_FIFO_THS		= 2U,
+	INT_DATA_RDY		= 3U,
+	INT_RESET_DONE		= 4U,
+	INT_PLL_RDY			= 5U,
+	INT_UI_FSYNC		= 6U,
+}ICM42688_Int_Status_t;
+
 /* FIFO_CONFIG Defines */
 typedef enum{
 	BYPASS			= 0x00U,
@@ -363,7 +373,7 @@ typedef struct{
 	float 	gyro_dps_per_lsb;	//Scale factor: raw gyro LSB -> dps
 	float	gyro_lsb_per_dps_dtsheet;
 
-	float 	accel_g_per_lsb;	//Scale factor: raw accel LSB -> g
+	float 	accel_g_per_lsb;	//Scale factor: raw accel LSB -> gW
 	float	accel_lsb_per_g_dtsheet;
 
 	/* Flags/variable to check and reference parameters */
@@ -402,6 +412,20 @@ typedef struct{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+//	/* FIFO configs */
+//	ICM42688_FIFO_Config_t fifo_config;
 
 
 

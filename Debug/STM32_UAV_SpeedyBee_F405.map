@@ -1507,19 +1507,19 @@ Discarded input sections
  .text.ICM42688_Set_Accel_UIFilt_BW
                 0x00000000       0xee ./Core/Src/imu/icm42688_core.o
  .text._fifo_config1_set_bit
-                0x00000000       0x68 ./Core/Src/imu/icm42688_core.o
+                0x00000000       0x5e ./Core/Src/imu/icm42688_core.o
  .text.ICM42688_Set_FIFO_Gyro_Enable
-                0x00000000       0x38 ./Core/Src/imu/icm42688_core.o
+                0x00000000       0x4c ./Core/Src/imu/icm42688_core.o
  .text.ICM42688_Set_FIFO_Accel_Enable
-                0x00000000       0x86 ./Core/Src/imu/icm42688_core.o
+                0x00000000       0x48 ./Core/Src/imu/icm42688_core.o
  .text.ICM42688_Set_FIFO_Temp_Enable
-                0x00000000       0x8a ./Core/Src/imu/icm42688_core.o
- .debug_info    0x00000000     0x1c01 ./Core/Src/imu/icm42688_core.o
+                0x00000000       0x4c ./Core/Src/imu/icm42688_core.o
+ .debug_info    0x00000000     0x1be3 ./Core/Src/imu/icm42688_core.o
  .debug_abbrev  0x00000000      0x2c8 ./Core/Src/imu/icm42688_core.o
  .debug_aranges
                 0x00000000      0x118 ./Core/Src/imu/icm42688_core.o
  .debug_rnglists
-                0x00000000       0xe0 ./Core/Src/imu/icm42688_core.o
+                0x00000000       0xde ./Core/Src/imu/icm42688_core.o
  .debug_macro   0x00000000      0x30f ./Core/Src/imu/icm42688_core.o
  .debug_macro   0x00000000      0xad8 ./Core/Src/imu/icm42688_core.o
  .debug_macro   0x00000000       0x22 ./Core/Src/imu/icm42688_core.o
@@ -1586,7 +1586,7 @@ Discarded input sections
  .debug_macro   0x00000000      0x225 ./Core/Src/imu/icm42688_core.o
  .debug_macro   0x00000000      0x12d ./Core/Src/imu/icm42688_core.o
  .debug_macro   0x00000000       0x52 ./Core/Src/imu/icm42688_core.o
- .debug_line    0x00000000     0x1618 ./Core/Src/imu/icm42688_core.o
+ .debug_line    0x00000000     0x15e7 ./Core/Src/imu/icm42688_core.o
  .debug_str     0x00000000    0xc6280 ./Core/Src/imu/icm42688_core.o
  .comment       0x00000000       0x44 ./Core/Src/imu/icm42688_core.o
  .debug_frame   0x00000000      0x498 ./Core/Src/imu/icm42688_core.o

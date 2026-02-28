@@ -921,6 +921,14 @@ HAL_StatusTypeDef ICM42688_Set_Int2_Config(ICM42688_Handle_t* handle, ICM42688_I
 }
 
 
+//ICM42688_Int_Status_t ICM42688_Get_Int_Status(ICM42688_Handle_t* handle)
+//{
+//	uint8_t ERROR = UINT8_MAX;
+//	if(!handle) return ERROR;
+//
+//#if !ICM42688_WRITE_READ_WITH_BANKED
+//}
+
 
 
 /*
@@ -1049,14 +1057,14 @@ HAL_StatusTypeDef ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t* handle, ICM426
 	if(handle -> accel_config.accel_mode == ACCEL_LOW_NOISE){
 		if(bw == BW_1x_AVG_FILT) 		bw = BW_400Hz_ODR_DIV_4;
 		else if (bw == BW_16x_AVG_FILT)	bw = BW_400Hz_ODR_DIV_20;
-		reg |= (uint8_t)ICM42688_ACCEL_UI_FILT_BW_Val((uint8_t)bw);
+		reg |= ICM42688_ACCEL_UI_FILT_BW_Val((uint8_t)bw);
 	}
 
 	else if(handle -> accel_config.accel_mode == ACCEL_LOW_POWER){
 		if(v == 1U)			bw = BW_1x_AVG_FILT;
 		else if(v == 6U)	bw = BW_16x_AVG_FILT;
 		else return HAL_ERROR;
-		reg |= (uint8_t)ICM42688_ACCEL_UI_FILT_BW_Val(v);
+		reg |= ICM42688_ACCEL_UI_FILT_BW_Val((uint8_t)bw);
 	}
 
 	else return HAL_ERROR; //Accel off / invalid mode
@@ -1066,11 +1074,10 @@ HAL_StatusTypeDef ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t* handle, ICM426
 	if(status != HAL_OK) return status;
 
 	/* Update cache */
-	handle -> accel_config.accel_uifilt_bw = bw;
+	handle -> accel_config.accel_uifilt_bw = (ICM42688_UIFilt_BW_t)bw;
 
 	return HAL_OK;
 }
-
 
 
 
@@ -1081,7 +1088,6 @@ HAL_StatusTypeDef ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t* handle, ICM426
  */
 static HAL_StatusTypeDef _fifo_config1_set_bit(ICM42688_Handle_t* handle, uint8_t mask, uint8_t val_masked)
 {
-	if(!handle) return HAL_ERROR;
 	HAL_StatusTypeDef status = HAL_OK;
 
 	#if !ICM42688_WRITE_READ_WITH_BANKED
@@ -1101,10 +1107,8 @@ static HAL_StatusTypeDef _fifo_config1_set_bit(ICM42688_Handle_t* handle, uint8_
 HAL_StatusTypeDef ICM42688_Set_FIFO_Gyro_Enable(ICM42688_Handle_t* handle, ICM42688_FIFO_GAT_En_t state)
 {
 	if(!handle) return HAL_ERROR;
-
-	HAL_StatusTypeDef status = HAL_OK;
-	status = _fifo_config1_set_bit(handle, ICM42688_FIFO_GYRO_EN_Msk, ICM42688_FIFO_GYRO_EN_Val(state));
-	/* Update cache */
+	HAL_StatusTypeDef status = _fifo_config1_set_bit(handle, ICM42688_FIFO_GYRO_EN_Msk, ICM42688_FIFO_GYRO_EN_Val(state));
+	if(status != HAL_OK) return status;
 	handle -> fifo_config.fifo_gyro_state = (ICM42688_FIFO_GAT_En_t)state;
 	return status;
 }
@@ -1113,25 +1117,9 @@ HAL_StatusTypeDef ICM42688_Set_FIFO_Gyro_Enable(ICM42688_Handle_t* handle, ICM42
 HAL_StatusTypeDef ICM42688_Set_FIFO_Accel_Enable(ICM42688_Handle_t* handle, ICM42688_FIFO_GAT_En_t state)
 {
 	if(!handle) return HAL_ERROR;
-	HAL_StatusTypeDef status = HAL_OK;
-
-	#if !ICM42688_WRITE_READ_WITH_BANKED
-		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
-		if(status != HAL_OK) return status;
-	#endif
-
-	uint8_t reg = 0U;
-	status = ICM42688_ReadReg(handle, ICM42688_UB0_FIFO_CONF1, &reg);
+	HAL_StatusTypeDef status = _fifo_config1_set_bit(handle, ICM42688_FIFO_ACCEL_EN_Msk, ICM42688_FIFO_ACCEL_EN_Val(state));
 	if(status != HAL_OK) return status;
-
-	reg &= (uint8_t)~ICM42688_FIFO_ACCEL_EN_Msk;
-	reg |= (uint8_t)ICM42688_FIFO_ACCEL_EN_Val(state);
-	status = ICM42688_WriteReg(handle, ICM42688_UB0_FIFO_CONF1, reg);
-	if(status != HAL_OK) return status;
-
-	/* Update cache */
 	handle -> fifo_config.fifo_accel_state = (ICM42688_FIFO_GAT_En_t)state;
-
 	return HAL_OK;
 }
 
@@ -1139,27 +1127,22 @@ HAL_StatusTypeDef ICM42688_Set_FIFO_Accel_Enable(ICM42688_Handle_t* handle, ICM4
 HAL_StatusTypeDef ICM42688_Set_FIFO_Temp_Enable(ICM42688_Handle_t* handle, ICM42688_FIFO_GAT_En_t state)
 {
 	if(!handle) return HAL_ERROR;
-	HAL_StatusTypeDef status = HAL_OK;
-
-	#if !ICM42688_WRITE_READ_WITH_BANKED
-		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
-		if(status != HAL_OK) return status;
-	#endif
-
-	uint8_t reg = 0U;
-	status = ICM42688_ReadReg(handle, ICM42688_UB0_FIFO_CONF1, &reg);
+	HAL_StatusTypeDef status = _fifo_config1_set_bit(handle, ICM42688_FIFO_TEMP_EN_Msk, ICM42688_FIFO_TEMP_EN_Val(state));
 	if(status != HAL_OK) return status;
-
-	reg &= (uint8_t)~ICM42688_FIFO_TEMP_EN_Msk;
-	reg |= (uint8_t)ICM42688_FIFO_TEMP_EN_Val(state);
-	status = ICM42688_WriteReg(handle, ICM42688_UB0_FIFO_CONF1, reg);
-	if(status != HAL_OK) return status;
-
-	/* Update cache */
-	handle -> fifo_config.fifo_temp_state = (ICM42688_FIFO_GAT_En_t) state;
-
+	handle -> fifo_config.fifo_temp_state = (ICM42688_FIFO_GAT_En_t)state;
 	return HAL_OK;
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 
