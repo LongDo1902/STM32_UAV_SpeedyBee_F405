@@ -44,7 +44,6 @@
 #define ICM42688_SPI_ADDR_MASK				0x7FU
 #define ICM42688_SPI_READ_BIT				0x80U
 #define ICM42688_WHO_AM_I_DEFAULT			0x47U
-#define ICM42688_RAW_INVALID			((int16_t)INT16_MIN)
 
 
 
@@ -219,6 +218,31 @@ typedef enum{
 	INT_UI_FSYNC		= 6U,
 }ICM42688_Int_Status_t;
 
+typedef enum{
+	ICM42688_UI_SIFS_DISABLE_SPI	= 2U,
+	ICM42688_UI_SIFS_DISABLE_I2C	= 3U,
+}ICM42688_UI_SIFS_Cfg_t;
+
+typedef enum{
+	ICM42688_SENSOR_DATA_LITTLE_ENDIAN	= 0U,
+	ICM42688_SENSOR_DATA_BIG_ENDIAN		= 1U,
+}ICM42688_Sensor_Data_Endian_t;
+
+typedef enum{
+	ICM42688_FIFO_COUNT_LITTLE_ENDIAN	= 0U,
+	ICM42688_FIFO_COUNT_BIG_ENDIAN		= 1U,
+}ICM42688_FIFO_Count_Endian_t;
+
+typedef enum{
+	ICM42688_FIFO_COUNT_IN_BYTE		= 0U,
+	ICM42688_FIFO_COUNT_IN_RECORD	= 1U,
+}ICM42688_FIFO_Count_Rec_t;
+
+typedef enum{
+	ICM42688_FIFO_HOLD_LAST_DATA_INVALID	= 0U,
+	ICM42688_FIFO_HOLD_LAST_DATA_VALID		= 1U,
+}ICM42688_FIFO_Hold_Last_Data_En_t;
+
 /* FIFO_CONFIG Defines */
 typedef enum{
 	BYPASS			= 0x00U,
@@ -342,50 +366,60 @@ typedef struct{
 
 
 typedef struct{
+	ICM42688_UI_SIFS_Cfg_t				ui_sifs_config;
+	ICM42688_Sensor_Data_Endian_t		sensor_data_endian;
+	ICM42688_FIFO_Count_Endian_t		fifo_count_endian;
+	ICM42688_FIFO_Count_Rec_t			fifo_count_rec;
+	ICM42688_FIFO_Hold_Last_Data_En_t	fifo_hold_last_data;
+}ICM42688_Intf_Config0_t;
+
+
+typedef struct{
 	ICM42688_Temp_t		temp_state;
 }ICM42688_Temp_Config_t;
 
 
 typedef struct{
-	ICM42688_FIFO_GAT_En_t		fifo_gyro_state;
-	ICM42688_FIFO_GAT_En_t		fifo_accel_state;
-	ICM42688_FIFO_GAT_En_t		fifo_temp_state;
+	ICM42688_FIFO_GAT_En_t			fifo_gyro_state;
+	ICM42688_FIFO_GAT_En_t			fifo_accel_state;
+	ICM42688_FIFO_GAT_En_t			fifo_temp_state;
 
-	ICM42688_FIFO_WM_Mode_t		fifo_wm_mode;
-	ICM42688_FIFO_Hires_En_t	fifo_hires_state;
-	ICM42688_FIFO_Resume_Read_t	fifo_partial_read_state;
+	ICM42688_FIFO_WM_Mode_t			fifo_wm_mode;
+	ICM42688_FIFO_Hires_En_t		fifo_hires_state;
+	ICM42688_FIFO_Resume_Read_t		fifo_partial_read_state;
 }ICM42688_FIFO_Config_t;
 
 
 typedef struct{
-	/* SPI config */
+	ICM42688_Int_Status_t	int_status;
+}ICM42688_Cached_Val_t;
+
+
+
+/* Struct stores every important thing */
+typedef struct{
 	ICM42688_SPI_Config_t	spi_config;
 
-	/* Gyro and Accel config */
 	ICM42688_Gyro_Config_t	gyro_config;
 	ICM42688_Accel_Config_t	accel_config;
 
-	/* Interrupt config */
 	ICM42688_Int1_Config_t	int1_config;
 	ICM42688_Int2_Config_t	int2_config;
+	ICM42688_Intf_Config0_t	intf_config;
 
-	/* Other runtime setups */
-	float 	gyro_dps_per_lsb;	//Scale factor: raw gyro LSB -> dps
+	float 	gyro_dps_per_lsb;
 	float	gyro_lsb_per_dps_dtsheet;
 
-	float 	accel_g_per_lsb;	//Scale factor: raw accel LSB -> gW
+	float 	accel_g_per_lsb;
 	float	accel_lsb_per_g_dtsheet;
 
-	/* Flags/variable to check and reference parameters */
+	ICM42688_Temp_Config_t	temp_config;
+	ICM42688_FIFO_Config_t 	fifo_config;
+	ICM42688_Cached_Val_t	cached;
+
 	bool is_initialized;
 	bool is_reset;
 	bool is_alive;
-
-	/* Temperature settings */
-	ICM42688_Temp_Config_t temp_config;
-
-	/* FIFO configs */
-	ICM42688_FIFO_Config_t fifo_config;
 }ICM42688_Handle_t;
 
 

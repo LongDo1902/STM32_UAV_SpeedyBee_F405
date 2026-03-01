@@ -11,7 +11,6 @@
  * 							DEFAULT CONSTANTS OF ICM42688P
  * =============================================================================
  */
-/* Gyro Config Defaults */
 const ICM42688_Gyro_Config_t GYRO_DEFAULT = {
 		.gyro_odr			= GYRO_ODR_1KHz,
 		.gyro_fsr			= GYRO_FSR_2000dps,
@@ -22,7 +21,6 @@ const ICM42688_Gyro_Config_t GYRO_DEFAULT = {
 };
 
 
-/* Accel Config Defaults */
 const ICM42688_Accel_Config_t ACCEL_DEFAULT = {
 		.accel_odr			= ACCEL_ODR_1KHz,
 		.accel_fsr			= ACCEL_FSR_16g,
@@ -32,7 +30,6 @@ const ICM42688_Accel_Config_t ACCEL_DEFAULT = {
 };
 
 
-/* SPI Config Default */
 const ICM42688_SPI_Config_t SPI_DEFAULT = {
 		.hspi			= &hspi1,
 		.cs_port		= GPIOA,
@@ -42,7 +39,6 @@ const ICM42688_SPI_Config_t SPI_DEFAULT = {
 };
 
 
-/* Interrupt Defaults */
 const ICM42688_Int1_Config_t INT1_DEFAULT = {
 		.int1_polarity	= INT_ACTIVE_LOW,
 		.int1_drive		= INT_OPEN_DRAIN,

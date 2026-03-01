@@ -1302,8 +1302,8 @@ Discarded input sections
  .rodata.FIFO_DEFAULT
                 0x00000000        0x6 ./Core/Src/imu/icm42688_caller.o
  .data.ICM42688_HANDLE
-                0x00000000       0x3c ./Core/Src/imu/icm42688_caller.o
- .debug_info    0x00000000      0xecf ./Core/Src/imu/icm42688_caller.o
+                0x00000000       0x40 ./Core/Src/imu/icm42688_caller.o
+ .debug_info    0x00000000     0x1068 ./Core/Src/imu/icm42688_caller.o
  .debug_abbrev  0x00000000      0x16a ./Core/Src/imu/icm42688_caller.o
  .debug_aranges
                 0x00000000       0x18 ./Core/Src/imu/icm42688_caller.o
@@ -1338,7 +1338,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x22 ./Core/Src/imu/icm42688_caller.o
  .debug_macro   0x00000000      0x19b ./Core/Src/imu/icm42688_caller.o
  .debug_macro   0x00000000      0x306 ./Core/Src/imu/icm42688_caller.o
- .debug_macro   0x00000000      0x342 ./Core/Src/imu/icm42688_caller.o
+ .debug_macro   0x00000000      0x3ff ./Core/Src/imu/icm42688_caller.o
  .debug_macro   0x00000000      0x29b ./Core/Src/imu/icm42688_caller.o
  .debug_macro   0x00000000       0x2e ./Core/Src/imu/icm42688_caller.o
  .debug_macro   0x00000000       0x2f ./Core/Src/imu/icm42688_caller.o
@@ -1372,9 +1372,9 @@ Discarded input sections
  .debug_macro   0x00000000       0x89 ./Core/Src/imu/icm42688_caller.o
  .debug_macro   0x00000000      0x225 ./Core/Src/imu/icm42688_caller.o
  .debug_macro   0x00000000      0x12d ./Core/Src/imu/icm42688_caller.o
- .debug_macro   0x00000000       0x52 ./Core/Src/imu/icm42688_caller.o
+ .debug_macro   0x00000000       0x4c ./Core/Src/imu/icm42688_caller.o
  .debug_line    0x00000000      0x91a ./Core/Src/imu/icm42688_caller.o
- .debug_str     0x00000000    0xc5da7 ./Core/Src/imu/icm42688_caller.o
+ .debug_str     0x00000000    0xc6679 ./Core/Src/imu/icm42688_caller.o
  .comment       0x00000000       0x44 ./Core/Src/imu/icm42688_caller.o
  .ARM.attributes
                 0x00000000       0x34 ./Core/Src/imu/icm42688_caller.o
@@ -1464,18 +1464,20 @@ Discarded input sections
                 0x00000000       0x98 ./Core/Src/imu/icm42688_core.o
  .text.ICM42688_ReadRegs
                 0x00000000       0xb0 ./Core/Src/imu/icm42688_core.o
+ .text._icm42688_update_reg_bits
+                0x00000000       0x6c ./Core/Src/imu/icm42688_core.o
  .text.ICM42688_Get_WhoAmI
                 0x00000000       0x2e ./Core/Src/imu/icm42688_core.o
  .text.ICM42688_IsAlive
                 0x00000000       0x5c ./Core/Src/imu/icm42688_core.o
  .text.ICM42688_SoftReset
-                0x00000000      0x104 ./Core/Src/imu/icm42688_core.o
+                0x00000000       0xde ./Core/Src/imu/icm42688_core.o
  .text.ICM42688_Set_SPI_Mode
-                0x00000000       0xa8 ./Core/Src/imu/icm42688_core.o
+                0x00000000       0x72 ./Core/Src/imu/icm42688_core.o
  .text.ICM42688_Get_SPI_SlewRate
                 0x00000000       0x58 ./Core/Src/imu/icm42688_core.o
  .text.ICM42688_Set_SPI_SlewRate
-                0x00000000       0xa8 ./Core/Src/imu/icm42688_core.o
+                0x00000000       0x72 ./Core/Src/imu/icm42688_core.o
  .text.ICM42688_Set_GyroConfig
                 0x00000000      0x1cc ./Core/Src/imu/icm42688_core.o
  .text.ICM42688_Get_Gyro_Mode
@@ -1496,6 +1498,12 @@ Discarded input sections
                 0x00000000       0xfe ./Core/Src/imu/icm42688_core.o
  .text.ICM42688_Set_Int2_Config
                 0x00000000      0x102 ./Core/Src/imu/icm42688_core.o
+ .text.ICM42688_Get_Int_Status
+                0x00000000       0x46 ./Core/Src/imu/icm42688_core.o
+ .text.ICM42688_IntStatus_Has
+                0x00000000       0x2e ./Core/Src/imu/icm42688_core.o
+ .text._intf_config0_set_bit
+                0x00000000       0x54 ./Core/Src/imu/icm42688_core.o
  .text.ICM42688_Set_Temperature_Enable
                 0x00000000       0xa0 ./Core/Src/imu/icm42688_core.o
  .text.ICM42688_Get_Temperature_Raw
@@ -1514,12 +1522,12 @@ Discarded input sections
                 0x00000000       0x48 ./Core/Src/imu/icm42688_core.o
  .text.ICM42688_Set_FIFO_Temp_Enable
                 0x00000000       0x4c ./Core/Src/imu/icm42688_core.o
- .debug_info    0x00000000     0x1be3 ./Core/Src/imu/icm42688_core.o
- .debug_abbrev  0x00000000      0x2c8 ./Core/Src/imu/icm42688_core.o
+ .debug_info    0x00000000     0x1ead ./Core/Src/imu/icm42688_core.o
+ .debug_abbrev  0x00000000      0x2e5 ./Core/Src/imu/icm42688_core.o
  .debug_aranges
-                0x00000000      0x118 ./Core/Src/imu/icm42688_core.o
+                0x00000000      0x138 ./Core/Src/imu/icm42688_core.o
  .debug_rnglists
-                0x00000000       0xde ./Core/Src/imu/icm42688_core.o
+                0x00000000       0xf4 ./Core/Src/imu/icm42688_core.o
  .debug_macro   0x00000000      0x30f ./Core/Src/imu/icm42688_core.o
  .debug_macro   0x00000000      0xad8 ./Core/Src/imu/icm42688_core.o
  .debug_macro   0x00000000       0x22 ./Core/Src/imu/icm42688_core.o
@@ -1551,7 +1559,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x22 ./Core/Src/imu/icm42688_core.o
  .debug_macro   0x00000000      0x19b ./Core/Src/imu/icm42688_core.o
  .debug_macro   0x00000000      0x306 ./Core/Src/imu/icm42688_core.o
- .debug_macro   0x00000000      0x342 ./Core/Src/imu/icm42688_core.o
+ .debug_macro   0x00000000      0x3ff ./Core/Src/imu/icm42688_core.o
  .debug_macro   0x00000000      0x29b ./Core/Src/imu/icm42688_core.o
  .debug_macro   0x00000000       0x2e ./Core/Src/imu/icm42688_core.o
  .debug_macro   0x00000000       0x2f ./Core/Src/imu/icm42688_core.o
@@ -1585,11 +1593,11 @@ Discarded input sections
  .debug_macro   0x00000000       0x89 ./Core/Src/imu/icm42688_core.o
  .debug_macro   0x00000000      0x225 ./Core/Src/imu/icm42688_core.o
  .debug_macro   0x00000000      0x12d ./Core/Src/imu/icm42688_core.o
- .debug_macro   0x00000000       0x52 ./Core/Src/imu/icm42688_core.o
- .debug_line    0x00000000     0x15e7 ./Core/Src/imu/icm42688_core.o
- .debug_str     0x00000000    0xc6280 ./Core/Src/imu/icm42688_core.o
+ .debug_macro   0x00000000       0x4c ./Core/Src/imu/icm42688_core.o
+ .debug_line    0x00000000     0x1655 ./Core/Src/imu/icm42688_core.o
+ .debug_str     0x00000000    0xc6bc7 ./Core/Src/imu/icm42688_core.o
  .comment       0x00000000       0x44 ./Core/Src/imu/icm42688_core.o
- .debug_frame   0x00000000      0x498 ./Core/Src/imu/icm42688_core.o
+ .debug_frame   0x00000000      0x530 ./Core/Src/imu/icm42688_core.o
  .ARM.attributes
                 0x00000000       0x34 ./Core/Src/imu/icm42688_core.o
  .text          0x00000000       0x14 ./Core/Startup/startup_stm32f405rgtx.o
@@ -4473,7 +4481,7 @@ LOAD C:/ST/STM32CubeIDE_1.19.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.ext
  .debug_rnglists
                 0x00000518      0x16f ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.o
 
-.debug_macro    0x00000000    0x2026a
+.debug_macro    0x00000000    0x20321
  .debug_macro   0x00000000      0x1f6 ./Core/Src/adc.o
  .debug_macro   0x000001f6      0xad8 ./Core/Src/adc.o
  .debug_macro   0x00000cce      0x29b ./Core/Src/adc.o
@@ -4522,23 +4530,23 @@ LOAD C:/ST/STM32CubeIDE_1.19.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.ext
  .debug_macro   0x0001df96       0x22 ./Core/Src/main.o
  .debug_macro   0x0001dfb8      0x19b ./Core/Src/main.o
  .debug_macro   0x0001e153      0x306 ./Core/Src/main.o
- .debug_macro   0x0001e459      0x342 ./Core/Src/main.o
- .debug_macro   0x0001e79b       0x52 ./Core/Src/main.o
- .debug_macro   0x0001e7ed       0x10 ./Core/Src/main.o
- .debug_macro   0x0001e7fd       0x28 ./Core/Src/main.o
- .debug_macro   0x0001e825      0x1f6 ./Core/Src/spi.o
- .debug_macro   0x0001ea1b      0x1ec ./Core/Src/stm32f4xx_hal_msp.o
- .debug_macro   0x0001ec07      0x1f6 ./Core/Src/stm32f4xx_it.o
- .debug_macro   0x0001edfd      0x1e2 ./Core/Src/system_stm32f4xx.o
- .debug_macro   0x0001efdf      0x2db ./Core/Src/temperature.o
- .debug_macro   0x0001f2ba      0x242 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.o
- .debug_macro   0x0001f4fc      0x1e3 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc.o
- .debug_macro   0x0001f6df      0x1e2 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc_ex.o
- .debug_macro   0x0001f8c1      0x1e2 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.o
- .debug_macro   0x0001faa3      0x1e8 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.o
- .debug_macro   0x0001fc8b      0x1e8 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.o
- .debug_macro   0x0001fe73      0x206 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.o
- .debug_macro   0x00020079      0x1f1 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.o
+ .debug_macro   0x0001e459      0x3ff ./Core/Src/main.o
+ .debug_macro   0x0001e858       0x4c ./Core/Src/main.o
+ .debug_macro   0x0001e8a4       0x10 ./Core/Src/main.o
+ .debug_macro   0x0001e8b4       0x28 ./Core/Src/main.o
+ .debug_macro   0x0001e8dc      0x1f6 ./Core/Src/spi.o
+ .debug_macro   0x0001ead2      0x1ec ./Core/Src/stm32f4xx_hal_msp.o
+ .debug_macro   0x0001ecbe      0x1f6 ./Core/Src/stm32f4xx_it.o
+ .debug_macro   0x0001eeb4      0x1e2 ./Core/Src/system_stm32f4xx.o
+ .debug_macro   0x0001f096      0x2db ./Core/Src/temperature.o
+ .debug_macro   0x0001f371      0x242 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.o
+ .debug_macro   0x0001f5b3      0x1e3 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc.o
+ .debug_macro   0x0001f796      0x1e2 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc_ex.o
+ .debug_macro   0x0001f978      0x1e2 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.o
+ .debug_macro   0x0001fb5a      0x1e8 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.o
+ .debug_macro   0x0001fd42      0x1e8 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.o
+ .debug_macro   0x0001ff2a      0x206 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.o
+ .debug_macro   0x00020130      0x1f1 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.o
 
 .debug_line     0x00000000     0xc93d
  .debug_line    0x00000000      0x802 ./Core/Src/adc.o
@@ -4560,26 +4568,26 @@ LOAD C:/ST/STM32CubeIDE_1.19.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.ext
  .debug_line    0x00009df9      0xe5c ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.o
  .debug_line    0x0000ac55     0x1ce8 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.o
 
-.debug_str      0x00000000    0xc7857
- .debug_str     0x00000000    0xc7857 ./Core/Src/adc.o
+.debug_str      0x00000000    0xc7e46
+ .debug_str     0x00000000    0xc7e46 ./Core/Src/adc.o
                               0xbe74d (size before relaxing)
- .debug_str     0x000c7857    0xbe26d ./Core/Src/dma.o
- .debug_str     0x000c7857    0xbde3c ./Core/Src/gpio.o
- .debug_str     0x000c7857    0xc5578 ./Core/Src/main.o
- .debug_str     0x000c7857    0xbe811 ./Core/Src/spi.o
- .debug_str     0x000c7857    0xbdd71 ./Core/Src/stm32f4xx_hal_msp.o
- .debug_str     0x000c7857    0xbe3af ./Core/Src/stm32f4xx_it.o
- .debug_str     0x000c7857    0xbde21 ./Core/Src/system_stm32f4xx.o
- .debug_str     0x000c7857    0xc1960 ./Core/Src/temperature.o
- .debug_str     0x000c7857       0x76 ./Core/Startup/startup_stm32f405rgtx.o
- .debug_str     0x000c7857    0xbe984 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.o
- .debug_str     0x000c7857    0xbe40e ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc.o
- .debug_str     0x000c7857    0xbe462 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc_ex.o
- .debug_str     0x000c7857    0xbe700 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.o
- .debug_str     0x000c7857    0xbe23b ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.o
- .debug_str     0x000c7857    0xbdf9c ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.o
- .debug_str     0x000c7857    0xbe255 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.o
- .debug_str     0x000c7857    0xbe6df ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.o
+ .debug_str     0x000c7e46    0xbe26d ./Core/Src/dma.o
+ .debug_str     0x000c7e46    0xbde3c ./Core/Src/gpio.o
+ .debug_str     0x000c7e46    0xc5b67 ./Core/Src/main.o
+ .debug_str     0x000c7e46    0xbe811 ./Core/Src/spi.o
+ .debug_str     0x000c7e46    0xbdd71 ./Core/Src/stm32f4xx_hal_msp.o
+ .debug_str     0x000c7e46    0xbe3af ./Core/Src/stm32f4xx_it.o
+ .debug_str     0x000c7e46    0xbde21 ./Core/Src/system_stm32f4xx.o
+ .debug_str     0x000c7e46    0xc1960 ./Core/Src/temperature.o
+ .debug_str     0x000c7e46       0x76 ./Core/Startup/startup_stm32f405rgtx.o
+ .debug_str     0x000c7e46    0xbe984 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.o
+ .debug_str     0x000c7e46    0xbe40e ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc.o
+ .debug_str     0x000c7e46    0xbe462 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc_ex.o
+ .debug_str     0x000c7e46    0xbe700 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.o
+ .debug_str     0x000c7e46    0xbe23b ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.o
+ .debug_str     0x000c7e46    0xbdf9c ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.o
+ .debug_str     0x000c7e46    0xbe255 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.o
+ .debug_str     0x000c7e46    0xbe6df ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.o
 
 .comment        0x00000000       0x43
  .comment       0x00000000       0x43 ./Core/Src/adc.o
