@@ -71,6 +71,7 @@ static inline void ICM42688_Update_ScaleFactor(ICM42688_Handle_t* handle, ICM426
 	switch(gyro_or_accel){
 		case GYRO: {
 			uint8_t idx = (uint8_t)handle -> gyro_config.gyro_fsr;
+			if(idx > 7U) idx = 0U;	//Default to 2000dps safey
 			handle -> gyro_lsb_per_dps_dtsheet = (float)lsb_per_dps[idx];
 			handle -> gyro_dps_per_lsb = (float)(1.0f / (handle -> gyro_lsb_per_dps_dtsheet));
 			break;
@@ -78,6 +79,7 @@ static inline void ICM42688_Update_ScaleFactor(ICM42688_Handle_t* handle, ICM426
 
 		case ACCEL: {
 			uint8_t idx = (uint8_t)handle -> accel_config.accel_fsr;
+			if(idx > 3U) idx = 0U; //Default to 16g safely
 			handle -> accel_lsb_per_g_dtsheet = (float)lsb_per_g[idx];
 			handle -> accel_g_per_lsb = (float)(1.0f / (handle -> accel_lsb_per_g_dtsheet));
 			break;
@@ -630,13 +632,13 @@ HAL_StatusTypeDef ICM42688_Get_Gyro_XYZ(ICM42688_Handle_t* handle, int16_t* buf)
 	if(status != HAL_OK) return status;
 
 	/* Extract Gyro X */
-	buf[0] = (int16_t)(raw[0] << 8 | raw[1]);
+	buf[0] = (int16_t)(((uint16_t)raw[0] << 8) | (uint16_t)raw[1]);
 
 	/* Extract Gyro Y */
-	buf[1] = (int16_t)(raw[2] << 8 | raw[3]);
+	buf[1] = (int16_t)(((uint16_t)raw[2] << 8) | (uint16_t)raw[3]);
 
 	/* Extract Gyro Z */
-	buf[2] = (int16_t)(raw[4] << 8 | raw[5]);
+	buf[2] = (int16_t)(((uint16_t)raw[4] << 8) | (uint16_t)raw[5]);
 
 	return HAL_OK;
 }
@@ -784,13 +786,13 @@ HAL_StatusTypeDef ICM42688_Get_Accel_XYZ(ICM42688_Handle_t* handle, int16_t* buf
 	if(status != HAL_OK) return status;
 
 	/* Extract Accel X */
-	buf[0] = (int16_t)(raw[0] << 8 | raw[1]);
+	buf[0] = (int16_t)(((uint16_t)raw[0] << 8) | (uint16_t)raw[1]);
 
 	/* Extract Accel Y */
-	buf[1] = (int16_t)(raw[2] << 8 | raw[3]);
+	buf[1] = (int16_t)(((uint16_t)raw[2] << 8) | (uint16_t)raw[3]);
 
 	/* Extract Accel Z */
-	buf[2] = (int16_t)(raw[4] << 8 | raw[5]);
+	buf[2] = (int16_t)(((uint16_t)raw[4] << 8) | (uint16_t)raw[5]);
 
 	return HAL_OK;
 }
@@ -938,9 +940,9 @@ HAL_StatusTypeDef ICM42688_Set_Temperature_Enable(ICM42688_Handle_t* handle, ICM
 }
 
 
-int16_t ICM42688_Get_Temperature_Raw(ICM42688_Handle_t* handle)
+HAL_StatusTypeDef ICM42688_Get_Temperature_Raw(ICM42688_Handle_t* handle, float* out_temp_c)
 {
-	if(!handle) return INT16_MIN;
+	if(!handle || !out_temp_c) return HAL_ERROR;
 
 	HAL_StatusTypeDef status = HAL_OK;
 
@@ -951,20 +953,12 @@ int16_t ICM42688_Get_Temperature_Raw(ICM42688_Handle_t* handle)
 
 	uint8_t buf[2] = {0};
 	status = ICM42688_ReadRegs(handle, ICM42688_UB0_TEMP_DATA1, buf, 2);
-	if(status != HAL_OK) return INT16_MIN;
+	if(status != HAL_OK) return status;
 
-	return (int16_t)((uint16_t)(buf[0] << 8) | (uint16_t)buf[1]);
-}
+	int16_t raw = (int16_t)(((uint16_t)buf[0] << 8) | (uint16_t)buf[1]);
+	*out_temp_c = (float)((raw / 132.48f) + 25.0f);
 
-
-float ICM42688_Get_Temperature_C(ICM42688_Handle_t* handle)
-{
-	if(!handle) return NAN;
-
-	int16_t raw = ICM42688_Get_Temperature_Raw(handle);
-	if(raw == INT16_MIN) return NAN;
-
-	return (float)((raw / 132.48f) + 25.0f);
+	return HAL_OK;
 }
 
 
@@ -1042,6 +1036,7 @@ HAL_StatusTypeDef ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t* handle, ICM426
 
 	return HAL_OK;
 }
+
 
 
 

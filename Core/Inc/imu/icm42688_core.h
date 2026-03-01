@@ -398,24 +398,21 @@ typedef struct{
 
 /* Struct stores every important thing */
 typedef struct{
-	ICM42688_SPI_Config_t	spi_config;
-
-	ICM42688_Gyro_Config_t	gyro_config;
-	ICM42688_Accel_Config_t	accel_config;
-
-	ICM42688_Int1_Config_t	int1_config;
-	ICM42688_Int2_Config_t	int2_config;
-	ICM42688_Intf_Config0_t	intf_config;
 
 	float 	gyro_dps_per_lsb;
 	float	gyro_lsb_per_dps_dtsheet;
-
 	float 	accel_g_per_lsb;
 	float	accel_lsb_per_g_dtsheet;
 
-	ICM42688_Temp_Config_t	temp_config;
-	ICM42688_FIFO_Config_t 	fifo_config;
-	ICM42688_Cached_Val_t	cached;
+	ICM42688_SPI_Config_t		spi_config;
+	ICM42688_Gyro_Config_t		gyro_config;
+	ICM42688_Accel_Config_t		accel_config;
+	ICM42688_Int1_Config_t		int1_config;
+	ICM42688_Int2_Config_t		int2_config;
+	ICM42688_Intf_Config0_t		intf_config;
+	ICM42688_Temp_Config_t		temp_config;
+	ICM42688_FIFO_Config_t 		fifo_config;
+	ICM42688_Cached_Val_t		cached;
 
 	bool is_initialized;
 	bool is_reset;
