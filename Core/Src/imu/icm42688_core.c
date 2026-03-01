@@ -667,8 +667,7 @@ HAL_StatusTypeDef ICM42688_Get_Gyro_DPS(ICM42688_Handle_t* handle, float dps[3])
  *	ACCEL CONFIG
  * =============================================================================
  */
-HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle, ICM42688_AccelMode_t mode,
-										   ICM42688_AccelODR_t odr, ICM42688_AccelFSR_t fsr)
+HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle, ICM42688_AccelMode_t mode, ICM42688_AccelODR_t odr, ICM42688_AccelFSR_t fsr)
 {
 	/* Sanity checks */
 	if(!handle) return HAL_ERROR;
@@ -976,7 +975,8 @@ float ICM42688_Get_Temperature_C(ICM42688_Handle_t* handle)
  *	GYRO FILTERING CONFIG
  * ==================================================================================
  */
-HAL_StatusTypeDef ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t* handle, ICM42688_UIFilt_BW_t bw){
+HAL_StatusTypeDef ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t* handle, ICM42688_UIFilt_BW_t bw)
+{
 	if(!handle) return HAL_ERROR;
 	if(((uint8_t)bw >= 8U) && ((uint8_t)bw <= 13U)) return HAL_ERROR; //These are reserved bits
 
@@ -999,7 +999,8 @@ HAL_StatusTypeDef ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t* handle, ICM4268
  *	ACCEL FILTERING CONFIG
  * ==================================================================================
  */
-HAL_StatusTypeDef ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t* handle, ICM42688_UIFilt_BW_t bw){
+HAL_StatusTypeDef ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t* handle, ICM42688_UIFilt_BW_t bw)
+{
 	if(!handle) return HAL_ERROR;
 
 	uint8_t v = (uint8_t)bw;
@@ -1049,24 +1050,6 @@ HAL_StatusTypeDef ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t* handle, ICM426
  *	FIFO CONFIG
  * ==================================================================================
  */
-static HAL_StatusTypeDef _fifo_config1_set_bit(ICM42688_Handle_t* handle, uint8_t mask, uint8_t val_masked)
-{
-	HAL_StatusTypeDef status = HAL_OK;
-
-	#if !ICM42688_WRITE_READ_WITH_BANKED
-		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
-		if(status != HAL_OK) return status;
-	#endif
-
-	uint8_t reg = 0;
-	status = ICM42688_ReadReg(handle, ICM42688_UB0_FIFO_CONF1, &reg);
-	if(status != HAL_OK) return status;
-
-	reg = (uint8_t)((reg & (uint8_t)~mask) | val_masked);
-	return ICM42688_WriteReg(handle, ICM42688_UB0_FIFO_CONF1, reg);
-}
-
-
 HAL_StatusTypeDef ICM42688_Set_FIFO_Gyro_Enable(ICM42688_Handle_t* handle, ICM42688_FIFO_GAT_En_t state)
 {
 	if(!handle) return HAL_ERROR;
