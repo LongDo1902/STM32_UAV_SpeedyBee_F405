@@ -38,27 +38,6 @@ static const float lsb_per_g[] = {
 };
 
 
-
-
-/*
- * =============================================================================
- *	PRIVATE HELPERS
- * =============================================================================
- */
-static inline void ICM42688_CS_Low(ICM42688_Handle_t *handle)
-{
-	//Pull CS low to start an SPI transaction
-	HAL_GPIO_WritePin(handle -> spi_config.cs_port, handle -> spi_config.cs_pin, GPIO_PIN_RESET);
-}
-
-
-static inline void ICM42688_CS_High(ICM42688_Handle_t *handle)
-{
-	//Pull CS high to end an SPI transaction
-	HAL_GPIO_WritePin(handle -> spi_config.cs_port, handle -> spi_config.cs_pin, GPIO_PIN_SET);
-}
-
-
 /*
  * @brief	Update cache scale factors (used by Get_Gyro_DPS / Get_Accel_G)
  * Important:
@@ -86,258 +65,6 @@ static inline void ICM42688_Update_ScaleFactor(ICM42688_Handle_t* handle, ICM426
 		}
 		default: return;
 	}
-}
-
-
-
-
-/*
- * =============================================================================
- *	LOW-LEVEL REGISTER ACCESS
- * =============================================================================
- */
-#if ICM42688_WRITE_READ_WITH_BANKED
-	static inline HAL_StatusTypeDef ICM42688_WriteBank(ICM42688_Handle_t* handle, ICM42688_Reg_t reg)
-	{
-		ICM42688_RegBank_t bank = ICM42688_REG_BANK(reg);
-		if((bank > REG_BANK_4) || (bank == REG_BANK_3)) return HAL_ERROR;
-
-		uint8_t bankSelAddr = ICM42688_REG_ADDR(ICM42688_UB0_REG_BANK_SEL);
-		uint8_t bank_tx[2] = {
-				/* 1st sent is register address + write command bit
-				 * 2nd sent is data byte */
-				(uint8_t)(bankSelAddr & ICM42688_SPI_ADDR_MASK),
-				(uint8_t)(bank)
-		};
-
-		ICM42688_CS_Low(handle);
-		HAL_StatusTypeDef status = HAL_SPI_Transmit(handle -> spi_config.hspi, bank_tx, 2, ICM42688_SPI_TIMEOUT_MS);
-		ICM42688_CS_High(handle);
-		return status;
-	}
-
-
-	HAL_StatusTypeDef ICM42688_WriteReg(ICM42688_Handle_t* handle, ICM42688_Reg_t reg, uint8_t val)
-	{
-		if((!handle) || (!handle -> spi_config.hspi) ||
-		(!handle -> spi_config.cs_port)) return HAL_ERROR;
-
-		HAL_StatusTypeDef status = ICM42688_WriteBank(handle, reg);
-		if(status != HAL_OK) return status;
-
-		/* Extract register address information and start writing to desired register */
-		/* 1st sent is write command + register address
-		 * 2nd sent is data byte */
-		uint8_t regAddr = ICM42688_REG_ADDR(reg);
-		uint8_t tx[2] = {
-				(uint8_t)(regAddr & ICM42688_SPI_ADDR_MASK),
-				val
-		};
-
-		ICM42688_CS_Low(handle);
-		status = HAL_SPI_Transmit(handle -> spi_config.hspi, tx, 2, ICM42688_SPI_TIMEOUT_MS);
-		ICM42688_CS_High(handle);
-
-		return status;
-	}
-
-
-	HAL_StatusTypeDef ICM42688_ReadReg(ICM42688_Handle_t *handle, ICM42688_Reg_t reg, uint8_t* outVal)
-	{
-		if((!handle) || (!outVal) ||
-		(!handle -> spi_config.hspi) ||
-		(!handle -> spi_config.cs_port)) return HAL_ERROR;
-
-		HAL_StatusTypeDef status = ICM42688_WriteBank(handle, reg);
-		if(status != HAL_OK) return status;
-
-		/* Extract register address information and start writing to desired register */
-		/* 1st sent is write command + register address
-		 * 2nd sent is data byte */
-		uint8_t regAddr	= ICM42688_REG_ADDR(reg);
-		uint8_t tx[2] = {
-				(uint8_t)((regAddr & ICM42688_SPI_ADDR_MASK) | ICM42688_SPI_READ_BIT),
-				0x00U //Dummy to clock out data
-		};
-		uint8_t rx[2] = {0};
-
-		ICM42688_CS_Low(handle);
-		status = HAL_SPI_TransmitReceive(handle -> spi_config.hspi, tx, rx, 2, ICM42688_SPI_TIMEOUT_MS);
-		ICM42688_CS_High(handle);
-
-		if(status == HAL_OK) *outVal = rx[1]; //rx[0] corresponding to address phase (dummy)/undefined value
-
-		return status;
-	}
-
-
-	HAL_StatusTypeDef ICM42688_ReadRegs(ICM42688_Handle_t* handle, ICM42688_Reg_t startRegAddr,
-										uint8_t* buf, uint16_t bufLength)
-	{
-		if((!handle) || (!buf) || (bufLength == 0) ||
-		(!handle -> spi_config.hspi) ||
-		(!handle -> spi_config.cs_port)) return HAL_ERROR;
-
-		HAL_StatusTypeDef status = ICM42688_WriteBank(handle, startRegAddr);
-		if(status != HAL_OK) return status;
-
-		/* Extract register address information and start writing to desired register */
-		/* 1st sent is write command + register address
-		 * 2nd sent is data byte */
-		uint8_t regAddr = ICM42688_REG_ADDR(startRegAddr);
-		if(((uint16_t)regAddr + bufLength) > 0x80U) return HAL_ERROR;
-
-		/* Send read command + start addr, then burst receive */
-		uint8_t addr = (uint8_t)((regAddr & ICM42688_SPI_ADDR_MASK) | ICM42688_SPI_READ_BIT);
-
-		ICM42688_CS_Low(handle);
-
-		status = HAL_SPI_Transmit(handle -> spi_config.hspi, &addr, 1, ICM42688_SPI_TIMEOUT_MS);
-		if(status == HAL_OK){
-			status = HAL_SPI_Receive(handle -> spi_config.hspi, buf, bufLength, ICM42688_SPI_TIMEOUT_MS);
-		}
-
-		ICM42688_CS_High(handle);
-		return status;
-	}
-
-
-#else
-	HAL_StatusTypeDef ICM42688_WriteReg(ICM42688_Handle_t *handle, uint8_t regAddr, uint8_t val)
-	{
-		/* Sanity Checks */
-		if((!handle) || ((handle -> spi_config.hspi) == NULL) || ((handle -> spi_config.cs_port) == NULL)) return HAL_ERROR;
-
-		/* 1st sent is write command + register address
-		 * 2nd sent is data byte */
-		uint8_t tx[2];
-		tx[0] = (uint8_t)(regAddr & ICM42688_SPI_ADDR_MASK); //R/W = 0 + regAddr[6:0]
-		tx[1] = (uint8_t)val;
-
-		/* Start to send tx[1] and tx[0] via SPI */
-		ICM42688_CS_Low(handle);
-		HAL_StatusTypeDef status = HAL_SPI_Transmit(handle -> spi_config.hspi, tx, 2, ICM42688_SPI_TIMEOUT_MS);
-		ICM42688_CS_High(handle);
-
-		return status;
-	}
-
-
-	HAL_StatusTypeDef ICM42688_ReadReg(ICM42688_Handle_t* handle, uint8_t regAddr, uint8_t* outVal)
-	{
-		/* Sanity checks */
-		if((!handle) ||
-		  ((handle -> spi_config.hspi) == NULL) ||
-		  ((handle -> spi_config.cs_port) == NULL) ||
-		  (!outVal)) return HAL_ERROR;
-
-		uint8_t tx[2];
-		uint8_t rx[2];
-
-		tx[0] = (uint8_t)((regAddr & ICM42688_SPI_ADDR_MASK) | (ICM42688_SPI_READ_BIT));
-		tx[1] = 0x00U;	//Dummy to clock out data
-
-		/* Start to send the address byte in read command and receive returned byte*/
-		ICM42688_CS_Low(handle);
-		HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(handle -> spi_config.hspi, tx, rx, 2, ICM42688_SPI_TIMEOUT_MS);
-		ICM42688_CS_High(handle);
-
-		if(status == HAL_OK) *outVal = rx[1]; //rx[0] corresponding to address phase (dummy)/undefined value
-
-		return status;
-	}
-
-
-	HAL_StatusTypeDef ICM42688_ReadRegs(ICM42688_Handle_t* handle, uint8_t startRegAddr,
-										uint8_t* buf, uint16_t bufLength)
-	{
-		if((!handle) ||
-		(!handle -> spi_config.hspi) 	||
-		(!handle -> spi_config.cs_port) ||
-		(!buf) ||
-		(bufLength == 0U)) return HAL_ERROR;
-
-		uint8_t addr = (uint8_t)((startRegAddr & ICM42688_SPI_ADDR_MASK) | ICM42688_SPI_READ_BIT);
-
-		/* Start to send the address byte and read command */
-		ICM42688_CS_Low(handle);
-		HAL_StatusTypeDef status = HAL_SPI_Transmit(handle -> spi_config.hspi, &addr, 1, ICM42688_SPI_TIMEOUT_MS);
-
-		/* Burst read */
-		if(status == HAL_OK){
-			status = HAL_SPI_Receive(handle -> spi_config.hspi, buf, bufLength, ICM42688_SPI_TIMEOUT_MS);
-		}
-
-		ICM42688_CS_High(handle);
-		return status;
-	}
-#endif
-
-
-
-
-/*
- * =============================================================================
- *	BANK MANAGEMENTS
- * =============================================================================
- */
-#if !ICM42688_WRITE_READ_WITH_BANKED
-	HAL_StatusTypeDef ICM42688_Set_RegBank(ICM42688_Handle_t* handle, ICM42688_RegBank_t regBank)
-	{
-		/* Sanity checks */
-		if(!handle || (regBank > REG_BANK_4) || (regBank == REG_BANK_3)) return HAL_ERROR;
-
-		/* Write the selected register bank to the register */
-		HAL_StatusTypeDef status = ICM42688_WriteReg(handle, ICM42688_UB0_REG_BANK_SEL, (uint8_t)regBank);
-
-		return status;
-	}
-
-
-	HAL_StatusTypeDef ICM42688_Get_RegBankSensor(ICM42688_Handle_t* handle, ICM42688_RegBank_t* regBank)
-	{
-		/* Sanity Check */
-		if((!handle) || (!regBank)) return HAL_ERROR;
-
-		uint8_t reg = 0U;
-		HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB0_REG_BANK_SEL, &reg);
-		if(status != HAL_OK) return status;
-
-		*regBank = (ICM42688_RegBank_t)(reg & 0x07U);
-
-		return status;
-	}
-#endif
-
-
-
-
-/*
- * =============================================================================
- * 	PRIVATE WRITE AND READ HELPER
- * =============================================================================
- */
-static HAL_StatusTypeDef _icm42688_update_reg_bits(ICM42688_Handle_t* handle,
-												ICM42688_RegBank_t bank,
-												uint8_t reg_addr,
-												uint8_t mask,
-												uint8_t value_masked)
-{
-	HAL_StatusTypeDef status = HAL_OK;
-
-	#if !ICM42688_WRITE_READ_WITH_BANKED
-		status = ICM42688_Set_RegBank(handle, bank);
-		if(status != HAL_OK) return status;
-	#endif
-
-	/* Start extacting bit field in reg_addr */
-	uint8_t reg = 0U;
-	status = ICM42688_ReadReg(handle, reg_addr, &reg);
-	if(status != HAL_OK) return status;
-
-	/* Start to enable soft-reset */
-	reg = (uint8_t)((reg & (uint8_t)~mask) | (value_masked));
-	return ICM42688_WriteReg(handle, reg_addr, reg);
 }
 
 
@@ -391,8 +118,11 @@ HAL_StatusTypeDef ICM42688_SoftReset(ICM42688_Handle_t* handle)
 
 	HAL_StatusTypeDef status = HAL_OK;
 
-	status = _icm42688_update_reg_bits(handle, REG_BANK_0, ICM42688_UB0_DEVICE_CONF, ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk, ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk);
-
+	status = _icm42688_update_reg_bits(handle,
+									REG_BANK_0,
+									ICM42688_UB0_DEVICE_CONF,
+									ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk,
+									ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk);
 	if(status != HAL_OK) return status;
 
 	/* Wait >= 1ms after reset */
@@ -450,8 +180,11 @@ HAL_StatusTypeDef ICM42688_Set_SPI_Mode(ICM42688_Handle_t* handle, ICM42688_SPI_
 
     HAL_StatusTypeDef status = HAL_OK;
 
-    status = _icm42688_update_reg_bits(handle, REG_BANK_0, ICM42688_UB0_DEVICE_CONF, ICM42688_DEVICE_CONFIG_SPI_MODE_Msk, ICM42688_DEVICE_CONFIG_SPI_MODE_Val(spiMode));
-
+    status = _icm42688_update_reg_bits(handle,
+    								REG_BANK_0,
+									ICM42688_UB0_DEVICE_CONF,
+									ICM42688_DEVICE_CONFIG_SPI_MODE_Msk,
+									ICM42688_DEVICE_CONFIG_SPI_MODE_Val(spiMode));
     if(status != HAL_OK) return status;
     handle -> spi_config.spi_mode = spiMode;
     return HAL_OK;
@@ -492,8 +225,11 @@ HAL_StatusTypeDef ICM42688_Set_SPI_SlewRate(ICM42688_Handle_t* handle, ICM42688_
 
 	HAL_StatusTypeDef status = HAL_OK;
 
-	status = _icm42688_update_reg_bits(handle, REG_BANK_0, ICM42688_UB0_DRIVE_CONF, ICM42688_DRIVE_CONFIG_SPI_SR_Msk, ICM42688_DRIVE_CONFIG_SPI_SR_Val(slewRate));
-
+	status = _icm42688_update_reg_bits(handle,
+									REG_BANK_0,
+									ICM42688_UB0_DRIVE_CONF,
+									ICM42688_DRIVE_CONFIG_SPI_SR_Msk,
+									ICM42688_DRIVE_CONFIG_SPI_SR_Val(slewRate));
 	if(status != HAL_OK) return status;
 	handle -> spi_config.spi_slew_rate = (ICM42688_SPI_SLEWRATE_t)slewRate;
 	return HAL_OK;
@@ -669,7 +405,8 @@ HAL_StatusTypeDef ICM42688_Get_Gyro_DPS(ICM42688_Handle_t* handle, float dps[3])
  *	ACCEL CONFIG
  * =============================================================================
  */
-HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle, ICM42688_AccelMode_t mode, ICM42688_AccelODR_t odr, ICM42688_AccelFSR_t fsr)
+HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle, ICM42688_AccelMode_t mode,
+										ICM42688_AccelODR_t odr, ICM42688_AccelFSR_t fsr)
 {
 	/* Sanity checks */
 	if(!handle) return HAL_ERROR;
@@ -913,7 +650,76 @@ bool ICM42688_IntStatus_Has(ICM42688_Int_Status_t status, uint8_t mask)
 }
 
 
-/////////////////
+HAL_StatusTypeDef ICM42688_Set_UI_SIFS_Conf(ICM42688_Handle_t* handle, ICM42688_UI_SIFS_Cfg_t config)
+{
+	if(!handle) return HAL_ERROR;
+
+	HAL_StatusTypeDef status = HAL_OK;
+	status = _icm42688_update_reg_bits(handle,
+									REG_BANK_0,
+									ICM42688_UB0_INTF_CONF0,
+									ICM42688_UI_SIFS_CFG_Msk,
+									ICM42688_UI_SIFS_CFG_Val(config));
+	if(status != HAL_OK) return status;
+
+	handle -> intf_config.ui_sifs_config = config;
+
+	return HAL_OK;
+}
+
+
+HAL_StatusTypeDef ICM42688_Set_Sensor_Data_Endian(ICM42688_Handle_t* handle, ICM42688_Sensor_Data_Endian_t which_endian)
+{
+	if(!handle) return HAL_ERROR;
+
+	HAL_StatusTypeDef status = HAL_OK;
+	status = _icm42688_update_reg_bits(handle,
+									REG_BANK_0,
+									ICM42688_UB0_INTF_CONF0,
+									ICM42688_SENSOR_DATA_ENDIAN_Msk,
+									ICM42688_SENSOR_DATA_ENDIAN_Val(which_endian));
+	if(status != HAL_OK) return status;
+
+	handle -> intf_config.sensor_data_endian = which_endian;
+
+	return HAL_OK;
+}
+
+
+HAL_StatusTypeDef ICM42688_Set_FIFO_Count_Endian(ICM42688_Handle_t* handle, ICM42688_FIFO_Count_Endian_t which_endian)
+{
+	if(!handle) return HAL_ERROR;
+
+	HAL_StatusTypeDef status = HAL_OK;
+	status = _icm42688_update_reg_bits(handle,
+									REG_BANK_0,
+									ICM42688_UB0_INTF_CONF0,
+									ICM42688_FIFO_COUNT_ENDIAN_Msk,
+									ICM42688_FIFO_COUNT_ENDIAN_Val(which_endian));
+	if(status != HAL_OK) return status;
+
+	handle -> intf_config.fifo_count_endian = which_endian;
+
+	return HAL_OK;
+}
+
+
+HAL_StatusTypeDef ICM42688_Set_FIFO_Count_Rec(ICM42688_Handle_t* handle, ICM42688_FIFO_Count_Rec_t fifo_count_rec)
+{
+	if(!handle) return HAL_ERROR;
+
+	HAL_StatusTypeDef status = HAL_OK;
+	status = _icm42688_update_reg_bits(handle,
+									REG_BANK_0,
+									ICM42688_UB0_INTF_CONF0,
+									ICM42688_FIFO_COUNT_REC_Msk,
+									ICM42688_FIFO_COUNT_REC_Val(fifo_count_rec));
+	if(status != HAL_OK) return status;
+
+	handle -> intf_config.fifo_count_rec = fifo_count_rec;
+
+	return HAL_OK;
+}
 
 
 
@@ -931,7 +737,11 @@ HAL_StatusTypeDef ICM42688_Set_Temperature_Enable(ICM42688_Handle_t* handle, ICM
 		//Skip
 	} else{
 		HAL_StatusTypeDef status = HAL_OK;
-		status = _icm42688_update_reg_bits(handle, REG_BANK_0, ICM42688_UB0_PWR_MGMT0, ICM42688_TEMP_Msk, ICM42688_TEMP_Val(state));
+		status = _icm42688_update_reg_bits(handle,
+										REG_BANK_0,
+										ICM42688_UB0_PWR_MGMT0,
+										ICM42688_TEMP_Msk,
+										ICM42688_TEMP_Val(state));
 		if(status != HAL_OK) return status;
 
 		handle -> temp_config.temp_state = state;
@@ -976,8 +786,11 @@ HAL_StatusTypeDef ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t* handle, ICM4268
 
 	HAL_StatusTypeDef status = HAL_OK;
 
-	status = _icm42688_update_reg_bits(handle, REG_BANK_0, ICM42688_UB0_GYRO_ACCEL_CONF0, ICM42688_GYRO_UI_FILT_BW_Msk, ICM42688_GYRO_UI_FILT_BW_Val((uint8_t)bw));
-
+	status = _icm42688_update_reg_bits(handle,
+									REG_BANK_0,
+									ICM42688_UB0_GYRO_ACCEL_CONF0,
+									ICM42688_GYRO_UI_FILT_BW_Msk,
+									ICM42688_GYRO_UI_FILT_BW_Val((uint8_t)bw));
 	if(status != HAL_OK) return status;
 
 	handle -> gyro_config.gyro_uifilt_bw = bw;
@@ -1050,7 +863,11 @@ HAL_StatusTypeDef ICM42688_Set_FIFO_Gyro_Enable(ICM42688_Handle_t* handle, ICM42
 	if(!handle) return HAL_ERROR;
 
 	HAL_StatusTypeDef status = HAL_OK;
-	status = _icm42688_update_reg_bits(handle, REG_BANK_0, ICM42688_UB0_FIFO_CONF1, ICM42688_FIFO_GYRO_EN_Msk, ICM42688_FIFO_GYRO_EN_Val(state));
+	status = _icm42688_update_reg_bits(handle,
+									REG_BANK_0,
+									ICM42688_UB0_FIFO_CONF1,
+									ICM42688_FIFO_GYRO_EN_Msk,
+									ICM42688_FIFO_GYRO_EN_Val(state));
 	if(status != HAL_OK) return status;
 
 	handle -> fifo_config.fifo_gyro_state = (ICM42688_FIFO_GAT_En_t)state;
@@ -1063,7 +880,11 @@ HAL_StatusTypeDef ICM42688_Set_FIFO_Accel_Enable(ICM42688_Handle_t* handle, ICM4
 	if(!handle) return HAL_ERROR;
 
 	HAL_StatusTypeDef status = HAL_OK;
-	status = _icm42688_update_reg_bits(handle, REG_BANK_0, ICM42688_UB0_FIFO_CONF1, ICM42688_FIFO_ACCEL_EN_Msk, ICM42688_FIFO_ACCEL_EN_Val(state));
+	status = _icm42688_update_reg_bits(handle,
+									REG_BANK_0,
+									ICM42688_UB0_FIFO_CONF1,
+									ICM42688_FIFO_ACCEL_EN_Msk,
+									ICM42688_FIFO_ACCEL_EN_Val(state));
 	if(status != HAL_OK) return status;
 
 	handle -> fifo_config.fifo_accel_state = (ICM42688_FIFO_GAT_En_t)state;
@@ -1076,7 +897,11 @@ HAL_StatusTypeDef ICM42688_Set_FIFO_Temp_Enable(ICM42688_Handle_t* handle, ICM42
 	if(!handle) return HAL_ERROR;
 
 	HAL_StatusTypeDef status = HAL_OK;
-	status = _icm42688_update_reg_bits(handle, REG_BANK_0, ICM42688_UB0_FIFO_CONF1, ICM42688_FIFO_TEMP_EN_Msk, ICM42688_FIFO_TEMP_EN_Val(state));
+	status = _icm42688_update_reg_bits(handle,
+									REG_BANK_0,
+									ICM42688_UB0_FIFO_CONF1,
+									ICM42688_FIFO_TEMP_EN_Msk,
+									ICM42688_FIFO_TEMP_EN_Val(state));
 	if(status != HAL_OK) return status;
 
 	handle -> fifo_config.fifo_temp_state = (ICM42688_FIFO_GAT_En_t)state;

@@ -1,3 +1,0 @@
-../Core/Src/temperature.c:27:6:Long_ADC_startADC1Int	16	static
-../Core/Src/temperature.c:35:6:HAL_ADC_ConvCpltCallback	16	static
-../Core/Src/temperature.c:52:7:Long_ADC_getSTM32Temperature	16	static

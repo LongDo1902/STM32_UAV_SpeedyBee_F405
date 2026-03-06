@@ -24,11 +24,6 @@
  * 						ICM42688-P MACROS
  * =============================================================
  */
-#ifndef	ICM42688_WRITE_READ_WITH_BANKED
-#define ICM42688_WRITE_READ_WITH_BANKED		1
-#endif
-
-
 #define ICM42688_VDD				1800U	//In mV
 
 /* Frequencies are declared in Hz */
@@ -44,6 +39,7 @@
 #define ICM42688_SPI_ADDR_MASK				0x7FU
 #define ICM42688_SPI_READ_BIT				0x80U
 #define ICM42688_WHO_AM_I_DEFAULT			0x47U
+
 
 
 
@@ -97,7 +93,6 @@ typedef enum{
 	GYRO_SECOND_ORDER	= (uint8_t)0x01,
 	GYRO_THIRD_ORDER	= (uint8_t)0x02
 }ICM42688_GyroUIFiltOrder_t;
-
 
 typedef enum{
 	GYRO_OFF		= (uint8_t)0x00,
@@ -419,44 +414,7 @@ typedef struct{
 	bool is_alive;
 }ICM42688_Handle_t;
 
+#include "imu/icm42688_rw.h"
 
-
-
-/*
- * =============================================================
- * 							PUBLIC APIs
- * =============================================================
- */
-#if ICM42688_WRITE_READ_WITH_BANKED
-	HAL_StatusTypeDef ICM42688_WriteReg(ICM42688_Handle_t *handle, ICM42688_Reg_t reg, uint8_t val);
-	HAL_StatusTypeDef ICM42688_ReadReg(ICM42688_Handle_t *handle, ICM42688_Reg_t reg, uint8_t* outval);
-	HAL_StatusTypeDef ICM42688_ReadRegs(ICM42688_Handle_t* handle, ICM42688_Reg_t startRegAddr, uint8_t* buf, uint16_t bufLength);
-#else
-	HAL_StatusTypeDef ICM42688_WriteReg(ICM42688_Handle_t *handle, uint8_t regAddr, uint8_t val);
-	HAL_StatusTypeDef ICM42688_ReadReg(ICM42688_Handle_t* handle, uint8_t regAddr, uint8_t* outVal);
-	HAL_StatusTypeDef ICM42688_ReadRegs(ICM42688_Handle_t* handle, uint8_t startRegAddr, uint8_t* buf, uint16_t bufLength);
-#endif
 
 #endif /* INC_ICM42688_H_ */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//	/* FIFO configs */
-//	ICM42688_FIFO_Config_t fifo_config;
-
-
-

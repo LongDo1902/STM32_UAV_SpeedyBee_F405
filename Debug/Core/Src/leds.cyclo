@@ -1,3 +1,0 @@
-../Core/Src/leds.c:13:6:Long_ledInit	1
-../Core/Src/leds.c:32:6:Long_ledControl	1
-../Core/Src/leds.c:41:6:Long_ledControlAlt	1

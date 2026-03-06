@@ -9,18 +9,7 @@
 #define INC_IMU_H_
 
 #include <imu/icm42688_core.h>
-#include <stdint.h>
-#include <stdio.h>
 
-#include "imu/icm42688_caller.h"
 
-extern ICM42688_Handle_t ICM42688_HANDLE;
-
-extern const ICM42688_Gyro_Config_t		GYRO_DEFAULT;
-extern const ICM42688_Accel_Config_t	ACCEL_DEFAULT;
-extern const ICM42688_SPI_Config_t		SPI_DEFAULT;
-extern const ICM42688_Int1_Config_t 	INT1_DEFAULT;
-extern const ICM42688_Int2_Config_t		INT2_DEFAULT;
-extern const ICM42688_Temp_Config_t		TEMP_DEFAULT;
 
 #endif /* INC_IMU_H_ */
