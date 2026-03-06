@@ -1,5 +1,5 @@
 /*
- * icm42688.h
+ * icm42688_core.h
  *
  *  Created on: Dec 22, 2025
  *      Author: dobao
@@ -26,12 +26,14 @@
  */
 #define ICM42688_VDD				1800U	//In mV
 
+
 /* Frequencies are declared in Hz */
 #define ICM42688_SPI_MAX_CLKFREQ	24000000U
 #define ICM42688_I2C_MAX_CLKFREQ	1000000U
 #define ICM42688_MAX_RTC_FREQ		50000U
 #define ICM42688_TYP_RTC_FREQ		32000U
 #define ICM42688_MIN_RTC_FREQ		31000U
+
 
 /* Other Defines */
 #define ICM42688_SENSITIVITY_SCALE_FACTOR	32768.0f
@@ -66,6 +68,7 @@ typedef enum{
 	GYRO_ODR_500Hz		= (uint8_t)0x0F,
 }ICM42688_GyroODR_t;
 
+
 typedef enum{
 	GYRO_FSR_2000dps	= (uint8_t)0x00,
 	GYRO_FSR_1000dps	= (uint8_t)0x01,
@@ -76,6 +79,7 @@ typedef enum{
 	GYRO_FSR_31dps25	= (uint8_t)0x06,
 	GYRO_FSR_15dps625	= (uint8_t)0x07
 }ICM42688_GyroFSR_t;
+
 
 typedef enum{
 	GYRO_NOTCHBW_11449Hz	= (uint8_t)0x00,
@@ -88,11 +92,13 @@ typedef enum{
 	GYRO_NOTCHBW_10Hz		= (uint8_t)0x07
 }ICM42688_GyroNotch_t;
 
+
 typedef enum{
 	GYRO_FIRST_ORDER	= (uint8_t)0x00,
 	GYRO_SECOND_ORDER	= (uint8_t)0x01,
 	GYRO_THIRD_ORDER	= (uint8_t)0x02
 }ICM42688_GyroUIFiltOrder_t;
+
 
 typedef enum{
 	GYRO_OFF		= (uint8_t)0x00,
@@ -126,6 +132,7 @@ typedef enum{
 	ACCEL_ODR_500Hz		= (uint8_t)0x0F
 }ICM42688_AccelODR_t;
 
+
 typedef enum{
 	ACCEL_FSR_16g	= (uint8_t)0x00,
 	ACCEL_FSR_8g	= (uint8_t)0x01,
@@ -133,11 +140,13 @@ typedef enum{
 	ACCEL_FSR_2g	= (uint8_t)0x03
 }ICM42688_AccelFSR_t;
 
+
 typedef enum{
 	ACCEL_FIRST_ORDER	= (uint8_t)0x00,
 	ACCEL_SECOND_ORDER	= (uint8_t)0x01,
 	ACCEL_THIRD_ORDER	= (uint8_t)0x02
 }ICM42688_AccelUIFiltOrder_t;
+
 
 typedef enum{
 	ACCEL_OFF		= (uint8_t)0x00,
@@ -159,11 +168,13 @@ typedef enum{
 	ACCEL = 1
 }ICM42688_SensorSel_t;
 
+
 /* DEVICE_CONFIG Defines */
 typedef enum{
 	SPI_MODE_0_3 = 0U,
 	SPI_MODE_1_2 = 1U
 }ICM42688_SPI_Mode_t;
+
 
 /* DRIVE_CONFIG Defines */
 typedef enum{
@@ -175,6 +186,7 @@ typedef enum{
 	SPI_SR_2NS			= 0x05U, //Less than 2ns
 }ICM42688_SPI_SLEWRATE_t;
 
+
 typedef enum{
 	I2C_SR_20NS_60NS	= 0x00U,
 	I2C_SR_12NS_36NS	= 0x01U,
@@ -184,6 +196,7 @@ typedef enum{
 	I2C_SR_2NS			= 0X05U	//Less than 2ns
 }ICM42688_I2C_SLEWRATE_t;
 
+
 /* INT_CONFIG Defines */
 typedef enum{
 	INT_ACTIVE_LOW 	= 0U,
@@ -191,17 +204,20 @@ typedef enum{
 	INT_POL_MAX		= 2U	//Just for sanity check
 }ICM42688_Int_Polarity_t;
 
+
 typedef enum{
 	INT_OPEN_DRAIN	= 0U,
 	INT_PUSH_PULL 	= 1U,
 	INT_DRIVE_MAX	= 2U	//Just for sanity check
 }ICM42688_Int_Drive_Circuit_t;
 
+
 typedef enum{
 	INT_PUSHED		= 0U,
 	INT_LATCHED		= 1U,
 	INT_MODE_MAX	= 2U	//Just for sanity check
 }ICM42688_Int_Mode_t;
+
 
 typedef enum{
 	INT_AGC_RDY			= 0U,
@@ -213,30 +229,36 @@ typedef enum{
 	INT_UI_FSYNC		= 6U,
 }ICM42688_Int_Status_t;
 
+
 typedef enum{
 	ICM42688_UI_SIFS_DISABLE_SPI	= 2U,
 	ICM42688_UI_SIFS_DISABLE_I2C	= 3U,
 }ICM42688_UI_SIFS_Cfg_t;
+
 
 typedef enum{
 	ICM42688_SENSOR_DATA_LITTLE_ENDIAN	= 0U,
 	ICM42688_SENSOR_DATA_BIG_ENDIAN		= 1U,
 }ICM42688_Sensor_Data_Endian_t;
 
+
 typedef enum{
 	ICM42688_FIFO_COUNT_LITTLE_ENDIAN	= 0U,
 	ICM42688_FIFO_COUNT_BIG_ENDIAN		= 1U,
 }ICM42688_FIFO_Count_Endian_t;
+
 
 typedef enum{
 	ICM42688_FIFO_COUNT_IN_BYTE		= 0U,
 	ICM42688_FIFO_COUNT_IN_RECORD	= 1U,
 }ICM42688_FIFO_Count_Rec_t;
 
+
 typedef enum{
 	ICM42688_FIFO_HOLD_LAST_DATA_INVALID	= 0U,
 	ICM42688_FIFO_HOLD_LAST_DATA_VALID		= 1U,
 }ICM42688_FIFO_Hold_Last_Data_En_t;
+
 
 /* FIFO_CONFIG Defines */
 typedef enum{
@@ -244,6 +266,7 @@ typedef enum{
 	STREAM_TO_FIFO	= 0x01U,
 	STOP_ON_FULL	= 0x02U
 }ICM42688_FIFO_MODE_t;
+
 
 /* REG_BANK_SEL Defines */
 typedef enum{
@@ -255,11 +278,13 @@ typedef enum{
 	UNKNOWN_BANK 	= 0x07U
 }ICM42688_RegBank_t;
 
+
 /* TEMPERATURE Enable/Disable */
 typedef enum{
 	TEMP_ENABLE		= 0x00U,
 	TEMP_DISABLE	= 0x01U,
 }ICM42688_Temp_t;
+
 
 /* Temperature Filter Bandwidth */
 typedef enum{
@@ -288,10 +313,12 @@ typedef enum{
 	LOW_LATENCY_DEC2_200Hz_ODR = 0x0F,
 }ICM42688_UIFilt_BW_t;
 
+
 typedef enum{
 	FIFO_GAT_DISABLE = 0x00, // GAT = Gyro Accel Temperature
 	FIFO_GAT_ENABLE = 0x01,
 }ICM42688_FIFO_GAT_En_t;
+
 
 //HAVE TO CHECK THIS AGAIN!!!!!!!
 typedef enum{
@@ -299,10 +326,12 @@ typedef enum{
 	FIFO_WM_GREATER_THS_REPEAT	= 0x01,
 }ICM42688_FIFO_WM_Mode_t;
 
+
 typedef enum{
 	FIFO_HIRES_DISABLE	= 0x00,	//FIFO stores normal (16bits) accel/gyro + temp
 	FIFO_HIRES_ENABLE	= 0x01,	//FIFO stores extended: +3 bytes for an extended 20-bit accel/gyro + 1 byte temp
 }ICM42688_FIFO_Hires_En_t;
+
 
 typedef enum{
 	FIFO_PARTIAL_READ_DISABLE	= 0x00,	//Partial FIFO read disable: must re-read the entire FIFO
@@ -393,7 +422,6 @@ typedef struct{
 
 /* Struct stores every important thing */
 typedef struct{
-
 	float 	gyro_dps_per_lsb;
 	float	gyro_lsb_per_dps_dtsheet;
 	float 	accel_g_per_lsb;
@@ -411,10 +439,9 @@ typedef struct{
 
 	bool is_initialized;
 	bool is_reset;
-	bool is_alive;
+	bool is_icm42688_alive;
 }ICM42688_Handle_t;
 
 #include "imu/icm42688_rw.h"
-
 
 #endif /* INC_ICM42688_H_ */

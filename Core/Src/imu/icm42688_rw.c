@@ -26,11 +26,15 @@ static inline void ICM42688_CS_High(ICM42688_Handle_t *handle)
 
 
 
+
 /*
  * =============================================================================
  *	LOW-LEVEL REGISTER ACCESS
  * =============================================================================
  */
+/* @brief	Automatically write bank number to the corresponding input encoded register
+ * @param	handle			Pointer to ICm42688 Handle struct
+ * @param	encodedReg		Encoded register containing both bank and register address */
 HAL_StatusTypeDef ICM42688_WriteBankAuto(ICM42688_Handle_t* handle, ICM42688_Reg_t encodedReg)
 {
 	ICM42688_RegBank_t bank = ICM42688_REG_BANK(encodedReg);
@@ -51,12 +55,15 @@ HAL_StatusTypeDef ICM42688_WriteBankAuto(ICM42688_Handle_t* handle, ICM42688_Reg
 }
 
 
+/* @brief	Write one byte to the target ICM42688 register over SPI
+ * @param	handle		Pointer to the ICM42688 Handle struct
+ * @param	val			Data byte to be written into target register */
 HAL_StatusTypeDef ICM42688_WriteReg(ICM42688_Handle_t* handle, ICM42688_Reg_t encodedReg, uint8_t val)
 {
 	if((!handle) || (!handle -> spi_config.hspi) ||
 	(!handle -> spi_config.cs_port)) return HAL_ERROR;
 
-	HAL_StatusTypeDef status = ICM42688_WriteBank(handle, encodedReg);
+	HAL_StatusTypeDef status = ICM42688_WriteBankAuto(handle, encodedReg);
 	if(status != HAL_OK) return status;
 
 	/* Extract register address information and start writing to desired register */
@@ -76,13 +83,17 @@ HAL_StatusTypeDef ICM42688_WriteReg(ICM42688_Handle_t* handle, ICM42688_Reg_t en
 }
 
 
+/* @brief	Read one byte from the target ICM42688 over SPI
+ * @param	handle		Pointer to ICM42688 Handle struct
+ * @param	encodedReg	Encoded register containing both bank number and register address
+ * @param	outVal		Pointer to a variable that stores the read register value */
 HAL_StatusTypeDef ICM42688_ReadReg(ICM42688_Handle_t *handle, ICM42688_Reg_t encodedReg, uint8_t* outVal)
 {
 	if((!handle) || (!outVal) ||
 	(!handle -> spi_config.hspi) ||
 	(!handle -> spi_config.cs_port)) return HAL_ERROR;
 
-	HAL_StatusTypeDef status = ICM42688_WriteBank(handle, encodedReg);
+	HAL_StatusTypeDef status = ICM42688_WriteBankAuto(handle, encodedReg);
 	if(status != HAL_OK) return status;
 
 	/* Extract register address information and start writing to desired register */
@@ -105,6 +116,11 @@ HAL_StatusTypeDef ICM42688_ReadReg(ICM42688_Handle_t *handle, ICM42688_Reg_t enc
 }
 
 
+/* @brief	Read multiple consecutive registers from the ICM42688 over SPI
+ * @param	handle				Pointer to ICM42688 Handle struct
+ * @param	startEncodedReg 	Encoded start register
+ * @param	buf					Pointer to the buffer that stores the received bytes
+ * @param	bufLength			Number of consecutive bytes to read */
 HAL_StatusTypeDef ICM42688_ReadRegs(ICM42688_Handle_t* handle, ICM42688_Reg_t startEncodedReg,
 									uint8_t* buf, uint16_t bufLength)
 {
@@ -112,7 +128,7 @@ HAL_StatusTypeDef ICM42688_ReadRegs(ICM42688_Handle_t* handle, ICM42688_Reg_t st
 	(!handle -> spi_config.hspi) ||
 	(!handle -> spi_config.cs_port)) return HAL_ERROR;
 
-	HAL_StatusTypeDef status = ICM42688_WriteBank(handle, startEncodedReg);
+	HAL_StatusTypeDef status = ICM42688_WriteBankAuto(handle, startEncodedReg);
 	if(status != HAL_OK) return status;
 
 	/* Extract register address information and start writing to desired register */
@@ -136,18 +152,21 @@ HAL_StatusTypeDef ICM42688_ReadRegs(ICM42688_Handle_t* handle, ICM42688_Reg_t st
 }
 
 
+/* @brief	Updates selected bit fields of a target register using read-modify-write operation
+ * @param	handle			Pointer to ICM42688 Handle struct
+ * @param	encodedReg		Encoded register value
+ * @param	mask			Bit mask indicating which register bits will be updated
+ * @param	valueMasked		New field value already shifted and masked to match the mask */
 HAL_StatusTypeDef ICM42688_Update_Reg_Bits(ICM42688_Handle_t* handle, ICM42688_Reg_t encodedReg,
-										uint8_t mask, uint8_t value_masked)
+										uint8_t mask, uint8_t valueMasked)
 {
 	if(!handle) return HAL_ERROR;
-	if((value_masked & (uint8_t)~mask) != 0U) return HAL_ERROR;
+	if((valueMasked & (uint8_t)~mask) != 0U) return HAL_ERROR;
 
 	uint8_t cur_reg = 0U;
 	HAL_StatusTypeDef status = ICM42688_ReadReg(handle, encodedReg, &cur_reg);
 	if(status != HAL_OK) return status;
 
-	cur_reg = (uint8_t)((cur_reg & (uint8_t)~mask) | value_masked);
+	cur_reg = (uint8_t)((cur_reg & (uint8_t)~mask) | valueMasked);
 	return ICM42688_WriteReg(handle, encodedReg, cur_reg);
 }
-
-

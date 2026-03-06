@@ -4,7 +4,7 @@
  *  Created on: Jan 3, 2026
  *      Author: dobao
  */
-#include "imu/icm42688_caller.h"
+#include <imu/icm42688_main.h>
 
 /*
  * =============================================================================
