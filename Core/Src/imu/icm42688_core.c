@@ -8,14 +8,14 @@
 #include <imu/icm42688_core.h>
 
 
-/* =============================================================================
+/*=============================================================================
  *	PRIVATE CONSTANT: datasheet sensitivities (LSB per unit)
  *
  *	lsb_per_dps[] and lsb_per_g[] must match the enum order of your FSR enums.
  *	Example:
  *		gyro_fsr = GYRO_FSR_2000dps		-> idx = 0 -> 16.4 LSB/dps
  *		accel_fsr = ACCEL_FSR_16g		-> idx = 0 -> 2048 LSB/g
- * =============================================================================*/
+ *============================================================================= */
 static const float lsb_per_dps[] = {
 		16.4f,		//2000
 		32.8f,		//1000
@@ -63,7 +63,7 @@ static inline void ICM42688_Update_ScaleFactor(ICM42688_Handle_t* handle, ICM426
 
 /*=============================================================================
  *	IDENTITY / RESET /
- * ============================================================================ */
+ *============================================================================ */
 static inline HAL_StatusTypeDef ICM42688_Get_WhoAmI(ICM42688_Handle_t* handle, uint8_t* who_val)
 {
 	if(!handle || !who_val) return HAL_ERROR;
@@ -103,7 +103,6 @@ HAL_StatusTypeDef ICM42688_SoftReset(ICM42688_Handle_t* handle)
 														ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk);
 	if(status != HAL_OK) return status;
 
-	//Wait at least after reset
 	HAL_Delay(5);
 
 	//After reset, set every flag to a default/known state
@@ -144,11 +143,9 @@ HAL_StatusTypeDef ICM42688_SoftReset(ICM42688_Handle_t* handle)
 
 
 
-/*
- * =============================================================================
+/*=============================================================================
  *	SPI CONFIG
- * =============================================================================
- */
+ *============================================================================ */
 HAL_StatusTypeDef ICM42688_Set_SPI_Mode(ICM42688_Handle_t* handle, ICM42688_SPI_Mode_t spiMode)
 {
     if ((!handle) || ((spiMode != SPI_MODE_0_3) && (spiMode != SPI_MODE_1_2))) return HAL_ERROR;
@@ -198,11 +195,9 @@ HAL_StatusTypeDef ICM42688_Set_SPI_SlewRate(ICM42688_Handle_t* handle, ICM42688_
 
 
 
-/*
- * =============================================================================
+/*=============================================================================
  *	GYRO CONFIG
- * =============================================================================
- */
+ * ============================================================================ */
 HAL_StatusTypeDef ICM42688_Set_GyroConfig(ICM42688_Handle_t* handle, ICM42688_GyroMode_t mode,
 										  ICM42688_GyroODR_t odr, ICM42688_GyroFSR_t fsr)
 {
@@ -276,10 +271,14 @@ HAL_StatusTypeDef ICM42688_Get_Gyro_Mode(ICM42688_Handle_t* handle, uint8_t* mod
 	if(status != HAL_OK) return status;
 
 	reg &= ICM42688_GYRO_MODE_Msk;
-	*modeInfo = (uint8_t)(reg >> ICM42688_GYRO_MODE_Pos);
+	uint8_t rawMode = (uint8_t)(reg >> ICM42688_GYRO_MODE_Pos);
 
-	handle -> gyro_config.gyro_mode = (ICM42688_GyroMode_t)*modeInfo;
-	return HAL_OK;
+	if((rawMode == 0U) || (rawMode == 1U) || (rawMode == 3U)){
+		*modeInfo = rawMode;
+		handle -> gyro_config.gyro_mode = (ICM42688_GyroMode_t)rawMode;
+		return HAL_OK;
+	}
+	return HAL_ERROR;
 }
 
 
@@ -324,11 +323,9 @@ HAL_StatusTypeDef ICM42688_Get_Gyro_DPS(ICM42688_Handle_t* handle, float dps[3])
 
 
 
-/*
- * =============================================================================
+/*=============================================================================
  *	ACCEL CONFIG
- * =============================================================================
- */
+ *============================================================================ */
 HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle, ICM42688_AccelMode_t mode,
 										ICM42688_AccelODR_t odr, ICM42688_AccelFSR_t fsr)
 {
@@ -340,22 +337,26 @@ HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle, ICM42688_A
 	HAL_StatusTypeDef status = HAL_OK;
 
 	// (1) PWR_MGMT0: set Accel Mode (RMW)
+	uint8_t currRawMode = (uint8_t)mode;
+	bool currModeIsOff = (currRawMode == 0U) || (currRawMode == 1U);
+	ICM42688_AccelMode_t currNormMode = currModeIsOff ? ACCEL_OFF : (ICM42688_AccelMode_t)currRawMode;
+
 	ICM42688_AccelMode_t prevMode = handle -> accel_config.accel_mode;
-	ICM42688_AccelMode_t currMode = mode;
-	bool need_write_mode = (!(handle -> is_initialized) || (currMode != prevMode));
+	bool prevModeIsOff = (prevMode == 0U) || (prevMode == 1U);
+	ICM42688_AccelMode_t prevNormMode = prevModeIsOff ? ACCEL_OFF : prevMode;
+
+	bool needWriteMode = ((!handle -> is_initialized) || (currNormMode != prevNormMode));
 	{
-		if(need_write_mode){
+		if(needWriteMode){
 			status = ICM42688_Update_Reg_Bits(handle,
 											ICM42688_UB0_PWR_MGMT0,
 											ICM42688_ACCEL_MODE_Msk,
 											ICM42688_ACCEL_MODE_Val(mode));
 			if(status != HAL_OK) return status;
+			handle -> accel_config.accel_mode = currNormMode;
 
-			handle -> accel_config.accel_mode = mode;
-
-			//Wait 200us if mode changes from OFF to any other mode
-			if((prevMode == ACCEL_OFF) && (currMode != ACCEL_OFF)){
-				HAL_Delay(1); //1000us > 200us (according to datasheet)
+			if(prevModeIsOff && !currModeIsOff){
+				HAL_Delay(1); //Wait at least 200us if mode changes from OFF to any other mode
 			}
 		}
 	}
@@ -451,11 +452,9 @@ HAL_StatusTypeDef ICM42688_Get_Accel_G(ICM42688_Handle_t* handle, float g[3])
 
 
 
-/*
- * ==================================================================================
+/*==================================================================================
  *	INTERRUPT CONFIG
- * ==================================================================================
- */
+ *================================================================================== */
 HAL_StatusTypeDef ICM42688_Set_Int1_Config(ICM42688_Handle_t* handle, ICM42688_Int_Polarity_t polarity,
 										   ICM42688_Int_Drive_Circuit_t drive, ICM42688_Int_Mode_t mode)
 {
@@ -614,11 +613,9 @@ HAL_StatusTypeDef ICM42688_Set_FIFO_Count_Rec(ICM42688_Handle_t* handle, ICM4268
 
 
 
-/*
- * ==================================================================================
+/*==================================================================================
  * 	TEMPERATURE CONFIG
- * ==================================================================================
- */
+ *================================================================================== */
 HAL_StatusTypeDef ICM42688_Set_Temperature_Enable(ICM42688_Handle_t* handle, ICM42688_Temp_t state)
 {
 	if(!handle) return HAL_ERROR;
@@ -651,15 +648,13 @@ HAL_StatusTypeDef ICM42688_Get_Temperature_C(ICM42688_Handle_t* handle, float* o
 
 
 
-/*
- * ==================================================================================
+/*=================================================================================
  *	GYRO FILTERING CONFIG
- * ==================================================================================
- */
+ *================================================================================= */
 HAL_StatusTypeDef ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t* handle, ICM42688_UIFilt_BW_t bw)
 {
 	if(!handle) return HAL_ERROR;
-	if(((uint8_t)bw >= 8U) && ((uint8_t)bw <= 13U)) return HAL_ERROR;
+	if((((uint8_t)bw >= 8U) && ((uint8_t)bw <= 13U)) || (uint8_t)bw > 0x0FU) return HAL_ERROR;
 
 	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
 														ICM42688_UB0_GYRO_ACCEL_CONF0,
@@ -673,11 +668,9 @@ HAL_StatusTypeDef ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t* handle, ICM4268
 
 
 
-/*
- * ==================================================================================
+/*==================================================================================
  *	ACCEL FILTERING CONFIG
- * ==================================================================================
- */
+ *================================================================================== */
 HAL_StatusTypeDef ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t* handle, ICM42688_UIFilt_BW_t bw)
 {
 	if(!handle) return HAL_ERROR;
@@ -714,11 +707,38 @@ HAL_StatusTypeDef ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t* handle, ICM426
 
 
 
-/*
- * ==================================================================================
+/*==================================================================================
  *	FIFO CONFIG
- * ==================================================================================
- */
+ *================================================================================= */
+HAL_StatusTypeDef ICM42688_Set_FIFO_Mode(ICM42688_Handle_t* handle, ICM42688_FIFO_Mode_t mode){
+	if(!handle) return HAL_ERROR;
+	if((uint8_t)mode > (uint8_t)STOP_ON_FULL) return HAL_ERROR;
+
+	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
+														ICM42688_UB0_FIFO_CONF,
+														ICM42688_FIFO_MODE_Msk,
+														ICM42688_FIFO_MODE_Val(mode));
+	if(status != HAL_OK) return status;
+	handle -> fifo_config.fifo_mode = (ICM42688_FIFO_Mode_t)mode;
+	return HAL_OK;
+}
+
+
+HAL_StatusTypeDef ICM42688_Get_FIFO_Mode(ICM42688_Handle_t* handle, ICM42688_FIFO_Mode_t* mode){
+	if(!handle || !mode) return HAL_ERROR;
+
+	uint8_t reg = 0U;
+	HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB0_FIFO_CONF, &reg);
+	if(status != HAL_OK) return status;
+
+	uint8_t rawMode = (uint8_t)((reg & ICM42688_FIFO_MODE_Msk) >> ICM42688_FIFO_MODE_Pos);
+	bool isModeStopOnFull = (rawMode == 2U) || (rawMode == 3U);
+	*mode = (isModeStopOnFull) ? STOP_ON_FULL : (ICM42688_FIFO_Mode_t)rawMode;
+
+	return HAL_OK;
+}
+
+
 HAL_StatusTypeDef ICM42688_Set_FIFO_Gyro_Enable(ICM42688_Handle_t* handle, ICM42688_FIFO_GAT_En_t state)
 {
 	if(!handle) return HAL_ERROR;
@@ -729,7 +749,7 @@ HAL_StatusTypeDef ICM42688_Set_FIFO_Gyro_Enable(ICM42688_Handle_t* handle, ICM42
 														ICM42688_FIFO_GYRO_EN_Val(state));
 	if(status != HAL_OK) return status;
 	handle -> fifo_config.fifo_gyro_state = (ICM42688_FIFO_GAT_En_t)state;
-	return status;
+	return status;f
 }
 
 
@@ -757,5 +777,85 @@ HAL_StatusTypeDef ICM42688_Set_FIFO_Temp_Enable(ICM42688_Handle_t* handle, ICM42
 														ICM42688_FIFO_TEMP_EN_Val(state));
 	if(status != HAL_OK) return status;
 	handle -> fifo_config.fifo_temp_state = (ICM42688_FIFO_GAT_En_t)state;
+	return HAL_OK;
+}
+
+
+HAL_StatusTypeDef ICM42688_Set_FIFO_HIRES_Enable(ICM42688_Handle_t* handle, ICM42688_FIFO_Hires_En_t state)
+{
+	if(!handle) return HAL_ERROR;
+
+	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
+														ICM42688_UB0_FIFO_CONF1,
+														ICM42688_FIFO_HIRES_EN_Msk,
+														ICM42688_FIFO_HIRES_EN_Val(state));
+	if(status != HAL_OK) return status;
+	handle -> fifo_config.fifo_hires_state = (ICM42688_FIFO_Hires_En_t)state;
+	return HAL_OK;
+}
+
+
+HAL_StatusTypeDef ICM42688_Set_FIFO_WM_GT_THS(ICM42688_Handle_t* handle, ICM42688_FIFO_WM_Mode_t state){
+	if(!handle) return HAL_ERROR;
+
+	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
+														ICM42688_UB0_FIFO_CONF1,
+														ICM42688_FIFO_WM_GT_TH_Msk,
+														ICM42688_FIFO_WM_GT_TH_Val(state));
+	if(status != HAL_OK) return status;
+	handle -> fifo_config.fifo_wm_mode = (ICM42688_FIFO_WM_Mode_t) state;
+	return HAL_OK;
+}
+
+
+HAL_StatusTypeDef ICM42688_Set_FIFO_Resume_Partial_Read(ICM42688_Handle_t* handle, ICM42688_FIFO_Resume_Read_t state)
+{
+	if(!handle) return HAL_ERROR;
+	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
+														ICM42688_UB0_FIFO_CONF1,
+														ICM42688_FIFO_RESUME_PARTIAL_RD_Msk,
+														ICM42688_FIFO_RESUME_PARTIAL_RD_Val(state));
+	if(status != HAL_OK) return status;
+	handle -> fifo_config.fifo_partial_read_state = (ICM42688_FIFO_Resume_Read_t) state;
+	return HAL_OK;
+}
+
+
+HAL_StatusTypeDef ICM42688_Set_FIFO_Watermark(ICM42688_Handle_t* handle, uint16_t fifoWatermark)
+{
+	if(!handle) return HAL_ERROR;
+	if((fifoWatermark == 0U) || (fifoWatermark > 0x0FFFU)) return HAL_ERROR;
+
+	uint8_t fifoLowerWm = (uint8_t)(fifoWatermark & 0x00FFU);
+	uint8_t fifoUpperWm = (uint8_t)((fifoWatermark >> 8) & 0x0FU);
+
+	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
+														ICM42688_UB0_FIFO_CONF2,
+														ICM42688_FIFO_WM_LOWER_Msk,
+														ICM42688_FIFO_WM_LOWER_Val(fifoLowerWm));
+	if(status != HAL_OK) return status;
+
+	status = ICM42688_Update_Reg_Bits(handle,
+									ICM42688_UB0_FIFO_CONF3,
+									ICM42688_FIFO_WM_UPPER_Msk,
+									ICM42688_FIFO_WM_UPPER_Val(fifoUpperWm));
+	if(status != HAL_OK) return status;
+
+	handle -> fifo_config.fifo_watermark = (uint16_t)fifoWatermark;
+	return HAL_OK;
+}
+
+
+HAL_StatusTypeDef ICM42688_Get_FIFO_Watermark(ICM42688_Handle_t* handle, uint16_t* fifoWatermark){
+	if(!handle || !fifoWatermark) return HAL_ERROR;
+
+	uint8_t fifoWmBuf[2];
+	HAL_StatusTypeDef status = ICM42688_ReadRegs(handle, ICM42688_UB0_FIFO_CONF2, fifoWmBuf, 2);
+	if(status != HAL_OK) return status;
+
+	*fifoWatermark = (uint16_t)((uint16_t)((fifoWmBuf[1] & ICM42688_FIFO_WM_UPPER_Msk) << 8U) |
+								(uint16_t)((fifoWmBuf[0] & ICM42688_FIFO_WM_LOWER_Msk)));
+
+	handle -> fifo_config.fifo_watermark = (uint16_t)*fifoWatermark;
 	return HAL_OK;
 }

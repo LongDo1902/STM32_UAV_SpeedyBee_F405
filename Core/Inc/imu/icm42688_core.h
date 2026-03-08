@@ -265,7 +265,7 @@ typedef enum{
 	BYPASS			= 0x00U,
 	STREAM_TO_FIFO	= 0x01U,
 	STOP_ON_FULL	= 0x02U
-}ICM42688_FIFO_MODE_t;
+}ICM42688_FIFO_Mode_t;
 
 
 /* REG_BANK_SEL Defines */
@@ -404,6 +404,9 @@ typedef struct{
 
 
 typedef struct{
+	ICM42688_FIFO_Mode_t			fifo_mode;
+	uint16_t						fifo_watermark;
+
 	ICM42688_FIFO_GAT_En_t			fifo_gyro_state;
 	ICM42688_FIFO_GAT_En_t			fifo_accel_state;
 	ICM42688_FIFO_GAT_En_t			fifo_temp_state;
