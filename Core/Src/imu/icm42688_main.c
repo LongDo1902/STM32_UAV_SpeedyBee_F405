@@ -94,7 +94,7 @@ ICM42688_Handle_t ICM42688_HANDLE = {
 
 		.is_initialized		= false,
 		.is_reset			= false,
-		.is_alive			= false,
+		.is_icm42688_alive	= false,
 
 		.temp_config		= TEMP_DEFAULT,
 

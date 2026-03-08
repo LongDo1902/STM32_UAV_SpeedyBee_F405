@@ -415,7 +415,7 @@ typedef struct{
 
 
 typedef struct{
-	ICM42688_Int_Status_t	int_status;
+	uint8_t	int_status;
 }ICM42688_Cached_Val_t;
 
 

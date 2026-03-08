@@ -77,17 +77,19 @@ HAL_StatusTypeDef ICM42688_IsAlive(ICM42688_Handle_t* handle)
 
 	uint8_t who = 0U;
 	HAL_StatusTypeDef status = ICM42688_Get_WhoAmI(handle, &who);
-	if(status == HAL_OK){
-		if(who == ICM42688_WHO_AM_I_DEFAULT){
-			handle -> is_icm42688_alive = true;
-			return HAL_OK;
-		}
-		else{
-			handle -> is_icm42688_alive = false;
-			return HAL_ERROR;
-		}
+
+	if(status != HAL_OK){
+		handle -> is_icm42688_alive = false;
+		return status;
 	}
-	return status;
+
+	if(who == ICM42688_WHO_AM_I_DEFAULT){
+		handle -> is_icm42688_alive = true;
+		return HAL_OK;
+	}
+
+	handle -> is_icm42688_alive = false;
+	return HAL_ERROR;
 }
 
 
@@ -209,6 +211,7 @@ HAL_StatusTypeDef ICM42688_Set_GyroConfig(ICM42688_Handle_t* handle, ICM42688_Gy
 	if(((uint8_t)mode > 3U) || ((uint8_t)mode == 2U)) return HAL_ERROR;
 
 	if((((uint8_t)odr > (uint8_t)GYRO_ODR_500Hz)) ||
+		((uint8_t)odr == 0x00U) ||
 		((uint8_t)odr == 0x0CU) ||
 		((uint8_t)odr == 0x0DU) ||
 		((uint8_t)odr == 0x0EU)) return HAL_ERROR;
@@ -228,7 +231,7 @@ HAL_StatusTypeDef ICM42688_Set_GyroConfig(ICM42688_Handle_t* handle, ICM42688_Gy
 			status = ICM42688_Update_Reg_Bits(handle,
 											ICM42688_UB0_PWR_MGMT0,
 											ICM42688_GYRO_MODE_Msk,
-											ICM42688_GYRO_MODE_Val);
+											ICM42688_GYRO_MODE_Val(mode));
 			if(status != HAL_OK) return status;
 
 			handle -> gyro_config.gyro_mode = mode;
@@ -268,23 +271,14 @@ HAL_StatusTypeDef ICM42688_Set_GyroConfig(ICM42688_Handle_t* handle, ICM42688_Gy
 HAL_StatusTypeDef ICM42688_Get_Gyro_Mode(ICM42688_Handle_t* handle, uint8_t* modeInfo){
 	if(!handle || !modeInfo) return HAL_ERROR;
 
-	HAL_StatusTypeDef status = HAL_OK;
-
-	#if !ICM42688_WRITE_READ_WITH_BANKED
-		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
-		if(status != HAL_OK) return status;
-	#endif
-
 	uint8_t reg = 0U;
-	status = ICM42688_ReadReg(handle, ICM42688_UB0_PWR_MGMT0, &reg);
+	HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB0_PWR_MGMT0, &reg);
 	if(status != HAL_OK) return status;
 
 	reg &= ICM42688_GYRO_MODE_Msk;
 	*modeInfo = (uint8_t)(reg >> ICM42688_GYRO_MODE_Pos);
 
-	/* Update cache */
 	handle -> gyro_config.gyro_mode = (ICM42688_GyroMode_t)*modeInfo;
-
 	return HAL_OK;
 }
 
@@ -293,24 +287,17 @@ HAL_StatusTypeDef ICM42688_Get_Gyro_XYZ(ICM42688_Handle_t* handle, int16_t* buf)
 {
 	if(!handle || !buf) return HAL_ERROR;
 
-	HAL_StatusTypeDef status = HAL_OK;
-
-	#if !ICM42688_WRITE_READ_WITH_BANKED
-		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
-		if(status != HAL_OK) return status;
-	#endif
-
 	uint8_t raw[6] = {0};
-	status = ICM42688_ReadRegs(handle, ICM42688_UB0_GYRO_DATA_X1, raw, 6);
+	HAL_StatusTypeDef status = ICM42688_ReadRegs(handle, ICM42688_UB0_GYRO_DATA_X1, raw, 6);
 	if(status != HAL_OK) return status;
 
-	/* Extract Gyro X */
+	//Extract Gyro X
 	buf[0] = (int16_t)(((uint16_t)raw[0] << 8) | (uint16_t)raw[1]);
 
-	/* Extract Gyro Y */
+	//Extract Gyro Y
 	buf[1] = (int16_t)(((uint16_t)raw[2] << 8) | (uint16_t)raw[3]);
 
-	/* Extract Gyro Z */
+	//Extract Gyro Z
 	buf[2] = (int16_t)(((uint16_t)raw[4] << 8) | (uint16_t)raw[5]);
 
 	return HAL_OK;
@@ -325,7 +312,7 @@ HAL_StatusTypeDef ICM42688_Get_Gyro_DPS(ICM42688_Handle_t* handle, float dps[3])
 	HAL_StatusTypeDef status = ICM42688_Get_Gyro_XYZ(handle, raw);
 	if(status != HAL_OK) return status;
 
-	/* Extract gyro X, Y and Z dps */
+	//Extract gyro X, Y and Z dps
 	const float s = handle -> gyro_dps_per_lsb;
 	dps[0] = (float)(raw[0] * s);
 	dps[1] = (float)(raw[1] * s);
@@ -345,72 +332,46 @@ HAL_StatusTypeDef ICM42688_Get_Gyro_DPS(ICM42688_Handle_t* handle, float dps[3])
 HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle, ICM42688_AccelMode_t mode,
 										ICM42688_AccelODR_t odr, ICM42688_AccelFSR_t fsr)
 {
-	/* Sanity checks */
 	if(!handle) return HAL_ERROR;
-
-	/* Validate arguments */
 	if((uint8_t)mode > 3U) return HAL_ERROR;
 	if(((uint8_t)odr > (uint8_t)ACCEL_ODR_500Hz) || ((uint8_t)odr == 0x00U)) return HAL_ERROR;
 	if((uint8_t)fsr > (uint8_t)ACCEL_FSR_2g) return HAL_ERROR;
 
 	HAL_StatusTypeDef status = HAL_OK;
 
-	#if !ICM42688_WRITE_READ_WITH_BANKED
-		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
-		if(status != HAL_OK) return status;
-	#endif
-
-    /* -----------------------------------------
-     * 1) PWR_MGMT0: set Accel Mode (RMW)
-     * ----------------------------------------- */
+	// (1) PWR_MGMT0: set Accel Mode (RMW)
 	ICM42688_AccelMode_t prevMode = handle -> accel_config.accel_mode;
 	ICM42688_AccelMode_t currMode = mode;
 	bool need_write_mode = (!(handle -> is_initialized) || (currMode != prevMode));
-
 	{
 		if(need_write_mode){
-			/* Extract the bit field of the whole register */
-			uint8_t reg = 0U;
-			status = ICM42688_ReadReg(handle, ICM42688_UB0_PWR_MGMT0, &reg);
+			status = ICM42688_Update_Reg_Bits(handle,
+											ICM42688_UB0_PWR_MGMT0,
+											ICM42688_ACCEL_MODE_Msk,
+											ICM42688_ACCEL_MODE_Val(mode));
 			if(status != HAL_OK) return status;
 
-			/* Start writing */
-			reg &= (uint8_t)~ICM42688_ACCEL_MODE_Msk;
-			reg |= (uint8_t)ICM42688_ACCEL_MODE_Val(mode);
-			status = ICM42688_WriteReg(handle, ICM42688_UB0_PWR_MGMT0, reg);
-			if(status != HAL_OK) return status;
-
-			/* Update cache */
 			handle -> accel_config.accel_mode = mode;
 
-			/* Wait 200us if mode changes from OFF to any other mode */
+			//Wait 200us if mode changes from OFF to any other mode
 			if((prevMode == ACCEL_OFF) && (currMode != ACCEL_OFF)){
 				HAL_Delay(1); //1000us > 200us (according to datasheet)
 			}
 		}
 	}
 
-	/*
-	 * ----------------------------------------------
-	 * 2) ACCEL_CONF0: set ODR and FSR together
-	 * ----------------------------------------------*/
+	// (2) ACCEL_CONF0: set ODR and FSR together
 	bool need_write_config = (!(handle -> is_initialized) ||
 							(odr != handle -> accel_config.accel_odr) ||
 							(fsr != handle -> accel_config.accel_fsr));
 	{
 		if(need_write_config){
-			uint8_t reg = 0U;
-			status = ICM42688_ReadReg(handle, ICM42688_UB0_ACCEL_CONF0, &reg);
+			uint8_t mask = ICM42688_ACCEL_ODR_Msk | ICM42688_ACCEL_FS_SEL_Msk;
+			uint8_t valueMasked = ICM42688_ACCEL_ODR_Val(odr) | ICM42688_ACCEL_FS_SEL_Val(fsr);
+
+			status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_ACCEL_CONF0, mask, valueMasked);
 			if(status != HAL_OK) return status;
 
-			/* Start writing */
-			reg &= (uint8_t)~(ICM42688_ACCEL_ODR_Msk | ICM42688_ACCEL_FS_SEL_Msk);
-			reg |= (uint8_t)ICM42688_ACCEL_ODR_Val(odr);
-			reg |= (uint8_t)ICM42688_ACCEL_FS_SEL_Val(fsr);
-			status = ICM42688_WriteReg(handle, ICM42688_UB0_ACCEL_CONF0, reg);
-			if(status != HAL_OK) return status;
-
-			/* Update cache	and scale factor */
 			handle -> accel_config.accel_odr = odr;
 			handle -> accel_config.accel_fsr = fsr;
 			ICM42688_Update_ScaleFactor(handle, ACCEL);
@@ -424,23 +385,28 @@ HAL_StatusTypeDef ICM42688_Get_Accel_Mode(ICM42688_Handle_t* handle, uint8_t* mo
 {
 	if(!handle || !modeInfo) return HAL_ERROR;
 
-	HAL_StatusTypeDef status = HAL_OK;
-
-	#if !ICM42688_WRITE_READ_WITH_BANKED
-		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
-		if(status != HAL_OK) return status;
-	#endif
-
 	uint8_t reg = 0;
-	status = ICM42688_ReadReg(handle, ICM42688_UB0_PWR_MGMT0, &reg);
+	HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB0_PWR_MGMT0, &reg);
 	if(status != HAL_OK) return status;
 
 	reg &= (uint8_t)ICM42688_ACCEL_MODE_Msk;
-	*modeInfo = (uint8_t)(reg >> ICM42688_ACCEL_MODE_Pos);
+	uint8_t rawMode = (uint8_t)(reg >> ICM42688_ACCEL_MODE_Pos);
 
-	/* Update cache */
-	handle -> accel_config.accel_mode = (ICM42688_AccelMode_t)*modeInfo;
-
+	if((rawMode == 0U) || (rawMode == 1U)){
+		*modeInfo = 0U;
+		handle -> accel_config.accel_mode = ACCEL_OFF;
+	}
+	else if(rawMode == 2U){
+		*modeInfo = 2U;
+		handle -> accel_config.accel_mode = ACCEL_LOW_POWER;
+	}
+	else if(rawMode == 3U){
+		*modeInfo = 3U;
+		handle -> accel_config.accel_mode = ACCEL_LOW_NOISE;
+	}
+	else{
+		return HAL_ERROR;
+	}
 	return HAL_OK;
 }
 
@@ -448,24 +414,18 @@ HAL_StatusTypeDef ICM42688_Get_Accel_Mode(ICM42688_Handle_t* handle, uint8_t* mo
 HAL_StatusTypeDef ICM42688_Get_Accel_XYZ(ICM42688_Handle_t* handle, int16_t* buf)
 {
 	if(!handle || !buf) return HAL_ERROR;
-	HAL_StatusTypeDef status = HAL_OK;
-
-	#if !ICM42688_WRITE_READ_WITH_BANKED
-		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
-		if(status != HAL_OK) return status;
-	#endif
 
 	uint8_t raw[6] = {0};
-	status = ICM42688_ReadRegs(handle, ICM42688_UB0_ACCEL_DATA_X1, raw, 6);
+	HAL_StatusTypeDef status = ICM42688_ReadRegs(handle, ICM42688_UB0_ACCEL_DATA_X1, raw, 6);
 	if(status != HAL_OK) return status;
 
-	/* Extract Accel X */
+	//Extract Accel X
 	buf[0] = (int16_t)(((uint16_t)raw[0] << 8) | (uint16_t)raw[1]);
 
-	/* Extract Accel Y */
+	//Extract Accel Y
 	buf[1] = (int16_t)(((uint16_t)raw[2] << 8) | (uint16_t)raw[3]);
 
-	/* Extract Accel Z */
+	//Extract Accel Z
 	buf[2] = (int16_t)(((uint16_t)raw[4] << 8) | (uint16_t)raw[5]);
 
 	return HAL_OK;
@@ -499,13 +459,11 @@ HAL_StatusTypeDef ICM42688_Get_Accel_G(ICM42688_Handle_t* handle, float g[3])
 HAL_StatusTypeDef ICM42688_Set_Int1_Config(ICM42688_Handle_t* handle, ICM42688_Int_Polarity_t polarity,
 										   ICM42688_Int_Drive_Circuit_t drive, ICM42688_Int_Mode_t mode)
 {
-	/* Sanity chekcs */
 	if((!handle) ||
 	   ((uint8_t)polarity >= INT_POL_MAX) ||
 	   ((uint8_t)drive >= INT_DRIVE_MAX) ||
 	   ((uint8_t)mode >= INT_MODE_MAX)) return HAL_ERROR;
 
-	/* Check if Interrupt 1 is already configured */
 	if((handle -> is_initialized) &&
 	  ((uint8_t)polarity == (uint8_t)(handle -> int1_config.int1_polarity)) &&
 	  ((uint8_t)drive) == ((uint8_t)(handle -> int1_config.int1_drive)) &&
@@ -513,13 +471,9 @@ HAL_StatusTypeDef ICM42688_Set_Int1_Config(ICM42688_Handle_t* handle, ICM42688_I
 		return HAL_OK;
 	}
 
-	HAL_StatusTypeDef status = HAL_OK;
-
 	uint8_t mask = ICM42688_INT1_POL_Msk | ICM42688_INT1_DRIVE_Msk | ICM42688_INT1_MODE_Msk;
-	uint8_t value_masked = ICM42688_INT1_POL_Val(polarity) | ICM42688_INT1_DRIVE_Val(drive) | ICM42688_INT1_MODE_Val(mode);
-
-	status = _icm42688_update_reg_bits(handle, REG_BANK_0, ICM42688_UB0_INT_CONF, mask, value_masked);
-
+	uint8_t valueMasked = ICM42688_INT1_POL_Val(polarity) | ICM42688_INT1_DRIVE_Val(drive) | ICM42688_INT1_MODE_Val(mode);
+	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_CONF, mask, valueMasked);
 	if(status != HAL_OK) return status;
 
 	handle -> int1_config.int1_polarity = polarity;
@@ -538,24 +492,16 @@ HAL_StatusTypeDef ICM42688_Set_Int2_Config(ICM42688_Handle_t* handle, ICM42688_I
 	   ((uint8_t)drive >= INT_DRIVE_MAX)	||
 	   ((uint8_t)mode >= INT_MODE_MAX)) return HAL_ERROR;
 
-	/* Check if Interrupt 2 is already configured */
 	if((handle -> is_initialized) &&
 	  ((uint8_t)polarity == (uint8_t)(handle -> int2_config.int2_polarity)) &&
 	  ((uint8_t)drive) == ((uint8_t)(handle -> int2_config.int2_drive)) &&
-	  ((uint8_t)mode) == ((uint8_t)(handle -> int2_config.int2_mode))){
-		return HAL_OK;
-	}
-
-	HAL_StatusTypeDef status = HAL_OK;
+	  ((uint8_t)mode) == ((uint8_t)(handle -> int2_config.int2_mode))) return HAL_OK;
 
 	uint8_t mask = ICM42688_INT2_POL_Msk | ICM42688_INT2_DRIVE_Msk | ICM42688_INT2_MODE_Msk;
-	uint8_t value_masked = ICM42688_INT2_POL_Val(polarity) | ICM42688_INT2_DRIVE_Val(drive) | ICM42688_INT2_MODE_Val(mode);
-
-	status = _icm42688_update_reg_bits(handle, REG_BANK_0, ICM42688_UB0_INT_CONF, mask, value_masked);
-
+	uint8_t valueMasked = ICM42688_INT2_POL_Val(polarity) | ICM42688_INT2_DRIVE_Val(drive) | ICM42688_INT2_MODE_Val(mode);
+	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_CONF, mask, valueMasked);
 	if(status != HAL_OK) return status;
 
-	/* Update cache */
 	handle -> int2_config.int2_polarity = polarity;
 	handle -> int2_config.int2_drive = drive;
 	handle -> int2_config.int2_mode = mode;
@@ -564,26 +510,49 @@ HAL_StatusTypeDef ICM42688_Set_Int2_Config(ICM42688_Handle_t* handle, ICM42688_I
 }
 
 
-ICM42688_Int_Status_t ICM42688_Get_Int_Status(ICM42688_Handle_t* handle)
+bool ICM42688_Int_Status_Has(ICM42688_Handle_t* handle, ICM42688_Int_Status_t intState)
 {
-	if(!handle) return UINT8_MAX;
-
-	#if !ICM42688_WRITE_READ_WITH_BANKED
-		if(ICM42688_Set_RegBank(handle, REG_BANK_0) != HAL_OK) return UINT8_MAX;
-	#endif
+	if(!handle) return false;
 
 	uint8_t reg = 0;
-	if(ICM42688_ReadReg(handle, ICM42688_UB0_INT_STATUS, &reg) != HAL_OK) return UINT8_MAX;
+	HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB0_INT_STATUS, &reg);
+	if(status != HAL_OK) return false;
 
-	handle -> cached.int_status = (ICM42688_Int_Status_t)reg; //Cached
+	uint8_t mask = 0U;
 
-	return (ICM42688_Int_Status_t)(reg & 0x7FU);
-}
+	switch(intState){
+		case INT_AGC_RDY:
+			mask = (uint8_t)ICM42688_AGC_RDY_INT_Msk;
+			break;
 
+		case INT_FIFO_FULL:
+			mask = (uint8_t)ICM42688_FIFO_FULL_INT_Msk;
+			break;
 
-bool ICM42688_IntStatus_Has(ICM42688_Int_Status_t status, uint8_t mask)
-{
-	return (uint8_t)((status & mask) != 0);
+		case INT_FIFO_THS:
+			mask = (uint8_t)ICM42688_FIFO_THS_INT_Msk;
+			break;
+
+		case INT_DATA_RDY:
+			mask = (uint8_t)ICM42688_DATA_RDY_INT_Msk;
+			break;
+
+		case INT_RESET_DONE:
+			mask = (uint8_t)ICM42688_RESET_DONE_INT_Msk;
+			break;
+
+		case INT_PLL_RDY:
+			mask = (uint8_t)ICM42688_PLL_RDY_INT_Msk;
+			break;
+
+		case INT_UI_FSYNC:
+			mask = (uint8_t)ICM42688_UI_FSYNC_INT_Msk;
+			break;
+
+		default: return false;
+	}
+	handle -> cached.int_status = (uint8_t)reg;
+	return (((reg & 0x7FU) & mask) != 0U);
 }
 
 
@@ -591,16 +560,12 @@ HAL_StatusTypeDef ICM42688_Set_UI_SIFS_Conf(ICM42688_Handle_t* handle, ICM42688_
 {
 	if(!handle) return HAL_ERROR;
 
-	HAL_StatusTypeDef status = HAL_OK;
-	status = _icm42688_update_reg_bits(handle,
-									REG_BANK_0,
-									ICM42688_UB0_INTF_CONF0,
-									ICM42688_UI_SIFS_CFG_Msk,
-									ICM42688_UI_SIFS_CFG_Val(config));
+	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
+													ICM42688_UB0_INTF_CONF0,
+													ICM42688_UI_SIFS_CFG_Msk,
+													ICM42688_UI_SIFS_CFG_Val(config));
 	if(status != HAL_OK) return status;
-
 	handle -> intf_config.ui_sifs_config = config;
-
 	return HAL_OK;
 }
 
@@ -609,16 +574,12 @@ HAL_StatusTypeDef ICM42688_Set_Sensor_Data_Endian(ICM42688_Handle_t* handle, ICM
 {
 	if(!handle) return HAL_ERROR;
 
-	HAL_StatusTypeDef status = HAL_OK;
-	status = _icm42688_update_reg_bits(handle,
-									REG_BANK_0,
-									ICM42688_UB0_INTF_CONF0,
-									ICM42688_SENSOR_DATA_ENDIAN_Msk,
-									ICM42688_SENSOR_DATA_ENDIAN_Val(which_endian));
+	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
+													ICM42688_UB0_INTF_CONF0,
+													ICM42688_SENSOR_DATA_ENDIAN_Msk,
+													ICM42688_SENSOR_DATA_ENDIAN_Val(which_endian));
 	if(status != HAL_OK) return status;
-
 	handle -> intf_config.sensor_data_endian = which_endian;
-
 	return HAL_OK;
 }
 
@@ -627,16 +588,12 @@ HAL_StatusTypeDef ICM42688_Set_FIFO_Count_Endian(ICM42688_Handle_t* handle, ICM4
 {
 	if(!handle) return HAL_ERROR;
 
-	HAL_StatusTypeDef status = HAL_OK;
-	status = _icm42688_update_reg_bits(handle,
-									REG_BANK_0,
-									ICM42688_UB0_INTF_CONF0,
-									ICM42688_FIFO_COUNT_ENDIAN_Msk,
-									ICM42688_FIFO_COUNT_ENDIAN_Val(which_endian));
+	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
+														ICM42688_UB0_INTF_CONF0,
+														ICM42688_FIFO_COUNT_ENDIAN_Msk,
+														ICM42688_FIFO_COUNT_ENDIAN_Val(which_endian));
 	if(status != HAL_OK) return status;
-
 	handle -> intf_config.fifo_count_endian = which_endian;
-
 	return HAL_OK;
 }
 
@@ -645,16 +602,12 @@ HAL_StatusTypeDef ICM42688_Set_FIFO_Count_Rec(ICM42688_Handle_t* handle, ICM4268
 {
 	if(!handle) return HAL_ERROR;
 
-	HAL_StatusTypeDef status = HAL_OK;
-	status = _icm42688_update_reg_bits(handle,
-									REG_BANK_0,
-									ICM42688_UB0_INTF_CONF0,
-									ICM42688_FIFO_COUNT_REC_Msk,
-									ICM42688_FIFO_COUNT_REC_Val(fifo_count_rec));
+	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
+														ICM42688_UB0_INTF_CONF0,
+														ICM42688_FIFO_COUNT_REC_Msk,
+														ICM42688_FIFO_COUNT_REC_Val(fifo_count_rec));
 	if(status != HAL_OK) return status;
-
 	handle -> intf_config.fifo_count_rec = fifo_count_rec;
-
 	return HAL_OK;
 }
 
@@ -670,36 +623,23 @@ HAL_StatusTypeDef ICM42688_Set_Temperature_Enable(ICM42688_Handle_t* handle, ICM
 {
 	if(!handle) return HAL_ERROR;
 
-	if(handle -> is_initialized && handle -> temp_config.temp_state == state){
-		//Skip
-	} else{
-		HAL_StatusTypeDef status = HAL_OK;
-		status = _icm42688_update_reg_bits(handle,
-										REG_BANK_0,
-										ICM42688_UB0_PWR_MGMT0,
-										ICM42688_TEMP_Msk,
-										ICM42688_TEMP_Val(state));
-		if(status != HAL_OK) return status;
-
-		handle -> temp_config.temp_state = state;
-	}
+	if(handle -> is_initialized && handle -> temp_config.temp_state == state) return HAL_OK;
+	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
+														ICM42688_UB0_PWR_MGMT0,
+														ICM42688_TEMP_Msk,
+														ICM42688_TEMP_Val(state));
+	if(status != HAL_OK) return status;
+	handle -> temp_config.temp_state = state;
 	return HAL_OK;
 }
 
 
-HAL_StatusTypeDef ICM42688_Get_Temperature_Raw(ICM42688_Handle_t* handle, float* out_temp_c)
+HAL_StatusTypeDef ICM42688_Get_Temperature_C(ICM42688_Handle_t* handle, float* out_temp_c)
 {
 	if(!handle || !out_temp_c) return HAL_ERROR;
 
-	HAL_StatusTypeDef status = HAL_OK;
-
-	#if !ICM42688_WRITE_READ_WITH_BANKED
-		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
-		if(status != HAL_OK) return INT16_MIN;
-	#endif
-
 	uint8_t buf[2] = {0};
-	status = ICM42688_ReadRegs(handle, ICM42688_UB0_TEMP_DATA1, buf, 2);
+	HAL_StatusTypeDef status = ICM42688_ReadRegs(handle, ICM42688_UB0_TEMP_DATA1, buf, 2);
 	if(status != HAL_OK) return status;
 
 	int16_t raw = (int16_t)(((uint16_t)buf[0] << 8) | (uint16_t)buf[1]);
@@ -719,19 +659,14 @@ HAL_StatusTypeDef ICM42688_Get_Temperature_Raw(ICM42688_Handle_t* handle, float*
 HAL_StatusTypeDef ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t* handle, ICM42688_UIFilt_BW_t bw)
 {
 	if(!handle) return HAL_ERROR;
-	if(((uint8_t)bw >= 8U) && ((uint8_t)bw <= 13U)) return HAL_ERROR; //These are reserved bits
+	if(((uint8_t)bw >= 8U) && ((uint8_t)bw <= 13U)) return HAL_ERROR;
 
-	HAL_StatusTypeDef status = HAL_OK;
-
-	status = _icm42688_update_reg_bits(handle,
-									REG_BANK_0,
-									ICM42688_UB0_GYRO_ACCEL_CONF0,
-									ICM42688_GYRO_UI_FILT_BW_Msk,
-									ICM42688_GYRO_UI_FILT_BW_Val((uint8_t)bw));
+	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
+														ICM42688_UB0_GYRO_ACCEL_CONF0,
+														ICM42688_GYRO_UI_FILT_BW_Msk,
+														ICM42688_GYRO_UI_FILT_BW_Val((uint8_t)bw));
 	if(status != HAL_OK) return status;
-
 	handle -> gyro_config.gyro_uifilt_bw = bw;
-
 	return HAL_OK;
 }
 
@@ -746,19 +681,11 @@ HAL_StatusTypeDef ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t* handle, ICM4268
 HAL_StatusTypeDef ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t* handle, ICM42688_UIFilt_BW_t bw)
 {
 	if(!handle) return HAL_ERROR;
-
 	uint8_t v = (uint8_t)bw;
-	if(((v >= 8U) && (v <= 13U)) || (v > 0x0F)) return HAL_ERROR; //These are reserved bits and invalid bits
-
-	HAL_StatusTypeDef status = HAL_OK;
-
-	#if !ICM42688_WRITE_READ_WITH_BANKED
-		status = ICM42688_Set_RegBank(handle, REG_BANK_0);
-		if(status != HAL_OK) return status;
-	#endif
+	if(((v >= 8U) && (v <= 13U)) || (v > 0x0F)) return HAL_ERROR;
 
 	uint8_t reg = 0U;
-	status = ICM42688_ReadReg(handle, ICM42688_UB0_GYRO_ACCEL_CONF0, &reg);
+	HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB0_GYRO_ACCEL_CONF0, &reg);
 	if(status != HAL_OK) return status;
 	reg &= (uint8_t)~ICM42688_ACCEL_UI_FILT_BW_Msk;
 
@@ -775,15 +702,12 @@ HAL_StatusTypeDef ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t* handle, ICM426
 		reg |= ICM42688_ACCEL_UI_FILT_BW_Val((uint8_t)bw);
 	}
 
-	else return HAL_ERROR; //Accel off / invalid mode
+	else return HAL_ERROR;
 
-	/* Start to write */
 	status = ICM42688_WriteReg(handle, ICM42688_UB0_GYRO_ACCEL_CONF0, reg);
 	if(status != HAL_OK) return status;
 
-	/* Update cache */
 	handle -> accel_config.accel_uifilt_bw = (ICM42688_UIFilt_BW_t)bw;
-
 	return HAL_OK;
 }
 
@@ -799,14 +723,11 @@ HAL_StatusTypeDef ICM42688_Set_FIFO_Gyro_Enable(ICM42688_Handle_t* handle, ICM42
 {
 	if(!handle) return HAL_ERROR;
 
-	HAL_StatusTypeDef status = HAL_OK;
-	status = _icm42688_update_reg_bits(handle,
-									REG_BANK_0,
-									ICM42688_UB0_FIFO_CONF1,
-									ICM42688_FIFO_GYRO_EN_Msk,
-									ICM42688_FIFO_GYRO_EN_Val(state));
+	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
+														ICM42688_UB0_FIFO_CONF1,
+														ICM42688_FIFO_GYRO_EN_Msk,
+														ICM42688_FIFO_GYRO_EN_Val(state));
 	if(status != HAL_OK) return status;
-
 	handle -> fifo_config.fifo_gyro_state = (ICM42688_FIFO_GAT_En_t)state;
 	return status;
 }
@@ -816,14 +737,11 @@ HAL_StatusTypeDef ICM42688_Set_FIFO_Accel_Enable(ICM42688_Handle_t* handle, ICM4
 {
 	if(!handle) return HAL_ERROR;
 
-	HAL_StatusTypeDef status = HAL_OK;
-	status = _icm42688_update_reg_bits(handle,
-									REG_BANK_0,
-									ICM42688_UB0_FIFO_CONF1,
-									ICM42688_FIFO_ACCEL_EN_Msk,
-									ICM42688_FIFO_ACCEL_EN_Val(state));
+	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
+														ICM42688_UB0_FIFO_CONF1,
+														ICM42688_FIFO_ACCEL_EN_Msk,
+														ICM42688_FIFO_ACCEL_EN_Val(state));
 	if(status != HAL_OK) return status;
-
 	handle -> fifo_config.fifo_accel_state = (ICM42688_FIFO_GAT_En_t)state;
 	return HAL_OK;
 }
@@ -833,14 +751,11 @@ HAL_StatusTypeDef ICM42688_Set_FIFO_Temp_Enable(ICM42688_Handle_t* handle, ICM42
 {
 	if(!handle) return HAL_ERROR;
 
-	HAL_StatusTypeDef status = HAL_OK;
-	status = _icm42688_update_reg_bits(handle,
-									REG_BANK_0,
-									ICM42688_UB0_FIFO_CONF1,
-									ICM42688_FIFO_TEMP_EN_Msk,
-									ICM42688_FIFO_TEMP_EN_Val(state));
+	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
+														ICM42688_UB0_FIFO_CONF1,
+														ICM42688_FIFO_TEMP_EN_Msk,
+														ICM42688_FIFO_TEMP_EN_Val(state));
 	if(status != HAL_OK) return status;
-
 	handle -> fifo_config.fifo_temp_state = (ICM42688_FIFO_GAT_En_t)state;
 	return HAL_OK;
 }
