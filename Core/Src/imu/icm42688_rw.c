@@ -6,11 +6,9 @@
  */
 #include "imu/icm42688_rw.h"
 
-/*
- * =============================================================================
+/*=============================================================================
  *	PRIVATE HELPERS
- * =============================================================================
- */
+ * ============================================================================*/
 static inline void ICM42688_CS_Low(ICM42688_Handle_t *handle)
 {
 	//Pull CS low to start an SPI transaction
@@ -27,11 +25,9 @@ static inline void ICM42688_CS_High(ICM42688_Handle_t *handle)
 
 
 
-/*
- * =============================================================================
+/*=============================================================================
  *	LOW-LEVEL REGISTER ACCESS
- * =============================================================================
- */
+ * ============================================================================= */
 /* @brief	Automatically write bank number to the corresponding input encoded register
  * @param	handle			Pointer to ICm42688 Handle struct
  * @param	encodedReg		Encoded register containing both bank and register address */

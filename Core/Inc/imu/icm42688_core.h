@@ -11,19 +11,15 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <math.h>
 
 #include "imu/icm42688_registers.h"
 #include "imu/icm42688_masks.h"
 #include "stm32f4xx_hal.h"
-#include "spi.h"
 
 
-/*
- * =============================================================
+/*=============================================================
  * 						ICM42688-P MACROS
- * =============================================================
- */
+ *============================================================= */
 #define ICM42688_VDD				1800U	//In mV
 
 
@@ -45,11 +41,9 @@
 
 
 
-/*
- * ============================================================================
- * 								GYROSCOPE DEFINES
- * ============================================================================
- */
+/*============================================================================
+ *	GYROSCOPE DEFINES
+ *=========================================================================== */
 typedef enum{
 	GYRO_ODR_32KHz		= (uint8_t)0x01,
 	GYRO_ODR_16KHz 		= (uint8_t)0x02,
@@ -109,11 +103,9 @@ typedef enum{
 
 
 
-/*
- * ============================================================================
- * 								ACCELOROMETER DEFINES
- * ============================================================================
- */
+/*============================================================================
+ *	ACCELOROMETER DEFINES
+ *============================================================================ */
 typedef enum{
 	ACCEL_ODR_32KHz		= (uint8_t)0x01,
 	ACCEL_ODR_16KHz		= (uint8_t)0x02,
@@ -157,11 +149,9 @@ typedef enum{
 
 
 
-/*
- * ============================================================================
+/*============================================================================
  * 							REGISTER BANK 0 ENUMS
- * ============================================================================
- */
+ *============================================================================ */
 /* Sensor Selection */
 typedef enum{
 	GYRO = 0,
@@ -231,32 +221,33 @@ typedef enum{
 
 
 typedef enum{
-	ICM42688_UI_SIFS_DISABLE_SPI	= 2U,
-	ICM42688_UI_SIFS_DISABLE_I2C	= 3U,
+	UI_SIFS_RESERVED	= 0U,
+	UI_SIFS_DISABLE_SPI	= 2U,
+	UI_SIFS_DISABLE_I2C	= 3U,
 }ICM42688_UI_SIFS_Cfg_t;
 
 
 typedef enum{
-	ICM42688_SENSOR_DATA_LITTLE_ENDIAN	= 0U,
-	ICM42688_SENSOR_DATA_BIG_ENDIAN		= 1U,
+	SENSOR_DATA_LITTLE_ENDIAN	= 0U,
+	SENSOR_DATA_BIG_ENDIAN		= 1U,
 }ICM42688_Sensor_Data_Endian_t;
 
 
 typedef enum{
-	ICM42688_FIFO_COUNT_LITTLE_ENDIAN	= 0U,
-	ICM42688_FIFO_COUNT_BIG_ENDIAN		= 1U,
+	FIFO_COUNT_LITTLE_ENDIAN	= 0U,
+	FIFO_COUNT_BIG_ENDIAN		= 1U,
 }ICM42688_FIFO_Count_Endian_t;
 
 
 typedef enum{
-	ICM42688_FIFO_COUNT_IN_BYTE		= 0U,
-	ICM42688_FIFO_COUNT_IN_RECORD	= 1U,
+	FIFO_COUNT_IN_BYTE		= 0U,
+	FIFO_COUNT_IN_RECORD	= 1U,
 }ICM42688_FIFO_Count_Rec_t;
 
 
 typedef enum{
-	ICM42688_FIFO_HOLD_LAST_DATA_INVALID	= 0U,
-	ICM42688_FIFO_HOLD_LAST_DATA_VALID		= 1U,
+	FIFO_HOLD_LAST_DATA_INVALID	= 0U,
+	FIFO_HOLD_LAST_DATA_VALID	= 1U,
 }ICM42688_FIFO_Hold_Last_Data_En_t;
 
 
@@ -341,11 +332,9 @@ typedef enum{
 
 
 
-/*
- * ===============================================================================
- * 		   STRUCT HOLDS EVERY DEFINED/CACHED/DEFAULT VALUES OF ICM42688P
- * ===============================================================================
- */
+/*===============================================================================
+ *	STRUCT HOLDS EVERY DEFINED/CACHED/DEFAULT VALUES OF ICM42688P
+ *============================================================================== */
 typedef struct{
 	SPI_HandleTypeDef		*hspi;
 	GPIO_TypeDef			*cs_port;
@@ -392,9 +381,6 @@ typedef struct{
 typedef struct{
 	ICM42688_UI_SIFS_Cfg_t				ui_sifs_config;
 	ICM42688_Sensor_Data_Endian_t		sensor_data_endian;
-	ICM42688_FIFO_Count_Endian_t		fifo_count_endian;
-	ICM42688_FIFO_Count_Rec_t			fifo_count_rec;
-	ICM42688_FIFO_Hold_Last_Data_En_t	fifo_hold_last_data;
 }ICM42688_Intf_Config0_t;
 
 
@@ -406,6 +392,11 @@ typedef struct{
 typedef struct{
 	ICM42688_FIFO_Mode_t			fifo_mode;
 	uint16_t						fifo_watermark;
+	uint16_t						fifo_count;
+
+	ICM42688_FIFO_Count_Endian_t		fifo_count_endian;
+	ICM42688_FIFO_Count_Rec_t			fifo_count_rec;
+	ICM42688_FIFO_Hold_Last_Data_En_t	fifo_hold_last_data;
 
 	ICM42688_FIFO_GAT_En_t			fifo_gyro_state;
 	ICM42688_FIFO_GAT_En_t			fifo_accel_state;
@@ -418,7 +409,6 @@ typedef struct{
 
 
 typedef struct{
-	uint8_t	int_status;
 }ICM42688_Cached_Val_t;
 
 
@@ -446,5 +436,70 @@ typedef struct{
 }ICM42688_Handle_t;
 
 #include "imu/icm42688_rw.h"
+
+
+/*==================================================================
+ *	PUBLIC APIs
+ *================================================================== */
+HAL_StatusTypeDef ICM42688_IsAlive(ICM42688_Handle_t* handle);
+HAL_StatusTypeDef ICM42688_SoftReset(ICM42688_Handle_t* handle);
+
+
+
+HAL_StatusTypeDef ICM42688_Set_SPI_Mode(ICM42688_Handle_t* handle, ICM42688_SPI_Mode_t spiMode);
+HAL_StatusTypeDef ICM42688_Get_SPI_SlewRate(ICM42688_Handle_t* handle, ICM42688_SPI_SLEWRATE_t* slewRate);
+HAL_StatusTypeDef ICM42688_Set_SPI_SlewRate(ICM42688_Handle_t* handle, ICM42688_SPI_SLEWRATE_t slewRate);
+
+
+
+HAL_StatusTypeDef ICM42688_Set_GyroConfig(ICM42688_Handle_t* handle, ICM42688_GyroMode_t mode,
+										  ICM42688_GyroODR_t odr, ICM42688_GyroFSR_t fsr);
+HAL_StatusTypeDef ICM42688_Get_Gyro_Mode(ICM42688_Handle_t* handle, uint8_t* modeInfo);
+HAL_StatusTypeDef ICM42688_Get_Gyro_XYZ(ICM42688_Handle_t* handle, int16_t* buf);
+HAL_StatusTypeDef ICM42688_Get_Gyro_DPS(ICM42688_Handle_t* handle, float dps[3]);
+HAL_StatusTypeDef ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t* handle, ICM42688_UIFilt_BW_t bw);
+
+
+
+HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle, ICM42688_AccelMode_t mode,
+										ICM42688_AccelODR_t odr, ICM42688_AccelFSR_t fsr);
+HAL_StatusTypeDef ICM42688_Get_Accel_Mode(ICM42688_Handle_t* handle, uint8_t* modeInfo);
+HAL_StatusTypeDef ICM42688_Get_Accel_XYZ(ICM42688_Handle_t* handle, int16_t* buf);
+HAL_StatusTypeDef ICM42688_Get_Accel_G(ICM42688_Handle_t* handle, float g[3]);
+HAL_StatusTypeDef ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t* handle, ICM42688_UIFilt_BW_t bw);
+
+
+
+HAL_StatusTypeDef ICM42688_Set_Int1_Config(ICM42688_Handle_t* handle, ICM42688_Int_Polarity_t polarity,
+										   ICM42688_Int_Drive_Circuit_t drive, ICM42688_Int_Mode_t mode);
+HAL_StatusTypeDef ICM42688_Set_Int2_Config(ICM42688_Handle_t* handle, ICM42688_Int_Polarity_t polarity,
+										   ICM42688_Int_Drive_Circuit_t drive, ICM42688_Int_Mode_t mode);
+HAL_StatusTypeDef ICM42688_Get_Int_Status(ICM42688_Handle_t* handle, uint8_t* outStatus);
+bool ICM42688_Int_Status_Has(uint8_t status, ICM42688_Int_Status_t intState);
+HAL_StatusTypeDef ICM42688_Set_UI_SIFS_Conf(ICM42688_Handle_t* handle, ICM42688_UI_SIFS_Cfg_t config);
+HAL_StatusTypeDef ICM42688_Set_Sensor_Data_Endian(ICM42688_Handle_t* handle, ICM42688_Sensor_Data_Endian_t which_endian);
+
+
+
+HAL_StatusTypeDef ICM42688_Set_Temperature_Enable(ICM42688_Handle_t* handle, ICM42688_Temp_t state);
+HAL_StatusTypeDef ICM42688_Get_Temperature_C(ICM42688_Handle_t* handle, float* out_temp_c);
+
+
+
+HAL_StatusTypeDef ICM42688_Set_FIFO_Count_Endian(ICM42688_Handle_t* handle, ICM42688_FIFO_Count_Endian_t which_endian);
+HAL_StatusTypeDef ICM42688_Set_FIFO_Count_Rec(ICM42688_Handle_t* handle, ICM42688_FIFO_Count_Rec_t fifo_count_rec);
+HAL_StatusTypeDef ICM42688_Set_FIFO_Mode(ICM42688_Handle_t* handle, ICM42688_FIFO_Mode_t mode);
+HAL_StatusTypeDef ICM42688_Get_FIFO_Mode(ICM42688_Handle_t* handle, ICM42688_FIFO_Mode_t* mode);
+HAL_StatusTypeDef ICM42688_Set_FIFO_Gyro_Enable(ICM42688_Handle_t* handle, ICM42688_FIFO_GAT_En_t state);
+HAL_StatusTypeDef ICM42688_Set_FIFO_Accel_Enable(ICM42688_Handle_t* handle, ICM42688_FIFO_GAT_En_t state);
+HAL_StatusTypeDef ICM42688_Set_FIFO_Temp_Enable(ICM42688_Handle_t* handle, ICM42688_FIFO_GAT_En_t state);
+HAL_StatusTypeDef ICM42688_Set_FIFO_HIRES_Enable(ICM42688_Handle_t* handle, ICM42688_FIFO_Hires_En_t state);
+HAL_StatusTypeDef ICM42688_Set_FIFO_WM_GT_THS(ICM42688_Handle_t* handle, ICM42688_FIFO_WM_Mode_t state);
+HAL_StatusTypeDef ICM42688_Set_FIFO_Resume_Partial_Read(ICM42688_Handle_t* handle, ICM42688_FIFO_Resume_Read_t state);
+HAL_StatusTypeDef ICM42688_Set_FIFO_Watermark(ICM42688_Handle_t* handle, uint16_t fifoWatermark);
+HAL_StatusTypeDef ICM42688_Get_FIFO_Watermark(ICM42688_Handle_t* handle, uint16_t* fifoWatermark);
+HAL_StatusTypeDef ICM42688_Get_FIFO_Count(ICM42688_Handle_t* handle, uint16_t* fifoCount);
+HAL_StatusTypeDef ICM42688_Get_FIFO_Data(ICM42688_Handle_t* handle, uint8_t* buf,
+										uint16_t bufSize, uint16_t* byteRead);
 
 #endif /* INC_ICM42688_H_ */

@@ -106,32 +106,49 @@ HAL_StatusTypeDef ICM42688_SoftReset(ICM42688_Handle_t* handle)
 	HAL_Delay(5);
 
 	//After reset, set every flag to a default/known state
-	handle -> gyro_config.gyro_odr			= GYRO_ODR_1KHz;
-	handle -> gyro_config.gyro_fsr			= GYRO_FSR_2000dps;
-	handle -> gyro_config.gyro_notch		= GYRO_NOTCHBW_680Hz;
-	handle -> gyro_config.gyro_filt_order 	= GYRO_SECOND_ORDER;
-	handle -> gyro_config.gyro_mode 		= GYRO_OFF;
+	handle -> gyro_config.gyro_odr				= GYRO_ODR_1KHz;
+	handle -> gyro_config.gyro_fsr				= GYRO_FSR_2000dps;
+	handle -> gyro_config.gyro_notch			= GYRO_NOTCHBW_680Hz;
+	handle -> gyro_config.gyro_filt_order 		= GYRO_SECOND_ORDER;
+	handle -> gyro_config.gyro_mode 			= GYRO_OFF;
+	handle -> gyro_config.gyro_uifilt_bw		= BW_400Hz_ODR_DIV_4;
 
-	handle -> accel_config.accel_odr		= ACCEL_ODR_1KHz;
-	handle -> accel_config.accel_fsr		= ACCEL_FSR_16g;
-	handle -> accel_config.accel_filt_order	= ACCEL_SECOND_ORDER;
-	handle -> accel_config.accel_mode		= ACCEL_OFF;
+	handle -> accel_config.accel_odr			= ACCEL_ODR_1KHz;
+	handle -> accel_config.accel_fsr			= ACCEL_FSR_16g;
+	handle -> accel_config.accel_filt_order		= ACCEL_SECOND_ORDER;
+	handle -> accel_config.accel_mode			= ACCEL_OFF;
+	handle -> accel_config.accel_uifilt_bw		= BW_400Hz_ODR_DIV_4;
 
-	handle -> int1_config.int1_polarity		= INT_ACTIVE_LOW;
-	handle -> int1_config.int1_drive		= INT_OPEN_DRAIN;
-	handle -> int1_config.int1_mode			= INT_PUSHED;
+	handle -> int1_config.int1_polarity			= INT_ACTIVE_LOW;
+	handle -> int1_config.int1_drive			= INT_OPEN_DRAIN;
+	handle -> int1_config.int1_mode				= INT_PUSHED;
 
-	handle -> int2_config.int2_polarity		= INT_ACTIVE_LOW;
-	handle -> int2_config.int2_drive		= INT_OPEN_DRAIN;
-	handle -> int2_config.int2_mode			= INT_PUSHED;
+	handle -> int2_config.int2_polarity			= INT_ACTIVE_LOW;
+	handle -> int2_config.int2_drive			= INT_OPEN_DRAIN;
+	handle -> int2_config.int2_mode				= INT_PUSHED;
+
+	handle -> intf_config.ui_sifs_config		= UI_SIFS_RESERVED;
+	handle -> intf_config.sensor_data_endian	= SENSOR_DATA_BIG_ENDIAN;
+
+	handle -> temp_config.temp_state		= TEMP_ENABLE;
+
+	handle -> fifo_config.fifo_mode			= BYPASS;
+	handle -> fifo_config.fifo_count_endian	= FIFO_COUNT_BIG_ENDIAN;
+	handle -> fifo_config.fifo_count_rec	= FIFO_COUNT_IN_BYTE;
+
+	handle -> fifo_config.fifo_gyro_state	= FIFO_GAT_ENABLE;
+	handle -> fifo_config.fifo_accel_state	= FIFO_GAT_ENABLE;
+	handle -> fifo_config.fifo_temp_state	= FIFO_GAT_ENABLE;
+
+	handle -> fifo_config.fifo_wm_mode		= FIFO_WM_GREATER_THS_ONESHOT;
+	handle -> fifo_config.fifo_hires_state	= FIFO_HIRES_DISABLE;
+	handle -> fifo_config.fifo_partial_read_state = FIFO_PARTIAL_READ_DISABLE;
 
 	handle -> gyro_dps_per_lsb				= 0.0f;
 	handle -> gyro_lsb_per_dps_dtsheet		= 0.0f;
 
 	handle -> accel_g_per_lsb 				= 0.0f;
 	handle -> accel_lsb_per_g_dtsheet		= 0.0f;
-
-	handle -> temp_config.temp_state		= TEMP_ENABLE;
 
 	handle -> is_reset			= true;
 	handle -> is_initialized 	= false;
@@ -196,8 +213,8 @@ HAL_StatusTypeDef ICM42688_Set_SPI_SlewRate(ICM42688_Handle_t* handle, ICM42688_
 
 
 /*=============================================================================
- *	GYRO CONFIG
- * ============================================================================ */
+ *	GYRO CONFIG / FILTER
+ *============================================================================= */
 HAL_StatusTypeDef ICM42688_Set_GyroConfig(ICM42688_Handle_t* handle, ICM42688_GyroMode_t mode,
 										  ICM42688_GyroODR_t odr, ICM42688_GyroFSR_t fsr)
 {
@@ -263,7 +280,8 @@ HAL_StatusTypeDef ICM42688_Set_GyroConfig(ICM42688_Handle_t* handle, ICM42688_Gy
 }
 
 
-HAL_StatusTypeDef ICM42688_Get_Gyro_Mode(ICM42688_Handle_t* handle, uint8_t* modeInfo){
+HAL_StatusTypeDef ICM42688_Get_Gyro_Mode(ICM42688_Handle_t* handle, uint8_t* modeInfo)
+{
 	if(!handle || !modeInfo) return HAL_ERROR;
 
 	uint8_t reg = 0U;
@@ -290,15 +308,16 @@ HAL_StatusTypeDef ICM42688_Get_Gyro_XYZ(ICM42688_Handle_t* handle, int16_t* buf)
 	HAL_StatusTypeDef status = ICM42688_ReadRegs(handle, ICM42688_UB0_GYRO_DATA_X1, raw, 6);
 	if(status != HAL_OK) return status;
 
-	//Extract Gyro X
-	buf[0] = (int16_t)(((uint16_t)raw[0] << 8) | (uint16_t)raw[1]);
+	if(handle -> intf_config.sensor_data_endian == SENSOR_DATA_BIG_ENDIAN){
 
-	//Extract Gyro Y
-	buf[1] = (int16_t)(((uint16_t)raw[2] << 8) | (uint16_t)raw[3]);
-
-	//Extract Gyro Z
-	buf[2] = (int16_t)(((uint16_t)raw[4] << 8) | (uint16_t)raw[5]);
-
+		buf[0] = (int16_t)(((uint16_t)raw[0] << 8) | (uint16_t)raw[1]); //Extract Gyro X
+		buf[1] = (int16_t)(((uint16_t)raw[2] << 8) | (uint16_t)raw[3]); //Extract Gyro Y
+		buf[2] = (int16_t)(((uint16_t)raw[4] << 8) | (uint16_t)raw[5]); //Extract Gyro Z
+	} else{
+		buf[0] = (int16_t)(((uint16_t)raw[1] << 8) | (uint16_t)raw[0]); //Extract Gyro X
+		buf[1] = (int16_t)(((uint16_t)raw[3] << 8) | (uint16_t)raw[2]); //Extract Gyro Y
+		buf[2] = (int16_t)(((uint16_t)raw[5] << 8) | (uint16_t)raw[4]); //Extract Gyro Z
+	}
 	return HAL_OK;
 }
 
@@ -321,18 +340,47 @@ HAL_StatusTypeDef ICM42688_Get_Gyro_DPS(ICM42688_Handle_t* handle, float dps[3])
 }
 
 
+HAL_StatusTypeDef ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t* handle, ICM42688_UIFilt_BW_t bw)
+{
+	if(!handle) return HAL_ERROR;
+	if((((uint8_t)bw >= 8U) && ((uint8_t)bw <= 13U)) || (uint8_t)bw > 0x0FU) return HAL_ERROR;
+
+	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
+														ICM42688_UB0_GYRO_ACCEL_CONF0,
+														ICM42688_GYRO_UI_FILT_BW_Msk,
+														ICM42688_GYRO_UI_FILT_BW_Val((uint8_t)bw));
+	if(status != HAL_OK) return status;
+	handle -> gyro_config.gyro_uifilt_bw = bw;
+	return HAL_OK;
+}
+
+
 
 
 /*=============================================================================
- *	ACCEL CONFIG
- *============================================================================ */
+ *	ACCEL CONFIG / FILTER
+ *============================================================================= */
 HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle, ICM42688_AccelMode_t mode,
 										ICM42688_AccelODR_t odr, ICM42688_AccelFSR_t fsr)
 {
 	if(!handle) return HAL_ERROR;
-	if((uint8_t)mode > 3U) return HAL_ERROR;
-	if(((uint8_t)odr > (uint8_t)ACCEL_ODR_500Hz) || ((uint8_t)odr == 0x00U)) return HAL_ERROR;
+
+	if((odr == 0x00U) || (uint8_t)odr > (uint8_t)ACCEL_ODR_500Hz) return HAL_ERROR;
+
 	if((uint8_t)fsr > (uint8_t)ACCEL_FSR_2g) return HAL_ERROR;
+
+	//Validate ODR against accel mode
+	bool odrValid = false;
+	if(mode == ACCEL_LOW_NOISE){
+		odrValid = ((odr >= ACCEL_ODR_32KHz) && (odr <= ACCEL_ODR_12Hz5)) ||
+					(odr == ACCEL_ODR_500Hz);
+	} else if(mode == ACCEL_LOW_POWER){
+		odrValid = ((odr >= ACCEL_ODR_200Hz) && (odr <= ACCEL_ODR_500Hz));
+	} else{ //Accel is OFF
+		odrValid = true;
+	}
+
+	if(!odrValid) return HAL_ERROR;
 
 	HAL_StatusTypeDef status = HAL_OK;
 
@@ -363,8 +411,8 @@ HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle, ICM42688_A
 
 	// (2) ACCEL_CONF0: set ODR and FSR together
 	bool need_write_config = (!(handle -> is_initialized) ||
-							(odr != handle -> accel_config.accel_odr) ||
-							(fsr != handle -> accel_config.accel_fsr));
+								(odr != handle -> accel_config.accel_odr) ||
+								(fsr != handle -> accel_config.accel_fsr));
 	{
 		if(need_write_config){
 			uint8_t mask = ICM42688_ACCEL_ODR_Msk | ICM42688_ACCEL_FS_SEL_Msk;
@@ -378,7 +426,7 @@ HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle, ICM42688_A
 			ICM42688_Update_ScaleFactor(handle, ACCEL);
 		}
 	}
-	return status;
+	return HAL_OK;
 }
 
 
@@ -420,15 +468,15 @@ HAL_StatusTypeDef ICM42688_Get_Accel_XYZ(ICM42688_Handle_t* handle, int16_t* buf
 	HAL_StatusTypeDef status = ICM42688_ReadRegs(handle, ICM42688_UB0_ACCEL_DATA_X1, raw, 6);
 	if(status != HAL_OK) return status;
 
-	//Extract Accel X
-	buf[0] = (int16_t)(((uint16_t)raw[0] << 8) | (uint16_t)raw[1]);
-
-	//Extract Accel Y
-	buf[1] = (int16_t)(((uint16_t)raw[2] << 8) | (uint16_t)raw[3]);
-
-	//Extract Accel Z
-	buf[2] = (int16_t)(((uint16_t)raw[4] << 8) | (uint16_t)raw[5]);
-
+	if(handle -> intf_config.sensor_data_endian == SENSOR_DATA_BIG_ENDIAN){
+		buf[0] = (int16_t)(((uint16_t)raw[0] << 8) | (uint16_t)raw[1]); //Extract Accel X
+		buf[1] = (int16_t)(((uint16_t)raw[2] << 8) | (uint16_t)raw[3]); //Extract Accel Y
+		buf[2] = (int16_t)(((uint16_t)raw[4] << 8) | (uint16_t)raw[5]); //Extract Accel Z
+	} else{
+		buf[0] = (int16_t)(((uint16_t)raw[1] << 8) | (uint16_t)raw[0]); //Extract Accel X
+		buf[1] = (int16_t)(((uint16_t)raw[3] << 8) | (uint16_t)raw[2]); //Extract Accel Y
+		buf[2] = (int16_t)(((uint16_t)raw[5] << 8) | (uint16_t)raw[4]); //Extract Accel Z
+	}
 	return HAL_OK;
 }
 
@@ -446,6 +494,40 @@ HAL_StatusTypeDef ICM42688_Get_Accel_G(ICM42688_Handle_t* handle, float g[3])
 	g[1] = (float)(raw[1] * s);
 	g[2] = (float)(raw[2] * s);
 
+	return HAL_OK;
+}
+
+
+HAL_StatusTypeDef ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t* handle, ICM42688_UIFilt_BW_t bw)
+{
+	if(!handle) return HAL_ERROR;
+	uint8_t v = (uint8_t)bw;
+	if(((v >= 8U) && (v <= 13U)) || (v > 0x0F)) return HAL_ERROR;
+
+	uint8_t reg = 0U;
+	HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB0_GYRO_ACCEL_CONF0, &reg);
+	if(status != HAL_OK) return status;
+	reg &= (uint8_t)~ICM42688_ACCEL_UI_FILT_BW_Msk;
+
+	if(handle -> accel_config.accel_mode == ACCEL_LOW_NOISE){
+		if(bw == BW_1x_AVG_FILT) 		bw = BW_400Hz_ODR_DIV_4;
+		else if (bw == BW_16x_AVG_FILT)	bw = BW_400Hz_ODR_DIV_20;
+		reg |= ICM42688_ACCEL_UI_FILT_BW_Val((uint8_t)bw);
+	}
+
+	else if(handle -> accel_config.accel_mode == ACCEL_LOW_POWER){
+		if(v == 1U)			bw = BW_1x_AVG_FILT;
+		else if(v == 6U)	bw = BW_16x_AVG_FILT;
+		else return HAL_ERROR;
+		reg |= ICM42688_ACCEL_UI_FILT_BW_Val((uint8_t)bw);
+	}
+
+	else return HAL_ERROR;
+
+	status = ICM42688_WriteReg(handle, ICM42688_UB0_GYRO_ACCEL_CONF0, reg);
+	if(status != HAL_OK) return status;
+
+	handle -> accel_config.accel_uifilt_bw = (ICM42688_UIFilt_BW_t)bw;
 	return HAL_OK;
 }
 
@@ -509,49 +591,35 @@ HAL_StatusTypeDef ICM42688_Set_Int2_Config(ICM42688_Handle_t* handle, ICM42688_I
 }
 
 
-bool ICM42688_Int_Status_Has(ICM42688_Handle_t* handle, ICM42688_Int_Status_t intState)
+HAL_StatusTypeDef ICM42688_Get_Int_Status(ICM42688_Handle_t* handle, uint8_t* outStatus)
 {
-	if(!handle) return false;
+	if(!handle) return HAL_ERROR;
 
-	uint8_t reg = 0;
+	uint8_t reg = 0U;
 	HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB0_INT_STATUS, &reg);
-	if(status != HAL_OK) return false;
+	if(status != HAL_OK) return status;
 
+	*outStatus = (uint8_t)status;
+	return HAL_OK;
+}
+
+
+bool ICM42688_Int_Status_Has(uint8_t status, ICM42688_Int_Status_t intState)
+{
 	uint8_t mask = 0U;
 
 	switch(intState){
-		case INT_AGC_RDY:
-			mask = (uint8_t)ICM42688_AGC_RDY_INT_Msk;
-			break;
-
-		case INT_FIFO_FULL:
-			mask = (uint8_t)ICM42688_FIFO_FULL_INT_Msk;
-			break;
-
-		case INT_FIFO_THS:
-			mask = (uint8_t)ICM42688_FIFO_THS_INT_Msk;
-			break;
-
-		case INT_DATA_RDY:
-			mask = (uint8_t)ICM42688_DATA_RDY_INT_Msk;
-			break;
-
-		case INT_RESET_DONE:
-			mask = (uint8_t)ICM42688_RESET_DONE_INT_Msk;
-			break;
-
-		case INT_PLL_RDY:
-			mask = (uint8_t)ICM42688_PLL_RDY_INT_Msk;
-			break;
-
-		case INT_UI_FSYNC:
-			mask = (uint8_t)ICM42688_UI_FSYNC_INT_Msk;
-			break;
-
+		case INT_AGC_RDY:		mask = (uint8_t)ICM42688_AGC_RDY_INT_Msk;		break;
+		case INT_FIFO_FULL:		mask = (uint8_t)ICM42688_FIFO_FULL_INT_Msk;		break;
+		case INT_FIFO_THS:		mask = (uint8_t)ICM42688_FIFO_THS_INT_Msk;		break;
+		case INT_DATA_RDY:		mask = (uint8_t)ICM42688_DATA_RDY_INT_Msk;		break;
+		case INT_RESET_DONE:	mask = (uint8_t)ICM42688_RESET_DONE_INT_Msk;	break;
+		case INT_PLL_RDY:		mask = (uint8_t)ICM42688_PLL_RDY_INT_Msk;		break;
+		case INT_UI_FSYNC:		mask = (uint8_t)ICM42688_UI_FSYNC_INT_Msk;		break;
 		default: return false;
 	}
-	handle -> cached.int_status = (uint8_t)reg;
-	return (((reg & 0x7FU) & mask) != 0U);
+
+	return (((status & 0x7FU) & mask) != 0U);
 }
 
 
@@ -579,34 +647,6 @@ HAL_StatusTypeDef ICM42688_Set_Sensor_Data_Endian(ICM42688_Handle_t* handle, ICM
 													ICM42688_SENSOR_DATA_ENDIAN_Val(which_endian));
 	if(status != HAL_OK) return status;
 	handle -> intf_config.sensor_data_endian = which_endian;
-	return HAL_OK;
-}
-
-
-HAL_StatusTypeDef ICM42688_Set_FIFO_Count_Endian(ICM42688_Handle_t* handle, ICM42688_FIFO_Count_Endian_t which_endian)
-{
-	if(!handle) return HAL_ERROR;
-
-	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
-														ICM42688_UB0_INTF_CONF0,
-														ICM42688_FIFO_COUNT_ENDIAN_Msk,
-														ICM42688_FIFO_COUNT_ENDIAN_Val(which_endian));
-	if(status != HAL_OK) return status;
-	handle -> intf_config.fifo_count_endian = which_endian;
-	return HAL_OK;
-}
-
-
-HAL_StatusTypeDef ICM42688_Set_FIFO_Count_Rec(ICM42688_Handle_t* handle, ICM42688_FIFO_Count_Rec_t fifo_count_rec)
-{
-	if(!handle) return HAL_ERROR;
-
-	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
-														ICM42688_UB0_INTF_CONF0,
-														ICM42688_FIFO_COUNT_REC_Msk,
-														ICM42688_FIFO_COUNT_REC_Val(fifo_count_rec));
-	if(status != HAL_OK) return status;
-	handle -> intf_config.fifo_count_rec = fifo_count_rec;
 	return HAL_OK;
 }
 
@@ -639,7 +679,13 @@ HAL_StatusTypeDef ICM42688_Get_Temperature_C(ICM42688_Handle_t* handle, float* o
 	HAL_StatusTypeDef status = ICM42688_ReadRegs(handle, ICM42688_UB0_TEMP_DATA1, buf, 2);
 	if(status != HAL_OK) return status;
 
-	int16_t raw = (int16_t)(((uint16_t)buf[0] << 8) | (uint16_t)buf[1]);
+	int16_t raw = 0;
+	if(handle -> intf_config.sensor_data_endian == SENSOR_DATA_BIG_ENDIAN){
+		raw = (int16_t)(((uint16_t)buf[0] << 8) | (uint16_t)buf[1]);
+	} else{
+		raw = (int16_t)(((uint16_t)buf[1] << 8) | (uint16_t)buf[0]);
+	}
+
 	*out_temp_c = (float)((raw / 132.48f) + 25.0f);
 
 	return HAL_OK;
@@ -648,69 +694,40 @@ HAL_StatusTypeDef ICM42688_Get_Temperature_C(ICM42688_Handle_t* handle, float* o
 
 
 
-/*=================================================================================
- *	GYRO FILTERING CONFIG
- *================================================================================= */
-HAL_StatusTypeDef ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t* handle, ICM42688_UIFilt_BW_t bw)
-{
-	if(!handle) return HAL_ERROR;
-	if((((uint8_t)bw >= 8U) && ((uint8_t)bw <= 13U)) || (uint8_t)bw > 0x0FU) return HAL_ERROR;
-
-	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
-														ICM42688_UB0_GYRO_ACCEL_CONF0,
-														ICM42688_GYRO_UI_FILT_BW_Msk,
-														ICM42688_GYRO_UI_FILT_BW_Val((uint8_t)bw));
-	if(status != HAL_OK) return status;
-	handle -> gyro_config.gyro_uifilt_bw = bw;
-	return HAL_OK;
-}
-
-
-
-
-/*==================================================================================
- *	ACCEL FILTERING CONFIG
- *================================================================================== */
-HAL_StatusTypeDef ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t* handle, ICM42688_UIFilt_BW_t bw)
-{
-	if(!handle) return HAL_ERROR;
-	uint8_t v = (uint8_t)bw;
-	if(((v >= 8U) && (v <= 13U)) || (v > 0x0F)) return HAL_ERROR;
-
-	uint8_t reg = 0U;
-	HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB0_GYRO_ACCEL_CONF0, &reg);
-	if(status != HAL_OK) return status;
-	reg &= (uint8_t)~ICM42688_ACCEL_UI_FILT_BW_Msk;
-
-	if(handle -> accel_config.accel_mode == ACCEL_LOW_NOISE){
-		if(bw == BW_1x_AVG_FILT) 		bw = BW_400Hz_ODR_DIV_4;
-		else if (bw == BW_16x_AVG_FILT)	bw = BW_400Hz_ODR_DIV_20;
-		reg |= ICM42688_ACCEL_UI_FILT_BW_Val((uint8_t)bw);
-	}
-
-	else if(handle -> accel_config.accel_mode == ACCEL_LOW_POWER){
-		if(v == 1U)			bw = BW_1x_AVG_FILT;
-		else if(v == 6U)	bw = BW_16x_AVG_FILT;
-		else return HAL_ERROR;
-		reg |= ICM42688_ACCEL_UI_FILT_BW_Val((uint8_t)bw);
-	}
-
-	else return HAL_ERROR;
-
-	status = ICM42688_WriteReg(handle, ICM42688_UB0_GYRO_ACCEL_CONF0, reg);
-	if(status != HAL_OK) return status;
-
-	handle -> accel_config.accel_uifilt_bw = (ICM42688_UIFilt_BW_t)bw;
-	return HAL_OK;
-}
-
-
-
-
 /*==================================================================================
  *	FIFO CONFIG
- *================================================================================= */
-HAL_StatusTypeDef ICM42688_Set_FIFO_Mode(ICM42688_Handle_t* handle, ICM42688_FIFO_Mode_t mode){
+ *================================================================================== */
+HAL_StatusTypeDef ICM42688_Set_FIFO_Count_Endian(ICM42688_Handle_t* handle, ICM42688_FIFO_Count_Endian_t which_endian)
+{
+	if(!handle) return HAL_ERROR;
+	if(((uint8_t)which_endian != 0U && (uint8_t)which_endian != 1U)) return HAL_ERROR;
+
+	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
+														ICM42688_UB0_INTF_CONF0,
+														ICM42688_FIFO_COUNT_ENDIAN_Msk,
+														ICM42688_FIFO_COUNT_ENDIAN_Val(which_endian));
+	if(status != HAL_OK) return status;
+	handle -> fifo_config.fifo_count_endian = which_endian;
+	return HAL_OK;
+}
+
+
+HAL_StatusTypeDef ICM42688_Set_FIFO_Count_Rec(ICM42688_Handle_t* handle, ICM42688_FIFO_Count_Rec_t fifo_count_rec)
+{
+	if(!handle) return HAL_ERROR;
+
+	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
+														ICM42688_UB0_INTF_CONF0,
+														ICM42688_FIFO_COUNT_REC_Msk,
+														ICM42688_FIFO_COUNT_REC_Val(fifo_count_rec));
+	if(status != HAL_OK) return status;
+	handle -> fifo_config.fifo_count_rec = fifo_count_rec;
+	return HAL_OK;
+}
+
+
+HAL_StatusTypeDef ICM42688_Set_FIFO_Mode(ICM42688_Handle_t* handle, ICM42688_FIFO_Mode_t mode)
+{
 	if(!handle) return HAL_ERROR;
 	if((uint8_t)mode > (uint8_t)STOP_ON_FULL) return HAL_ERROR;
 
@@ -724,7 +741,8 @@ HAL_StatusTypeDef ICM42688_Set_FIFO_Mode(ICM42688_Handle_t* handle, ICM42688_FIF
 }
 
 
-HAL_StatusTypeDef ICM42688_Get_FIFO_Mode(ICM42688_Handle_t* handle, ICM42688_FIFO_Mode_t* mode){
+HAL_StatusTypeDef ICM42688_Get_FIFO_Mode(ICM42688_Handle_t* handle, ICM42688_FIFO_Mode_t* mode)
+{
 	if(!handle || !mode) return HAL_ERROR;
 
 	uint8_t reg = 0U;
@@ -735,6 +753,7 @@ HAL_StatusTypeDef ICM42688_Get_FIFO_Mode(ICM42688_Handle_t* handle, ICM42688_FIF
 	bool isModeStopOnFull = (rawMode == 2U) || (rawMode == 3U);
 	*mode = (isModeStopOnFull) ? STOP_ON_FULL : (ICM42688_FIFO_Mode_t)rawMode;
 
+	handle -> fifo_config.fifo_mode = (ICM42688_FIFO_Mode_t)*mode;
 	return HAL_OK;
 }
 
@@ -749,7 +768,7 @@ HAL_StatusTypeDef ICM42688_Set_FIFO_Gyro_Enable(ICM42688_Handle_t* handle, ICM42
 														ICM42688_FIFO_GYRO_EN_Val(state));
 	if(status != HAL_OK) return status;
 	handle -> fifo_config.fifo_gyro_state = (ICM42688_FIFO_GAT_En_t)state;
-	return status;f
+	return HAL_OK;
 }
 
 
@@ -795,7 +814,8 @@ HAL_StatusTypeDef ICM42688_Set_FIFO_HIRES_Enable(ICM42688_Handle_t* handle, ICM4
 }
 
 
-HAL_StatusTypeDef ICM42688_Set_FIFO_WM_GT_THS(ICM42688_Handle_t* handle, ICM42688_FIFO_WM_Mode_t state){
+HAL_StatusTypeDef ICM42688_Set_FIFO_WM_GT_THS(ICM42688_Handle_t* handle, ICM42688_FIFO_WM_Mode_t state)
+{
 	if(!handle) return HAL_ERROR;
 
 	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
@@ -846,7 +866,8 @@ HAL_StatusTypeDef ICM42688_Set_FIFO_Watermark(ICM42688_Handle_t* handle, uint16_
 }
 
 
-HAL_StatusTypeDef ICM42688_Get_FIFO_Watermark(ICM42688_Handle_t* handle, uint16_t* fifoWatermark){
+HAL_StatusTypeDef ICM42688_Get_FIFO_Watermark(ICM42688_Handle_t* handle, uint16_t* fifoWatermark)
+{
 	if(!handle || !fifoWatermark) return HAL_ERROR;
 
 	uint8_t fifoWmBuf[2];
@@ -859,3 +880,102 @@ HAL_StatusTypeDef ICM42688_Get_FIFO_Watermark(ICM42688_Handle_t* handle, uint16_
 	handle -> fifo_config.fifo_watermark = (uint16_t)*fifoWatermark;
 	return HAL_OK;
 }
+
+
+HAL_StatusTypeDef ICM42688_Get_FIFO_Count(ICM42688_Handle_t* handle, uint16_t* fifoCount)
+{
+	if(!handle || !fifoCount) return HAL_ERROR;
+
+	uint8_t fifoCountBuf[2];
+	HAL_StatusTypeDef status = ICM42688_ReadRegs(handle, ICM42688_UB0_FIFO_COUNTH, fifoCountBuf, 2);
+	if(status != HAL_OK) return status;
+
+	if(handle -> fifo_config.fifo_count_endian == FIFO_COUNT_BIG_ENDIAN){ //Big endian format
+		*fifoCount = (uint16_t)(((uint16_t)(fifoCountBuf[0] & 0xFFU) << 8) |
+								((uint16_t)(fifoCountBuf[1] & 0xFFU)));
+	}
+	else{
+		*fifoCount = (uint16_t)(((uint16_t)(fifoCountBuf[1] & 0xFFU) << 8) |
+								((uint16_t)(fifoCountBuf[0] & 0xFFU)));
+	}
+
+	handle -> fifo_config.fifo_count = (uint16_t)*fifoCount;
+	return HAL_OK;
+}
+
+
+HAL_StatusTypeDef ICM42688_Get_FIFO_Data(ICM42688_Handle_t* handle, uint8_t* buf,
+										uint16_t bufSize, uint16_t* byteRead)
+{
+	if(!handle || !buf || !byteRead) return HAL_ERROR;
+
+	*byteRead = 0U;
+
+	uint16_t fifoCount	= 0U;
+	uint16_t recordSize = 0U;
+	uint16_t totalByte	= 0U;
+
+	HAL_StatusTypeDef status = ICM42688_Get_FIFO_Count(handle, &fifoCount);
+	if(status != HAL_OK) return status;
+
+	if(handle -> fifo_config.fifo_count_rec == FIFO_COUNT_IN_RECORD){
+		if(handle -> fifo_config.fifo_hires_state){
+			recordSize = 20U;
+		}
+		else if((handle -> fifo_config.fifo_accel_state == FIFO_GAT_ENABLE) &&
+				(handle -> fifo_config.fifo_gyro_state == FIFO_GAT_ENABLE)){
+			recordSize = 16U;
+		}
+		else if ((handle -> fifo_config.fifo_accel_state == FIFO_GAT_ENABLE) ||
+				(handle -> fifo_config.fifo_gyro_state == FIFO_GAT_ENABLE)){
+			recordSize = 8U;
+		}
+		else return HAL_ERROR;
+
+		totalByte = (uint16_t)(fifoCount * recordSize);
+	}
+
+	else{
+		totalByte = fifoCount;
+	}
+
+	if(totalByte == 0U) return HAL_OK;
+
+	/* Whole logic below is:
+	 * 		If totalByte fits user buffer, read all
+	 * 		If it does not fits, partial read is disabled, return error
+	 * 		If it does not fits, partial read is enabled, read only what fits */
+	if(totalByte > bufSize){
+		if(handle -> fifo_config.fifo_partial_read_state == FIFO_PARTIAL_READ_DISABLE){
+			return HAL_ERROR;
+		}
+
+		//Partial-read enabled: only read what fit
+		if(handle -> fifo_config.fifo_count_rec == FIFO_COUNT_IN_RECORD){
+			if((recordSize == 0) || (bufSize < recordSize)) return HAL_ERROR;
+			totalByte = (uint16_t)((bufSize / recordSize) * recordSize);
+		}
+
+		else{
+			totalByte = bufSize;
+		}
+
+		if(totalByte == 0U) return HAL_ERROR;
+	}
+
+	status = ICM42688_ReadRegs(handle, ICM42688_UB0_FIFO_DATA, buf, totalByte);
+	if(status != HAL_OK) return status;
+
+	*byteRead = totalByte;
+	return HAL_OK;
+}
+
+
+
+
+
+
+
+
+
+
