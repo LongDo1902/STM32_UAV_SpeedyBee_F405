@@ -203,7 +203,7 @@ typedef enum{
 
 
 typedef enum{
-	INT_PUSHED		= 0U,
+	INT_PULSED		= 0U,
 	INT_LATCHED		= 1U,
 	INT_MODE_MAX	= 2U	//Just for sanity check
 }ICM42688_Int_Mode_t;

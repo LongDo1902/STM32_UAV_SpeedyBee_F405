@@ -42,14 +42,14 @@ const ICM42688_SPI_Config_t SPI_DEFAULT = {
 const ICM42688_Int1_Config_t INT1_DEFAULT = {
 		.int1_polarity	= INT_ACTIVE_LOW,
 		.int1_drive		= INT_OPEN_DRAIN,
-		.int1_mode		= INT_PUSHED,
+		.int1_mode		= INT_PULSED,
 };
 
 
 const ICM42688_Int2_Config_t INT2_DEFAULT = {
 		.int2_polarity	= INT_ACTIVE_LOW,
 		.int2_drive		= INT_OPEN_DRAIN,
-		.int2_mode		= INT_PUSHED,
+		.int2_mode		= INT_PULSED,
 };
 
 

@@ -121,11 +121,11 @@ HAL_StatusTypeDef ICM42688_SoftReset(ICM42688_Handle_t* handle)
 
 	handle -> int1_config.int1_polarity			= INT_ACTIVE_LOW;
 	handle -> int1_config.int1_drive			= INT_OPEN_DRAIN;
-	handle -> int1_config.int1_mode				= INT_PUSHED;
+	handle -> int1_config.int1_mode				= INT_PULSED;
 
 	handle -> int2_config.int2_polarity			= INT_ACTIVE_LOW;
 	handle -> int2_config.int2_drive			= INT_OPEN_DRAIN;
-	handle -> int2_config.int2_mode				= INT_PUSHED;
+	handle -> int2_config.int2_mode				= INT_PULSED;
 
 	handle -> intf_config.ui_sifs_config		= UI_SIFS_RESERVED;
 	handle -> intf_config.sensor_data_endian	= SENSOR_DATA_BIG_ENDIAN;
@@ -325,6 +325,7 @@ HAL_StatusTypeDef ICM42688_Get_Gyro_XYZ(ICM42688_Handle_t* handle, int16_t* buf)
 HAL_StatusTypeDef ICM42688_Get_Gyro_DPS(ICM42688_Handle_t* handle, float dps[3])
 {
 	if(!handle || !dps) return HAL_ERROR;
+	if(handle -> gyro_dps_per_lsb <= 0.0f) return HAL_ERROR;
 
 	int16_t raw[3];
 	HAL_StatusTypeDef status = ICM42688_Get_Gyro_XYZ(handle, raw);
@@ -364,9 +365,8 @@ HAL_StatusTypeDef ICM42688_Set_AccelConfig(ICM42688_Handle_t* handle, ICM42688_A
 										ICM42688_AccelODR_t odr, ICM42688_AccelFSR_t fsr)
 {
 	if(!handle) return HAL_ERROR;
-
+	if((uint8_t)mode > 3U) return HAL_ERROR;
 	if((odr == 0x00U) || (uint8_t)odr > (uint8_t)ACCEL_ODR_500Hz) return HAL_ERROR;
-
 	if((uint8_t)fsr > (uint8_t)ACCEL_FSR_2g) return HAL_ERROR;
 
 	//Validate ODR against accel mode
@@ -484,6 +484,7 @@ HAL_StatusTypeDef ICM42688_Get_Accel_XYZ(ICM42688_Handle_t* handle, int16_t* buf
 HAL_StatusTypeDef ICM42688_Get_Accel_G(ICM42688_Handle_t* handle, float g[3])
 {
 	if(!handle || !g) return HAL_ERROR;
+	if(handle -> accel_g_per_lsb <= 0.0f) return HAL_ERROR;
 
 	int16_t raw[3];
 	HAL_StatusTypeDef status = ICM42688_Get_Accel_XYZ(handle, raw);
@@ -591,19 +592,25 @@ HAL_StatusTypeDef ICM42688_Set_Int2_Config(ICM42688_Handle_t* handle, ICM42688_I
 }
 
 
+
 HAL_StatusTypeDef ICM42688_Get_Int_Status(ICM42688_Handle_t* handle, uint8_t* outStatus)
 {
-	if(!handle) return HAL_ERROR;
+	if(!handle || !outStatus) return HAL_ERROR;
 
 	uint8_t reg = 0U;
 	HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB0_INT_STATUS, &reg);
 	if(status != HAL_OK) return status;
 
-	*outStatus = (uint8_t)status;
+	*outStatus = reg;
 	return HAL_OK;
 }
 
 
+
+
+/*==========================================================================================
+ * 	INT_STATUS
+ *==========================================================================================*/
 bool ICM42688_Int_Status_Has(uint8_t status, ICM42688_Int_Status_t intState)
 {
 	uint8_t mask = 0U;
@@ -647,6 +654,63 @@ HAL_StatusTypeDef ICM42688_Set_Sensor_Data_Endian(ICM42688_Handle_t* handle, ICM
 													ICM42688_SENSOR_DATA_ENDIAN_Val(which_endian));
 	if(status != HAL_OK) return status;
 	handle -> intf_config.sensor_data_endian = which_endian;
+	return HAL_OK;
+}
+
+
+
+
+/*==========================================================================================
+ * 	INT_SOURCE0
+ *==========================================================================================*/
+HAL_StatusTypeDef ICM42688_Set_Int1_FIFO_Full_Enable(ICM42688_Handle_t* handle, bool enable)
+{
+	if(!handle) return HAL_ERROR;
+	uint8_t valueMasked = enable ? ICM42688_FIFO_FULL_INT1_EN_Msk : 0U;
+	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
+														ICM42688_UB0_INT_SRC0,
+														ICM42688_FIFO_FULL_INT1_EN_Msk,
+														valueMasked);
+	if(status != HAL_OK) return status;
+	return HAL_OK;
+}
+
+
+HAL_StatusTypeDef ICM42688_Set_Int1_FIFO_Threshold_Enable(ICM42688_Handle_t* handle, bool enable)
+{
+	if(!handle) return HAL_ERROR;
+	uint8_t valueMasked = enable ? ICM42688_FIFO_THS_INT1_EN_Msk : 0U;
+	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
+														ICM42688_UB0_INT_SRC0,
+														ICM42688_FIFO_THS_INT1_EN_Msk,
+														valueMasked);
+	if(status != HAL_OK) return status;
+	return HAL_OK;
+}
+
+
+HAL_StatusTypeDef ICM42688_Set_Int1_DataReady_Enable(ICM42688_Handle_t* handle, bool enable)
+{
+	if(!handle) return HAL_ERROR;
+	uint8_t valueMasked = enable ? ICM42688_UI_DRDY_INT1_EN_Msk : 0U;
+	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
+														ICM42688_UB0_INT_SRC0,
+														ICM42688_UI_DRDY_INT1_EN_Msk,
+														valueMasked);
+	if(status != HAL_OK) return status;
+	return HAL_OK;
+}
+
+
+HAL_StatusTypeDef ICM42688_Set_Int1_ResetDone_Enable(ICM42688_Handle_t* handle, bool enable)
+{
+	if(!handle) return HAL_ERROR;
+	uint8_t valueMasked = enable ? ICM42688_RESET_DONE_INT1_EN_Msk : 0U;
+	HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle,
+														ICM42688_UB0_INT_SRC0,
+														ICM42688_RESET_DONE_INT1_EN_Msk,
+														valueMasked);
+	if(status != HAL_OK) return status;
 	return HAL_OK;
 }
 
