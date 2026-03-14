@@ -8,12 +8,22 @@
 #ifndef INC_IMU_ICM42688_REGISTERS_H_
 #define INC_IMU_ICM42688_REGISTERS_H_
 
+#include <stdint.h>
 
-/*
- * ===================================================================================
- *							ICM42688 REGISTER MAP (UB0)
- * ===================================================================================
- */
+/* ===================================================================================
+ *	ICM42688 REGISTER MAP (UB0)
+ * =================================================================================== */
+
+// REG_BANK_SEL Defines
+typedef enum{
+	REG_BANK_0 		= 0x00U,
+	REG_BANK_1 		= 0x01U,
+	REG_BANK_2 		= 0x02U,
+	REG_BANK_3 		= 0x03U,
+	REG_BANK_4 		= 0x04U,
+	UNKNOWN_BANK 	= 0x07U
+}ICM42688_RegBank_t;
+
 typedef uint16_t ICM42688_Reg_t;
 #define ICM42688_REG(bank, addr)			((ICM42688_Reg_t)((((uint16_t)(bank)) << 8) | ((uint8_t)(addr))))
 #define ICM42688_REG_BANK(r)				((ICM42688_RegBank_t)(((r) >> 8) & 0xFF))
@@ -28,7 +38,7 @@ typedef uint16_t ICM42688_Reg_t;
 #define ICM42688_UB0_INTF_CONF1			ICM42688_REG(REG_BANK_0, 0x4D)
 #define ICM42688_UB0_PWR_MGMT0			ICM42688_REG(REG_BANK_0, 0x4E)
 
-/* Interrupt & FIFO Status */
+// Interrupt & FIFO Status
 #define ICM42688_UB0_INT_STATUS			ICM42688_REG(REG_BANK_0, 0x2D)
 #define ICM42688_UB0_INT_STATUS2		ICM42688_REG(REG_BANK_0, 0x37)
 #define ICM42688_UB0_INT_STATUS3		ICM42688_REG(REG_BANK_0, 0x38)
@@ -36,14 +46,14 @@ typedef uint16_t ICM42688_Reg_t;
 #define ICM42688_UB0_FIFO_COUNTL		ICM42688_REG(REG_BANK_0, 0x2F)
 #define ICM42688_UB0_FIFO_DATA			ICM42688_REG(REG_BANK_0, 0x30)
 
-/* Sensor Configuration */
+// Sensor Configuration
 #define ICM42688_UB0_GYRO_CONF0			ICM42688_REG(REG_BANK_0, 0x4F)
 #define ICM42688_UB0_GYRO_CONF1			ICM42688_REG(REG_BANK_0, 0x51)
 #define ICM42688_UB0_ACCEL_CONF0		ICM42688_REG(REG_BANK_0, 0x50)
 #define ICM42688_UB0_ACCEL_CONF1		ICM42688_REG(REG_BANK_0, 0x53)
 #define ICM42688_UB0_GYRO_ACCEL_CONF0	ICM42688_REG(REG_BANK_0, 0x52)
 
-/* APEX & Features */
+// APEX & Features
 #define ICM42688_UB0_APEX_DATA0			ICM42688_REG(REG_BANK_0, 0x31)
 #define ICM42688_UB0_APEX_DATA1			ICM42688_REG(REG_BANK_0, 0x32)
 #define ICM42688_UB0_APEX_DATA2			ICM42688_REG(REG_BANK_0, 0x33)
@@ -53,7 +63,7 @@ typedef uint16_t ICM42688_Reg_t;
 #define ICM42688_UB0_APEX_CONF			ICM42688_REG(REG_BANK_0, 0x56)
 #define ICM42688_UB0_SMD_CONF			ICM42688_REG(REG_BANK_0, 0x57)
 
-/* Advanced Controls */
+// Advanced Controls
 #define ICM42688_UB0_TMST_FSYNCH		ICM42688_REG(REG_BANK_0, 0x2B)
 #define ICM42688_UB0_TMST_FSYNCL		ICM42688_REG(REG_BANK_0, 0x2C)
 #define ICM42688_UB0_TMST_CONF			ICM42688_REG(REG_BANK_0, 0x54)
@@ -62,7 +72,7 @@ typedef uint16_t ICM42688_Reg_t;
 #define ICM42688_UB0_FIFO_CONF3			ICM42688_REG(REG_BANK_0, 0x61)
 #define ICM42688_UB0_FSYNC_CONF			ICM42688_REG(REG_BANK_0, 0x62)
 
-/* Interrupt Sources */
+// Interrupt Sources
 #define ICM42688_UB0_INT_CONF0			ICM42688_REG(REG_BANK_0, 0x63)
 #define ICM42688_UB0_INT_CONF1			ICM42688_REG(REG_BANK_0, 0x64)
 #define ICM42688_UB0_INT_SRC0			ICM42688_REG(REG_BANK_0, 0x65)
@@ -70,14 +80,14 @@ typedef uint16_t ICM42688_Reg_t;
 #define ICM42688_UB0_INT_SRC3			ICM42688_REG(REG_BANK_0, 0x68)
 #define ICM42688_UB0_INT_SRC4			ICM42688_REG(REG_BANK_0, 0x69)
 
-/* System */
+// System
 #define ICM42688_UB0_FIFO_LOST_PKT0		ICM42688_REG(REG_BANK_0, 0x6C)
 #define ICM42688_UB0_FIFO_LOST_PKT1		ICM42688_REG(REG_BANK_0, 0x6D)
 #define ICM42688_UB0_SELFTEST_CONF		ICM42688_REG(REG_BANK_0, 0x70)
 #define ICM42688_UB0_WHO_AM_I			ICM42688_REG(REG_BANK_0, 0x75)
 #define ICM42688_UB0_REG_BANK_SEL		ICM42688_REG(REG_BANK_0, 0x76)
 
-/* Sensor Data (High / Low byte pairs) */
+// Sensor Data (High / Low byte pairs)
 #define ICM42688_UB0_TEMP_DATA1			ICM42688_REG(REG_BANK_0, 0x1D)
 #define ICM42688_UB0_TEMP_DATA0			ICM42688_REG(REG_BANK_0, 0x1E)
 
@@ -96,11 +106,9 @@ typedef uint16_t ICM42688_Reg_t;
 #define ICM42688_UB0_GYRO_DATA_Z0		ICM42688_REG(REG_BANK_0, 0x2A)
 
 
-/*
- * ===================================================================================
- *							ICM42688 REGISTER MAP (UB1)
- * ===================================================================================
- */
+/* ===================================================================================
+ *	ICM42688 REGISTER MAP (UB1)
+ * =================================================================================== */
 #define ICM42688_UB1_SENSOR_CONF0		ICM42688_REG(REG_BANK_1, 0x03)
 #define ICM42688_UB1_GYRO_CONF_STATIC2	ICM42688_REG(REG_BANK_1, 0x0B)
 #define ICM42688_UB1_GYRO_CONF_STATIC3	ICM42688_REG(REG_BANK_1, 0x0C)
@@ -124,11 +132,9 @@ typedef uint16_t ICM42688_Reg_t;
 #define ICM42688_UB1_INTF_CONF6			ICM42688_REG(REG_BANK_1, 0x7C)
 
 
-/*
- * ===================================================================================
- *							ICM42688 REGISTER MAP (UB2)
- * ===================================================================================
- */
+/* ===================================================================================
+ *	ICM42688 REGISTER MAP (UB2)
+ * =================================================================================== */
 #define ICM42688_UB2_ACCEL_CONF_STATIC2	ICM42688_REG(REG_BANK_2, 0x03)
 #define ICM42688_UB2_ACCEL_CONF_STATIC3	ICM42688_REG(REG_BANK_2, 0x04)
 #define ICM42688_UB2_ACCEL_CONF_STATIC4	ICM42688_REG(REG_BANK_2, 0x05)
@@ -137,11 +143,9 @@ typedef uint16_t ICM42688_Reg_t;
 #define ICM42688_UB2_ZA_ST_DATA			ICM42688_REG(REG_BANK_2, 0x3D)
 
 
-/*
- * ===================================================================================
- *							ICM42688 REGISTER MAP (UB4)
- * ===================================================================================
- */
+/* ===================================================================================
+ *	ICM42688 REGISTER MAP (UB4)
+ * =================================================================================== */
 #define ICM42688_UB4_APEX_CONF1			ICM42688_REG(REG_BANK_4, 0x40)
 #define ICM42688_UB4_APEX_CONF2			ICM42688_REG(REG_BANK_4, 0x41)
 #define ICM42688_UB4_APEX_CONF3			ICM42688_REG(REG_BANK_4, 0x42)

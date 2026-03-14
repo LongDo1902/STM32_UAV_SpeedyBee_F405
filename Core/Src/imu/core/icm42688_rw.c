@@ -4,7 +4,7 @@
  *  Created on: Mar 5, 2026
  *      Author: dobao
  */
-#include "imu/icm42688_rw.h"
+#include "imu/core/icm42688_rw.h"
 
 /*=============================================================================
  *	PRIVATE HELPERS

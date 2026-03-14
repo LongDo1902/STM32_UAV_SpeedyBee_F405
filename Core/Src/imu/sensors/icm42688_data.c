@@ -1,0 +1,212 @@
+/*
+ * icm42688_data.c
+ *
+ *  Created on: Mar 14, 2026
+ *      Author: dobao
+ */
+
+#include "imu/sensors/icm42688_data.h"
+
+/* ==========================================================================================
+ * 	TEMPERATURE DATA ONLY
+ * ========================================================================================== */
+
+HAL_StatusTypeDef ICM42688_Get_Temperature_C(ICM42688_Handle_t* handle, float* out_temp_c)
+{
+	if(!handle || !out_temp_c) return HAL_ERROR;
+	if(handle -> temp_config.temp_state == TEMP_DISABLE) return HAL_ERROR;
+
+	uint8_t buf[2] = {0};
+	HAL_StatusTypeDef status = ICM42688_ReadRegs(handle, ICM42688_UB0_TEMP_DATA1, buf, 2);
+	if(status != HAL_OK) return status;
+
+	int16_t raw = 0;
+	if(handle -> intf_config.sensor_data_endian == SENSOR_DATA_BIG_ENDIAN){
+		raw = (int16_t)(((uint16_t)buf[0] << 8) | (uint16_t)buf[1]);
+	} else{
+		raw = (int16_t)(((uint16_t)buf[1] << 8) | (uint16_t)buf[0]);
+	}
+
+	*out_temp_c = (float)((raw / 132.48f) + 25.0f);
+
+	return HAL_OK;
+}
+
+
+
+
+/* ==========================================================================================
+ * 	ACCEL DATA ONLY
+ * ========================================================================================== */
+
+HAL_StatusTypeDef ICM42688_Get_Accel_XYZ(ICM42688_Handle_t* handle, int16_t* buf)
+{
+	if(!handle || !buf) return HAL_ERROR;
+	if(handle -> accel_config.accel_mode == ACCEL_OFF) return HAL_ERROR;
+
+	uint8_t raw[6] = {0};
+	HAL_StatusTypeDef status = ICM42688_ReadRegs(handle, ICM42688_UB0_ACCEL_DATA_X1, raw, 6);
+	if(status != HAL_OK) return status;
+
+	if(handle -> intf_config.sensor_data_endian == SENSOR_DATA_BIG_ENDIAN){
+		buf[0] = (int16_t)(((uint16_t)raw[0] << 8) | (uint16_t)raw[1]); //Extract Accel X
+		buf[1] = (int16_t)(((uint16_t)raw[2] << 8) | (uint16_t)raw[3]); //Extract Accel Y
+		buf[2] = (int16_t)(((uint16_t)raw[4] << 8) | (uint16_t)raw[5]); //Extract Accel Z
+	} else{
+		buf[0] = (int16_t)(((uint16_t)raw[1] << 8) | (uint16_t)raw[0]); //Extract Accel X
+		buf[1] = (int16_t)(((uint16_t)raw[3] << 8) | (uint16_t)raw[2]); //Extract Accel Y
+		buf[2] = (int16_t)(((uint16_t)raw[5] << 8) | (uint16_t)raw[4]); //Extract Accel Z
+	}
+	return HAL_OK;
+}
+
+
+HAL_StatusTypeDef ICM42688_Get_Accel_G(ICM42688_Handle_t* handle, float g[3])
+{
+	if(!handle || !g) return HAL_ERROR;
+	if(handle -> accel_g_per_lsb <= 0.0f) return HAL_ERROR;
+
+	int16_t raw[3] = {0};
+	HAL_StatusTypeDef status = ICM42688_Get_Accel_XYZ(handle, raw);
+	if(status != HAL_OK) return status;
+
+	const float s = handle -> accel_g_per_lsb;
+	g[0] = (float)(raw[0] * s);
+	g[1] = (float)(raw[1] * s);
+	g[2] = (float)(raw[2] * s);
+
+	return HAL_OK;
+}
+
+
+
+
+/* ==========================================================================================
+ * 	GYRO DATA ONLY
+ * ========================================================================================== */
+
+HAL_StatusTypeDef ICM42688_Get_Gyro_XYZ(ICM42688_Handle_t* handle, int16_t* buf)
+{
+	if(!handle || !buf) return HAL_ERROR;
+	if(handle -> gyro_config.gyro_mode == GYRO_OFF) return HAL_ERROR;
+
+	uint8_t raw[6] = {0};
+	HAL_StatusTypeDef status = ICM42688_ReadRegs(handle, ICM42688_UB0_GYRO_DATA_X1, raw, 6);
+	if(status != HAL_OK) return status;
+
+	if(handle -> intf_config.sensor_data_endian == SENSOR_DATA_BIG_ENDIAN){
+
+		buf[0] = (int16_t)(((uint16_t)raw[0] << 8) | (uint16_t)raw[1]); //Extract Gyro X
+		buf[1] = (int16_t)(((uint16_t)raw[2] << 8) | (uint16_t)raw[3]); //Extract Gyro Y
+		buf[2] = (int16_t)(((uint16_t)raw[4] << 8) | (uint16_t)raw[5]); //Extract Gyro Z
+	} else {
+		buf[0] = (int16_t)(((uint16_t)raw[1] << 8) | (uint16_t)raw[0]); //Extract Gyro X
+		buf[1] = (int16_t)(((uint16_t)raw[3] << 8) | (uint16_t)raw[2]); //Extract Gyro Y
+		buf[2] = (int16_t)(((uint16_t)raw[5] << 8) | (uint16_t)raw[4]); //Extract Gyro Z
+	}
+	return HAL_OK;
+}
+
+
+HAL_StatusTypeDef ICM42688_Get_Gyro_DPS(ICM42688_Handle_t* handle, float dps[3])
+{
+	if(!handle || !dps) return HAL_ERROR;
+	if(handle -> gyro_dps_per_lsb <= 0.0f) return HAL_ERROR;
+
+	int16_t raw[3] = {0};
+	HAL_StatusTypeDef status = ICM42688_Get_Gyro_XYZ(handle, raw);
+	if(status != HAL_OK) return status;
+
+	//Extract gyro X, Y and Z dps
+	const float s = handle -> gyro_dps_per_lsb;
+	dps[0] = (float)(raw[0] * s);
+	dps[1] = (float)(raw[1] * s);
+	dps[2] = (float)(raw[2] * s);
+
+	return HAL_OK;
+}
+
+
+
+
+/* ==========================================================================================
+ * 	TEMP ACCEL GYRO DATA IN ONE BURST READ
+ * ========================================================================================== */
+
+HAL_StatusTypeDef ICM42688_Get_Temp_Accel_Gyro_Raw(ICM42688_Handle_t* handle, int16_t* buf)
+{
+	if(!handle || !buf) return HAL_ERROR;
+	if((handle -> temp_config.temp_state == TEMP_DISABLE) ||
+			(handle -> accel_config.accel_mode == ACCEL_OFF) ||
+			(handle -> gyro_config.gyro_mode == GYRO_OFF)) return HAL_ERROR;
+
+	uint8_t raw[14] = {0};
+	HAL_StatusTypeDef status = ICM42688_ReadRegs(handle, ICM42688_UB0_TEMP_DATA1, raw, 14);
+	if(status != HAL_OK) return status;
+
+	if(handle -> intf_config.sensor_data_endian == SENSOR_DATA_BIG_ENDIAN){
+		// Get temperature raw
+		buf[0] = (int16_t)(((uint16_t)raw[0] << 8) | (uint16_t)raw[1]);
+
+		// Get accel raw
+		buf[1] = (int16_t)(((uint16_t)raw[2] << 8) | (uint16_t)raw[3]);
+		buf[2] = (int16_t)(((uint16_t)raw[4] << 8) | (uint16_t)raw[5]);
+		buf[3] = (int16_t)(((uint16_t)raw[6] << 8) | (uint16_t)raw[7]);
+
+		// Get gyro raw
+		buf[4] = (int16_t)(((uint16_t)raw[8] << 8) | (uint16_t)raw[9]);
+		buf[5] = (int16_t)(((uint16_t)raw[10] << 8) | (uint16_t)raw[11]);
+		buf[6] = (int16_t)(((uint16_t)raw[12] << 8) | (uint16_t)raw[13]);
+	} else {
+		// Get temperature raw
+		buf[0] = (int16_t)(((uint16_t)raw[1] << 8) | (uint16_t)raw[0]);
+
+		// Get accel raw
+		buf[1] = (int16_t)(((uint16_t)raw[3] << 8) | (uint16_t)raw[2]);
+		buf[2] = (int16_t)(((uint16_t)raw[5] << 8) | (uint16_t)raw[4]);
+		buf[3] = (int16_t)(((uint16_t)raw[7] << 8) | (uint16_t)raw[6]);
+
+		// Get gyro raw
+		buf[4] = (int16_t)(((uint16_t)raw[9] << 8) | (uint16_t)raw[8]);
+		buf[5] = (int16_t)(((uint16_t)raw[11] << 8) | (uint16_t)raw[10]);
+		buf[6] = (int16_t)(((uint16_t)raw[13] << 8) | (uint16_t)raw[12]);
+	}
+
+	return HAL_OK;
+}
+
+
+HAL_StatusTypeDef ICM42688_Get_Temp_Accel_Gyro_Scaled(ICM42688_Handle_t* handle, ICM42688_Temp_Accel_Gyro_Scaled_t *sample_out)
+{
+	if(!handle || !sample_out) return HAL_ERROR;
+	if((handle -> gyro_dps_per_lsb <= 0.0f) || (handle -> accel_g_per_lsb <= 0.0f)) return HAL_ERROR;
+
+	int16_t raw[7] = {0};
+	HAL_StatusTypeDef status = ICM42688_Get_Temp_Accel_Gyro_Raw(handle, raw);
+	if(status != HAL_OK) {
+		handle -> cached.last_tag_valid = false;
+		return status;
+	}
+
+	const float accel_s = handle -> accel_g_per_lsb;
+	const float gyro_s = handle -> gyro_dps_per_lsb;
+
+	// Temperature in C
+	sample_out -> temp_c = (float)((raw[0] / 132.48f) + 25.0f);
+
+	// Accel in g
+	sample_out -> accel_g[0] = (float)(raw[1] * accel_s);
+	sample_out -> accel_g[1] = (float)(raw[2] * accel_s);
+	sample_out -> accel_g[2] = (float)(raw[3] * accel_s);
+
+	//Gyro in dps
+	sample_out -> gyro_dps[0] = (float)(raw[4] * gyro_s);
+	sample_out -> gyro_dps[1] = (float)(raw[5] * gyro_s);
+	sample_out -> gyro_dps[2] = (float)(raw[6] * gyro_s);
+
+	//Update cache
+	handle -> cached.last_tag = *sample_out;
+	handle -> cached.last_tag_valid = true;
+
+	return HAL_OK;
+}

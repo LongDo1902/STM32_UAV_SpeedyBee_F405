@@ -8,8 +8,9 @@
 #ifndef INC_IMU_ICM42688_RW_H_
 #define INC_IMU_ICM42688_RW_H_
 
-#include "stm32f4xx_hal.h"
-#include "icm42688_core.h"
+#include "imu/core/icm42688_registers.h"
+#include "imu/core/icm42688_defs.h"
+#include "imu/core/icm42688_types.h"
 
 HAL_StatusTypeDef ICM42688_WriteBankAuto(ICM42688_Handle_t* handle, ICM42688_Reg_t encodedReg);
 
