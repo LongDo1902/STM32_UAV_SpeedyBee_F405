@@ -275,10 +275,134 @@ HAL_StatusTypeDef ICM42688_Get_FIFO_Data(ICM42688_Handle_t* handle, uint8_t* buf
 
 		if(totalByte == 0U) return HAL_ERROR;
 	}
-
 	status = ICM42688_ReadRegs(handle, ICM42688_UB0_FIFO_DATA, buf, totalByte);
 	if(status != HAL_OK) return status;
 
 	*byteRead = totalByte;
 	return HAL_OK;
 }
+
+
+static inline bool ICM42688_FIFO_Header_Has(uint8_t header, uint8_t mask)
+{
+	return ((header & mask) != 0U);
+}
+
+
+static inline uint8_t ICM42688_Get_FIFO_Timestamp(uint8_t  header)
+{
+	return (uint8_t)((header & ICM42688_FIFO_HEADER_TIMESTAMP_FSYNC_Msk) >> ICM42688_FIFO_HEADER_TIMESTAMP_FSYNC_Pos);
+}
+
+
+static inline uint16_t ICM42688_Decode_BE16_Unsigned(const uint8_t msb, const uint8_t lsb)
+{
+
+}
+
+
+static inline uint16_t ICM42688_Decode_BE16_Signed(const uint8_t msb, const uint8_t lsb)
+{
+
+}
+
+
+
+
+
+HAL_StatusTypeDef ICM42688_Get_FIFO_Packet_Info_From_Header(uint8_t header, ICM42688_FIFO_Packet_t* packetType,  uint16_t* packetSize)
+{
+	if(!packetType || !packetSize) return HAL_ERROR;
+
+	const bool hasMsg	= ICM42688_FIFO_Header_Has(header, ICM42688_FIFO_HEADER_MSG_Msk);
+	const bool hasAccel	= ICM42688_FIFO_Header_Has(header, ICM42688_FIFO_HEADER_ACCEL_Msk);
+	const bool hasGyro	= ICM42688_FIFO_Header_Has(header, ICM42688_FIFO_HEADER_GYRO_Msk);
+	const bool has20bit	= ICM42688_FIFO_Header_Has(header, ICM42688_FIFO_HEADER_20_Msk);
+
+	if(hasMsg){
+		*packetType = FIFO_PACKET_INVALID;
+		*packetSize = 0U;
+		return HAL_ERROR;
+	}
+
+	if(!hasAccel && !hasGyro){
+		*packetType = FIFO_PACKET_INVALID;
+		*packetSize = 0U;
+		return HAL_ERROR;
+	}
+
+	// Packet 1: Accel only, 8 bytes
+	if(hasAccel && !hasGyro && !has20bit){
+		*packetType	= FIFO_PACKET_1;
+		*packetSize	= 8U;
+		return HAL_OK;
+	}
+
+	// Packet 2: Gyro only, 8 bytes
+	if(hasGyro && !hasAccel && !has20bit){
+		*packetType = FIFO_PACKET_2;
+		*packetSize = 8U;
+		return HAL_OK;
+	}
+
+	// Packet 3: Accel + Gyro 16 bytes
+	if(hasAccel && hasGyro && !has20bit){
+		*packetType = FIFO_PACKET_3;
+		*packetSize = 16U;
+		return HAL_OK;
+	}
+
+	// Packet 4: Accel + Gyro + 20 bytes
+	if(hasAccel && hasGyro && has20bit){
+		*packetType = FIFO_PACKET_4;
+		*packetType = 20U;
+		return HAL_OK;
+	}
+
+	*packetType = FIFO_PACKET_INVALID;
+	*packetSize = 0U;
+	return HAL_ERROR;
+}
+
+
+HAL_StatusTypeDef ICM42688_Get_FIFO_Frame(ICM42688_Handle_t* handle, ICM42688_FIFO_Frame_t* frame)
+{
+	if(!handle || !frame) return HAL_ERROR;
+	if(handle -> fifo_config.fifo_mode == BYPASS) return HAL_ERROR;
+
+	// Use FIFO_COUNT_IN_RECORD because this function must read header first before knowing packet size
+	if(handle -> fifo_config.fifo_count_rec != FIFO_COUNT_IN_RECORD) return HAL_ERROR;
+
+	uint16_t fifoCountInRecord = 0U;
+	HAL_StatusTypeDef status = ICM42688_Get_FIFO_Count(handle, &fifoCountInRecord);
+	if(status != HAL_OK) return status;
+	if(fifoCountInRecord < 1U) return HAL_ERROR;
+
+	uint8_t header = 0U;
+	status = ICM42688_ReadRegs(handle, ICM42688_UB0_FIFO_DATA, &header, 1);
+	if(status != HAL_OK) return status;
+
+	ICM42688_FIFO_Packet_t packetType = FIFO_PACKET_INVALID;
+	uint16_t packetSize = 0U;
+	status = ICM42688_Get_FIFO_Packet_Info_From_Header(header, &packetType, &packetSize);
+	if(status != HAL_OK) return status;
+
+	uint8_t packet[20] = {0};
+	packet[0] = header;
+
+	status = ICM42688_ReadRegs(handle,
+							ICM42688_UB0_FIFO_DATA,
+							&packet[1],
+							(uint16_t)packetSize - 1U);
+	if(status != HAL_OK) return status;
+
+	return HAL_OK;
+}
+
+
+
+
+
+
+
+

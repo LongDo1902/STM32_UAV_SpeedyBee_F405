@@ -183,10 +183,7 @@ HAL_StatusTypeDef ICM42688_Get_Temp_Accel_Gyro_Scaled(ICM42688_Handle_t* handle,
 
 	int16_t raw[7] = {0};
 	HAL_StatusTypeDef status = ICM42688_Get_Temp_Accel_Gyro_Raw(handle, raw);
-	if(status != HAL_OK) {
-		handle -> cached.last_tag_valid = false;
-		return status;
-	}
+	if(status != HAL_OK) return status;
 
 	const float accel_s = handle -> accel_g_per_lsb;
 	const float gyro_s = handle -> gyro_dps_per_lsb;

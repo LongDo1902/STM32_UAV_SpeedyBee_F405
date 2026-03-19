@@ -23,10 +23,6 @@ HAL_StatusTypeDef ICM42688_Get_Int_Status(ICM42688_Handle_t* handle, uint8_t* ou
 
 bool ICM42688_Int_Status_Has(uint8_t status, ICM42688_Int_Status_t intState);
 
-HAL_StatusTypeDef ICM42688_Set_UI_SIFS_Conf(ICM42688_Handle_t* handle, ICM42688_UI_SIFS_Cfg_t config);
-
-HAL_StatusTypeDef ICM42688_Set_Sensor_Data_Endian(ICM42688_Handle_t* handle, ICM42688_Sensor_Data_Endian_t which_endian);
-
 HAL_StatusTypeDef ICM42688_Set_Int1_FIFO_Full_Enable(ICM42688_Handle_t* handle, bool enable);
 
 HAL_StatusTypeDef ICM42688_Set_Int1_FIFO_Threshold_Enable(ICM42688_Handle_t* handle, bool enable);

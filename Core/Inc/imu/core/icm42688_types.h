@@ -121,10 +121,51 @@ typedef enum{
 }ICM42688_AccelMode_t;
 
 
+typedef enum{
+	BW_ODR_DIV_2		= 0x00,
+	BW_400Hz_ODR_DIV_4	= 0x01,
+	BW_1x_AVG_FILT		= 0x01,
+	BW_400Hz_ODR_DIV_5 	= 0x02,
+	BW_400Hz_ODR_DIV_8	= 0x03,
+	BW_400Hz_ODR_DIV_10	= 0x04,
+	BW_400Hz_ODR_DIV_16	= 0x05,
+	BW_400Hz_ODR_DIV_20	= 0x06,
+	BW_16x_AVG_FILT		= 0x06,
+	BW_400Hz_ODR_DIV_40	= 0x07,
+	LOW_LATENCY_DEC2_400Hz_ODR = 0x0E,
+	LOW_LATENCY_DEC2_200Hz_ODR = 0x0F,
+}ICM42688_UIFilt_BW_t;
+
+
 
 
 /* ============================================================================
- * 							REGISTER BANK 0 ENUMS
+ *	TEMPERATURE ENUMS
+ * ============================================================================ */
+
+// TEMPERATURE Enable/Disable
+typedef enum{
+	TEMP_ENABLE		= 0x00U,
+	TEMP_DISABLE	= 0x01U,
+}ICM42688_Temp_t;
+
+
+// Temperature Filter Bandwidth
+typedef enum{
+	TEMP_4000Hz_BW_0125ms_DLPF_LATENCY 	= 0x00U,
+	TEMP_170Hz_BW_1ms_DLPF_LATENCY		= 0x01U,
+	TEMP_82Hz_BW_2ms_DLPF_LATENCY		= 0x02U,
+	TEMP_40Hz_BW_4ms_DLPF_LATENCY		= 0x03U,
+	TEMP_20Hz_BW_8ms_DLPF_LATENCY		= 0x04U,
+	TEMP_10Hz_BW_16ms_DLPF_LATENCY		= 0x05U,
+	TEMP_5Hz_BW_32ms_DLPF_LATENCY		= 0x06U
+}ICM42688_Temp_Filt_BW_t;
+
+
+
+
+/* ============================================================================
+ *	INTERFACE ENUMS
  * ============================================================================ */
 
 // Sensor Selection
@@ -162,6 +203,24 @@ typedef enum{
 }ICM42688_I2C_SLEWRATE_t;
 
 
+typedef enum{
+	UI_SIFS_RESERVED	= 0U,
+	UI_SIFS_DISABLE_SPI	= 2U,
+	UI_SIFS_DISABLE_I2C	= 3U,
+}ICM42688_UI_SIFS_Cfg_t;
+
+
+typedef enum{
+	SENSOR_DATA_LITTLE_ENDIAN	= 0U,
+	SENSOR_DATA_BIG_ENDIAN		= 1U,
+}ICM42688_Sensor_Data_Endian_t;
+
+
+
+
+/* ============================================================================
+ *	INTERRUPT ENUMS
+ * ============================================================================ */
 // INT_CONFIG Defines
 typedef enum{
 	INT_ACTIVE_LOW 	= 0U,
@@ -195,19 +254,11 @@ typedef enum{
 }ICM42688_Int_Status_t;
 
 
-typedef enum{
-	UI_SIFS_RESERVED	= 0U,
-	UI_SIFS_DISABLE_SPI	= 2U,
-	UI_SIFS_DISABLE_I2C	= 3U,
-}ICM42688_UI_SIFS_Cfg_t;
 
 
-typedef enum{
-	SENSOR_DATA_LITTLE_ENDIAN	= 0U,
-	SENSOR_DATA_BIG_ENDIAN		= 1U,
-}ICM42688_Sensor_Data_Endian_t;
-
-
+/* ============================================================================
+ *	FIFO ENUMS
+ * ============================================================================ */
 typedef enum{
 	FIFO_COUNT_LITTLE_ENDIAN	= 0U,
 	FIFO_COUNT_BIG_ENDIAN		= 1U,
@@ -226,47 +277,11 @@ typedef enum{
 }ICM42688_FIFO_Hold_Last_Data_En_t;
 
 
-// FIFO_CONFIG Defines
 typedef enum{
 	BYPASS			= 0x00U,
 	STREAM_TO_FIFO	= 0x01U,
 	STOP_ON_FULL	= 0x02U
 }ICM42688_FIFO_Mode_t;
-
-
-// TEMPERATURE Enable/Disable
-typedef enum{
-	TEMP_ENABLE		= 0x00U,
-	TEMP_DISABLE	= 0x01U,
-}ICM42688_Temp_t;
-
-
-// Temperature Filter Bandwidth
-typedef enum{
-	TEMP_4000Hz_BW_0125ms_DLPF_LATENCY 	= 0x00U,
-	TEMP_170Hz_BW_1ms_DLPF_LATENCY		= 0x01U,
-	TEMP_82Hz_BW_2ms_DLPF_LATENCY		= 0x02U,
-	TEMP_40Hz_BW_4ms_DLPF_LATENCY		= 0x03U,
-	TEMP_20Hz_BW_8ms_DLPF_LATENCY		= 0x04U,
-	TEMP_10Hz_BW_16ms_DLPF_LATENCY		= 0x05U,
-	TEMP_5Hz_BW_32ms_DLPF_LATENCY		= 0x06U
-}ICM42688_Temp_Filt_BW_t;
-
-
-typedef enum{
-	BW_ODR_DIV_2		= 0x00,
-	BW_400Hz_ODR_DIV_4	= 0x01,
-	BW_1x_AVG_FILT		= 0x01,
-	BW_400Hz_ODR_DIV_5 	= 0x02,
-	BW_400Hz_ODR_DIV_8	= 0x03,
-	BW_400Hz_ODR_DIV_10	= 0x04,
-	BW_400Hz_ODR_DIV_16	= 0x05,
-	BW_400Hz_ODR_DIV_20	= 0x06,
-	BW_16x_AVG_FILT		= 0x06,
-	BW_400Hz_ODR_DIV_40	= 0x07,
-	LOW_LATENCY_DEC2_400Hz_ODR = 0x0E,
-	LOW_LATENCY_DEC2_200Hz_ODR = 0x0F,
-}ICM42688_UIFilt_BW_t;
 
 
 typedef enum{
@@ -292,6 +307,15 @@ typedef enum{
 	FIFO_PARTIAL_READ_DISABLE	= 0x00,	// Partial FIFO read disable: must re-read the entire FIFO
 	FIFO_PARTIAL_READ_ENABLE	= 0x01,	// Partial FIFO read enable: resume from the last read point
 }ICM42688_FIFO_Resume_Read_t;
+
+
+typedef enum{
+	FIFO_PACKET_INVALID	= 0U,
+	FIFO_PACKET_1		= 1U,
+	FIFO_PACKET_2		= 2U,
+	FIFO_PACKET_3		= 3U,
+	FIFO_PACKET_4		= 4U
+}ICM42688_FIFO_Packet_t;
 
 
 
@@ -362,6 +386,45 @@ typedef struct{
 
 
 typedef struct{
+	/* Packet 1 = 8 bytes
+	 * 		header(1) + accel(6) + fifo_temp(1)
+	 * Packet 2 = 8 bytes
+	 * 		header(1) + gyro(6) + fifo_temp(1)
+	 * Packet 3 = 16 bytes
+	 * 		header(1) + accel(6) + gyro(6) + fifo_temp(1) + timestamp(2)
+	 * Packet 4 = 20 bytes (not being built for now) */
+	ICM42688_FIFO_Packet_t	packet_type;
+
+	uint8_t		header;
+	uint8_t		packet_size;
+	uint8_t		timestamp_fsync_mode;
+
+	// Normal 16-bit packet raw values
+	int16_t 	accel_raw16[3];
+	int16_t 	gyro_raw16[3];
+
+	// Packet 4: 20-bit reconstructed signed values
+	int32_t 	accel_raw20[3];
+	int32_t 	gyro_raw20[3];
+
+	// Packet 1/2/3: FIFO temperature = 8-bit
+	int8_t		temp_raw8;
+
+	// Packet 4 temperature = 16-bit
+	int16_t		temp_raw16;
+
+	// Converted outputs
+	float		temp_c;
+	float		accel_g[3];
+	float		gyro_dps[3];
+	uint16_t	timestamp;
+
+	//Raw packet bytes for debugging only
+	uint8_t		raw[20];
+}ICM42688_FIFO_Frame_t;
+
+
+typedef struct{
 	ICM42688_FIFO_Mode_t			fifo_mode;
 	uint16_t						fifo_watermark;
 	uint16_t						fifo_count;
@@ -386,6 +449,10 @@ typedef struct{
 }ICM42688_Cached_Val_t;
 
 
+
+/* ==============================================================================
+ *	MAIN HANDLE STRUCT
+ * ============================================================================== */
 
 // Struct stores every important thing
 typedef struct{
