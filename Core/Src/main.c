@@ -20,6 +20,8 @@
 #include "main.h"
 #include "adc.h"
 #include "dma.h"
+#include "spi.h"
+#include "usart.h"
 #include "gpio.h"
 #include "spi.h"
 
@@ -97,8 +99,15 @@ main(void)
     Long_ADC_startADC1Int(&hadc1); // Start reading STM32's temperature using interrupt
     /* USER CODE END 2 */
 
-    /* Infinite loop */
-    /* USER CODE BEGIN WHILE */
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_DMA_Init();
+  MX_SPI1_Init();
+  MX_ADC1_Init();
+  MX_USART6_UART_Init();
+  /* USER CODE BEGIN 2 */
+  Long_ADC_startADC1Int(&hadc1);	//Start reading STM32's temperature using interrupt
+  /* USER CODE END 2 */
 
     while (1) {
         /* USER CODE END WHILE */
