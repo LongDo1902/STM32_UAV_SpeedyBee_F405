@@ -13,14 +13,19 @@
 #include "imu/core/icm42688_types.h"
 #include "imu/core/icm42688_rw.h"
 
-HAL_StatusTypeDef ICM42688_Get_Temperature_C(ICM42688_Handle_t* handle, float* out_temp_c);
+HAL_StatusTypeDef
+ICM42688_Get_Temperature_C(ICM42688_Handle_t *handle, float *out_temp_c);
 
-HAL_StatusTypeDef ICM42688_Get_Accel_XYZ(ICM42688_Handle_t* handle, int16_t* buf);
+HAL_StatusTypeDef
+ICM42688_Get_Accel_XYZ(ICM42688_Handle_t *handle, int16_t *buf);
 
-HAL_StatusTypeDef ICM42688_Get_Accel_G(ICM42688_Handle_t* handle, float g[3]);
+HAL_StatusTypeDef
+ICM42688_Get_Accel_G(ICM42688_Handle_t *handle, float g[3]);
 
-HAL_StatusTypeDef ICM42688_Get_Gyro_XYZ(ICM42688_Handle_t* handle, int16_t* buf);
+HAL_StatusTypeDef
+ICM42688_Get_Gyro_XYZ(ICM42688_Handle_t *handle, int16_t *buf);
 
-HAL_StatusTypeDef ICM42688_Get_Gyro_DPS(ICM42688_Handle_t* handle, float dps[3]);
+HAL_StatusTypeDef
+ICM42688_Get_Gyro_DPS(ICM42688_Handle_t *handle, float dps[3]);
 
 #endif /* INC_IMU_SENSORS_ICM42688_DATA_H_ */
