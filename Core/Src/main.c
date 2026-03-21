@@ -150,8 +150,6 @@ main(void)
     /* USER CODE END 3 */
 }
 
-
-
 /**
  * @brief System Clock Configuration
  * @retval None
@@ -196,8 +194,6 @@ SystemClock_Config(void)
     }
 }
 
-
-
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
@@ -216,9 +212,6 @@ Error_Handler(void)
     }
     /* USER CODE END Error_Handler_Debug */
 }
-
-
-
 #ifdef USE_FULL_ASSERT
 /**
  * @brief  Reports the name of the source file and the source line number
