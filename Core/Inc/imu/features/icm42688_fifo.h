@@ -53,7 +53,14 @@ HAL_StatusTypeDef
 ICM42688_Get_FIFO_Count(ICM42688_Handle_t *handle, uint16_t *fifoCount);
 
 HAL_StatusTypeDef
-ICM42688_Get_FIFO_Data(ICM42688_Handle_t *handle, uint8_t *buf, uint16_t bufSize,
-				uint16_t *byteRead);
+ICM42688_Get_FIFO_Packet_Info_From_Header(uint8_t header, ICM42688_FIFO_Packet_t *packetType,
+							uint16_t *packetSize);
+
+HAL_StatusTypeDef
+ICM42688_FIFO_Parse_Frame(ICM42688_Handle_t *handle, const uint8_t *packet, uint16_t packetSize,
+					ICM42688_FIFO_Frame_t *frame);
+
+HAL_StatusTypeDef
+ICM42688_Get_FIFO_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *frame);
 
 #endif /* INC_IMU_ICM42688_FIFO_H_ */

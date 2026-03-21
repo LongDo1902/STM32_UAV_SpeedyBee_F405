@@ -45,7 +45,7 @@ ICM42688_IsAlive(ICM42688_Handle_t *handle)
 }
 
 
-
+/* @formatter:off */
 HAL_StatusTypeDef
 ICM42688_SoftReset(ICM42688_Handle_t *handle)
 {
@@ -59,7 +59,6 @@ ICM42688_SoftReset(ICM42688_Handle_t *handle)
 
 	HAL_Delay(5);
 
-	/* @formatter:off */
 	//After reset, set every flag to a default/known state
 	handle->is_reset 			= true;
 	handle->is_initialized 		= false;
@@ -120,5 +119,11 @@ ICM42688_SoftReset(ICM42688_Handle_t *handle)
 
 
 	return status;
-	/* @formatter:on */
+}
+/* @formatter:on */
+
+
+
+HAL_StatusTypeDef ICM42688_Init(){
+
 }
