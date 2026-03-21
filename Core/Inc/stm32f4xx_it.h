@@ -58,7 +58,6 @@ void SysTick_Handler(void);
 void ADC_IRQHandler(void);
 void SPI1_IRQHandler(void);
 void DMA2_Stream0_IRQHandler(void);
-void DMA2_Stream1_IRQHandler(void);
 void DMA2_Stream3_IRQHandler(void);
 void DMA2_Stream4_IRQHandler(void);
 void USART6_IRQHandler(void);

@@ -60,7 +60,6 @@ extern ADC_HandleTypeDef hadc1;
 extern DMA_HandleTypeDef hdma_spi1_rx;
 extern DMA_HandleTypeDef hdma_spi1_tx;
 extern SPI_HandleTypeDef hspi1;
-extern DMA_HandleTypeDef hdma_usart6_rx;
 extern UART_HandleTypeDef huart6;
 /* USER CODE BEGIN EV */
 
@@ -84,8 +83,6 @@ void NMI_Handler(void)
   /* USER CODE END NonMaskableInt_IRQn 1 */
 }
 
-
-
 /**
   * @brief This function handles Hard fault interrupt.
   */
@@ -100,8 +97,6 @@ void HardFault_Handler(void)
     /* USER CODE END W1_HardFault_IRQn 0 */
   }
 }
-
-
 
 /**
   * @brief This function handles Memory management fault.
@@ -118,8 +113,6 @@ void MemManage_Handler(void)
   }
 }
 
-
-
 /**
   * @brief This function handles Pre-fetch fault, memory access fault.
   */
@@ -134,8 +127,6 @@ void BusFault_Handler(void)
     /* USER CODE END W1_BusFault_IRQn 0 */
   }
 }
-
-
 
 /**
   * @brief This function handles Undefined instruction or illegal state.
@@ -152,8 +143,6 @@ void UsageFault_Handler(void)
   }
 }
 
-
-
 /**
   * @brief This function handles System service call via SWI instruction.
   */
@@ -166,8 +155,6 @@ void SVC_Handler(void)
 
   /* USER CODE END SVCall_IRQn 1 */
 }
-
-
 
 /**
   * @brief This function handles Debug monitor.
@@ -182,8 +169,6 @@ void DebugMon_Handler(void)
   /* USER CODE END DebugMonitor_IRQn 1 */
 }
 
-
-
 /**
   * @brief This function handles Pendable request for system service.
   */
@@ -196,8 +181,6 @@ void PendSV_Handler(void)
 
   /* USER CODE END PendSV_IRQn 1 */
 }
-
-
 
 /**
   * @brief This function handles System tick timer.
@@ -212,8 +195,6 @@ void SysTick_Handler(void)
 
   /* USER CODE END SysTick_IRQn 1 */
 }
-
-
 
 /******************************************************************************/
 /* STM32F4xx Peripheral Interrupt Handlers                                    */
@@ -236,8 +217,6 @@ void ADC_IRQHandler(void)
   /* USER CODE END ADC_IRQn 1 */
 }
 
-
-
 /**
   * @brief This function handles SPI1 global interrupt.
   */
@@ -251,8 +230,6 @@ void SPI1_IRQHandler(void)
 
   /* USER CODE END SPI1_IRQn 1 */
 }
-
-
 
 /**
   * @brief This function handles DMA2 stream0 global interrupt.
@@ -268,22 +245,6 @@ void DMA2_Stream0_IRQHandler(void)
   /* USER CODE END DMA2_Stream0_IRQn 1 */
 }
 
-
-
-/**
-  * @brief This function handles DMA2 stream1 global interrupt.
-  */
-void DMA2_Stream1_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA2_Stream1_IRQn 0 */
-
-  /* USER CODE END DMA2_Stream1_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_usart6_rx);
-  /* USER CODE BEGIN DMA2_Stream1_IRQn 1 */
-
-  /* USER CODE END DMA2_Stream1_IRQn 1 */
-}
-
 /**
   * @brief This function handles DMA2 stream3 global interrupt.
   */
@@ -297,8 +258,6 @@ void DMA2_Stream3_IRQHandler(void)
 
   /* USER CODE END DMA2_Stream3_IRQn 1 */
 }
-
-
 
 /**
   * @brief This function handles DMA2 stream4 global interrupt.
