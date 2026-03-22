@@ -120,6 +120,9 @@ ICM42688_SoftReset(ICM42688_Handle_t *handle)
 
 	return status;
 }
+
+
+
 /* @formatter:on */
 
 
@@ -148,13 +151,24 @@ ICM42688_Init(ICM42688_Handle_t *handle)
 	status = ICM42688_Set_Sensor_Data_Endian(handle, SENSOR_DATA_BIG_ENDIAN);
 	if(status != HAL_OK) return status;
 
-	status = ICM42688_Set_AccelConfig(handle, ACCEL_LOW_NOISE, ACCEL_ODR_4KHz, ACCEL_FSR_8g);
+	// Accel configuring
+	status = ICM42688_Set_AccelConfig(handle, ACCEL_LOW_NOISE, ACCEL_ODR_8KHz, ACCEL_FSR_8g);
 	if(status != HAL_OK) return status;
 
+	status = ICM42688_Set_Accel_UIFilt_BW(handle, BW_ODR_DIV_2);
+	if(status != HAL_OK) return status;
+
+	status = ICM42688_Set_Accel_UIFilt_Order(handle, ACCEL_FIRST_ORDER);
+	if(status != HAL_OK) return status;
+
+	// Gyro configuring
 	status = ICM42688_Set_GyroConfig(handle, GYRO_LOW_NOISE, GYRO_ODR_8KHz, GYRO_FSR_2000dps);
 	if(status != HAL_OK) return status;
 
-	status = ICM42688_Set_Accel_UIFilt_BW(handle, bw);
+	status = ICM42688_Set_Gyro_UIFilt_BW(handle, BW_ODR_DIV_2);
+	if(status != HAL_OK) return status;
+
+	status = ICM42688_Set_Gyro_UIFilt_Order(handle, GYRO_FIRST_ORDER);
 
 	return HAL_OK;
 }

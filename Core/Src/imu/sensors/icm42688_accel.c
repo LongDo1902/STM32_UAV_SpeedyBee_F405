@@ -172,3 +172,52 @@ ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t *handle, ICM42688_UIFilt_BW_t bw)
 	handle->accel_config.accel_uifilt_bw = (ICM42688_UIFilt_BW_t) bw;
 	return HAL_OK;
 }
+
+
+
+HAL_StatusTypeDef
+ICM42688_Set_Accel_UIFilt_Order(ICM42688_Handle_t *handle, ICM42688_AccelUIFiltOrder_t filterOrder)
+{
+	if (!handle) return HAL_ERROR;
+
+	uint8_t reg = 0U;
+	HAL_StatusTypeDef status = ICM42688_ReadReg(	handle,
+									ICM42688_UB0_ACCEL_CONF1,
+									&reg);
+	if (status != HAL_OK) return status;
+
+	reg &= (uint8_t) ~ICM42688_ACCEL_UI_FILT_ORD_Msk;
+	reg |= (uint8_t) ICM42688_ACCEL_UI_FILT_ORD_Val(filterOrder);
+	status = ICM42688_WriteReg(	handle,
+						ICM42688_UB0_ACCEL_CONF1,
+						reg);
+
+	if (status != HAL_OK) return status;
+
+	handle->accel_config.accel_filt_order = filterOrder;
+
+	return HAL_OK;
+}
+
+
+
+HAL_StatusTypeDef
+ICM42688_Set_Accel_Anti_Alias_Filt(ICM42688_Handle_t *handle, ICM42688_AAF_En_t antiAliasState)
+{
+	if (!handle) return HAL_ERROR;
+
+	uint8_t reg = 0U;
+	HAL_StatusTypeDef status = ICM42688_ReadReg(	handle,
+									ICM42688_UB2_ACCEL_CONF_STATIC2,
+									&reg);
+	if (status != HAL_OK) return status;
+
+	reg &= (uint8_t)~ICM42688
+
+
+}
+
+//ICM42688_UB2_ACCEL_CONF_STATIC2
+
+
+

@@ -128,3 +128,29 @@ ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t *handle, ICM42688_UIFilt_BW_t bw)
 	handle->gyro_config.gyro_uifilt_bw = bw;
 	return HAL_OK;
 }
+
+
+
+HAL_StatusTypeDef
+ICM42688_Set_Gyro_UIFilt_Order(ICM42688_Handle_t *handle, ICM42688_GyroUIFiltOrder_t filterOrder)
+{
+	if (!handle) return HAL_ERROR;
+
+	uint8_t reg = 0U;
+	HAL_StatusTypeDef status = ICM42688_ReadReg(	handle,
+									ICM42688_UB0_GYRO_CONF1,
+									&reg);
+	if (status != HAL_OK) return status;
+
+	reg &= (uint8_t) ~ICM42688_GYRO_UI_FILT_ORD_Msk;
+	reg |= (uint8_t) ICM42688_GYRO_UI_FILT_ORD_Val(filterOrder);
+	status = ICM42688_WriteReg(	handle,
+						ICM42688_UB0_GYRO_CONF1,
+						reg);
+
+	if (status != HAL_OK) return status;
+
+	handle->gyro_config.gyro_filt_order = filterOrder;
+
+	return HAL_OK;
+}
