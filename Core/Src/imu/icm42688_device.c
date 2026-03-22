@@ -117,13 +117,40 @@ ICM42688_SoftReset(ICM42688_Handle_t *handle)
 	handle->fifo_config.fifo_hires_state 	= FIFO_HIRES_DISABLE;
 	handle->fifo_config.fifo_partial_read_state = FIFO_PARTIAL_READ_DISABLE;
 
-
 	return status;
 }
 /* @formatter:on */
 
 
 
-HAL_StatusTypeDef ICM42688_Init(){
+/* @formatter:off */
+HAL_StatusTypeDef
+ICM42688_Init(ICM42688_Handle_t *handle)
+{
+	if (!handle) return HAL_ERROR;
+
+	HAL_StatusTypeDef status = ICM42688_SoftReset(handle);
+	if (status != HAL_OK) return status;
+
+	status = ICM42688_IsAlive(handle);
+	if (status != HAL_OK) return status;
+
+	status = ICM42688_Set_SPI_Mode(handle, SPI_MODE_0_3);
+	if (status != HAL_OK) return status;
+
+	status = ICM42688_Set_SPI_SlewRate(handle, SPI_SR_2NS);
+	if (status != HAL_OK) return status;
+
+	status = ICM42688_Set_UI_SIFS_Conf(handle, UI_SIFS_DISABLE_I2C);
+	if (status != HAL_OK) return status;
+
+	status = ICM42688_Set_Sensor_Data_Endian(handle, SENSOR_DATA_BIG_ENDIAN);
+	if(status != HAL_OK) return status;
+
+	status = ICM42688_Set_AccelConfig(handle, ACCEL_LOW_NOISE, ACCEL_ODR_4KHz, ACCEL_FSR_8g);
+	if(status != HAL_OK) return status;
+
+	status = ICM42688_Set_GyroConfig(handle, GYRO_LOW_NOISE, GYRO_ODR_8KHz, fsr);
 
 }
+/* @formatter:on */

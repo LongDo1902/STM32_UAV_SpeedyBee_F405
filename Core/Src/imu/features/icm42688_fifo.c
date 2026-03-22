@@ -599,9 +599,6 @@ ICM42688_Get_FIFO_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *frame)
 										&packetSize);
 	if (status != HAL_OK) return status;
 
-	frame->packet_type = packetType;
-	frame->packet_size = packetSize;
-
 	uint8_t packet[20] = { 0 };
 	packet[0] = header;
 
@@ -613,15 +610,18 @@ ICM42688_Get_FIFO_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *frame)
 		if (status != HAL_OK) return status;
 	}
 
+	memset(	frame,
+			0,
+			sizeof(*frame));
+
+	frame->packet_type = packetType;
+	frame->packet_size = packetSize;
+
 	status = ICM42688_FIFO_Parse_Frame(	handle,
 							packet,
 							packetSize,
 							frame);
 	if (status != HAL_OK) return status;
-
-	memset(	frame,
-			0,
-			sizeof(*frame));
 
 	return HAL_OK;
 }
