@@ -33,7 +33,7 @@ ICM42688_Set_AccelConfig(ICM42688_Handle_t *handle, ICM42688_AccelMode_t mode,
 	if ((odr == 0x00U) || (uint8_t) odr > (uint8_t) ACCEL_ODR_500Hz) return HAL_ERROR;
 	if ((uint8_t) fsr > (uint8_t) ACCEL_FSR_2g) return HAL_ERROR;
 
-	//Validate ODR against accel mode
+	// Validate ODR against accel mode
 	bool odrValid = false;
 	if (mode == ACCEL_LOW_NOISE) {
 		odrValid = ((odr >= ACCEL_ODR_32KHz) && (odr <= ACCEL_ODR_12Hz5))
@@ -42,7 +42,7 @@ ICM42688_Set_AccelConfig(ICM42688_Handle_t *handle, ICM42688_AccelMode_t mode,
 	else if (mode == ACCEL_LOW_POWER) {
 		odrValid = ((odr >= ACCEL_ODR_200Hz) && (odr <= ACCEL_ODR_500Hz));
 	}
-	else { //Accel is OFF
+	else { // Accel is OFF
 		odrValid = true;
 	}
 
@@ -71,7 +71,7 @@ ICM42688_Set_AccelConfig(ICM42688_Handle_t *handle, ICM42688_AccelMode_t mode,
 			handle->accel_config.accel_mode = currNormMode;
 
 			if (prevModeIsOff && !currModeIsOff) {
-				HAL_Delay(1); //Wait at least 200us if mode changes from OFF to any other mode
+				HAL_Delay(1); // Wait at least 200us if mode changes from OFF to any other mode
 			}
 		}
 	}
