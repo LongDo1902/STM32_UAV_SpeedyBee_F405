@@ -26,4 +26,7 @@ ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t *handle, ICM42688_UIFilt_BW_t bw);
 HAL_StatusTypeDef
 ICM42688_Set_Gyro_UIFilt_Order(ICM42688_Handle_t *handle, ICM42688_GyroUIFiltOrder_t filterOrder);
 
+HAL_StatusTypeDef
+ICM42688_Set_Gyro_Anti_Alias_Filt(ICM42688_Handle_t *handle, ICM42688_AAF_En_t antiAliasState);
+
 #endif /* SRC_IMU_SENSORS_ICM42688_GYRO_H_ */

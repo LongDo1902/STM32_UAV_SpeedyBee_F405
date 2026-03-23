@@ -212,12 +212,18 @@ ICM42688_Set_Accel_Anti_Alias_Filt(ICM42688_Handle_t *handle, ICM42688_AAF_En_t 
 									&reg);
 	if (status != HAL_OK) return status;
 
-	reg &= (uint8_t)~ICM42688
+	reg &= (uint8_t) ~ICM42688_ACCEL_AAF_DIS_Msk;
+	reg |= (uint8_t) ICM42688_ACCEL_AAF_DIS_Val(antiAliasState);
+	status = ICM42688_WriteReg(	handle,
+						ICM42688_UB2_ACCEL_CONF_STATIC2,
+						reg);
 
+	if (status != HAL_OK) return status;
 
+	handle->accel_config.accel_aaf_state = antiAliasState;
+
+	return HAL_OK;
 }
-
-//ICM42688_UB2_ACCEL_CONF_STATIC2
 
 
 

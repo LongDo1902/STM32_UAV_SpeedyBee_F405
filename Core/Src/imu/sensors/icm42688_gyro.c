@@ -1,5 +1,5 @@
 /*
- * icm42688_sensor.c
+ * icm42688_gyro.c
  *
  *  Created on: Mar 12, 2026
  *      Author: dobao
@@ -151,6 +151,58 @@ ICM42688_Set_Gyro_UIFilt_Order(ICM42688_Handle_t *handle, ICM42688_GyroUIFiltOrd
 	if (status != HAL_OK) return status;
 
 	handle->gyro_config.gyro_filt_order = filterOrder;
+
+	return HAL_OK;
+}
+
+
+
+HAL_StatusTypeDef
+ICM42688_Set_Gyro_Anti_Alias_Filt(ICM42688_Handle_t *handle, ICM42688_AAF_En_t antiAliasState)
+{
+	if (!handle) return HAL_ERROR;
+
+	uint8_t reg = 0U;
+	HAL_StatusTypeDef status = ICM42688_ReadReg(	handle,
+									ICM42688_UB1_GYRO_CONF_STATIC2,
+									&reg);
+	if (status != HAL_OK) return status;
+
+	reg &= (uint8_t) ~ICM42688_GYRO_AAF_DIS_Msk;
+	reg |= (uint8_t) ICM42688_GYRO_AAF_DIS_Val(antiAliasState);
+	status = ICM42688_WriteReg(	handle,
+						ICM42688_UB1_GYRO_CONF_STATIC2,
+						reg);
+
+	if (status != HAL_OK) return status;
+
+	handle->gyro_config.gyro_aaf_state = antiAliasState;
+
+	return HAL_OK;
+}
+
+
+
+HAL_StatusTypeDef
+ICM42688_Set_Gyro_Notch_Filt(ICM42688_Handle_t *handle, ICM42688_Notch_Filt_En_t notchFiltState)
+{
+	if (!handle) return HAL_ERROR;
+
+	uint8_t reg = 0U;
+	HAL_StatusTypeDef status = ICM42688_ReadReg(	handle,
+									ICM42688_UB1_GYRO_CONF_STATIC2,
+									&reg);
+	if (status != HAL_OK) return status;
+
+	reg &= (uint8_t) ~ICM42688_GYRO_NOTCH_FILT_Msk;
+	reg |= (uint8_t) ICM42688_GYRO_NOTCH_FILT_Val(notchFiltState);
+	status = ICM42688_WriteReg(	handle,
+						ICM42688_UB1_GYRO_CONF_STATIC2,
+						reg);
+
+	if (status != HAL_OK) return status;
+
+	handle->gyro_config.gyro_notch_filt_state = notchFiltState;
 
 	return HAL_OK;
 }

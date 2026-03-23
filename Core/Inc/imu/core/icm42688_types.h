@@ -86,6 +86,13 @@ typedef enum
 } ICM42688_AAF_En_t;
 
 
+typedef enum
+{
+	ENABLE_NOTCH_FILT = 0U,
+	DISABLE_NOTCH_FILT = 1U
+} ICM42688_Notch_Filt_En_t;
+
+
 /* ============================================================================
  *	ACCELOROMETER DEFINES
  * ============================================================================ */
@@ -363,22 +370,25 @@ typedef struct
 
 typedef struct
 {
-	ICM42688_GyroODR_t gyro_odr;
-	ICM42688_GyroFSR_t gyro_fsr;
-	ICM42688_GyroNotch_t gyro_notch;
-	ICM42688_GyroUIFiltOrder_t gyro_filt_order;
-	ICM42688_GyroMode_t gyro_mode;
-	ICM42688_UIFilt_BW_t gyro_uifilt_bw;
+	ICM42688_GyroODR_t 		gyro_odr;
+	ICM42688_GyroFSR_t 		gyro_fsr;
+	ICM42688_GyroNotch_t 		gyro_notch;
+	ICM42688_GyroUIFiltOrder_t 	gyro_filt_order;
+	ICM42688_GyroMode_t 		gyro_mode;
+	ICM42688_UIFilt_BW_t 		gyro_uifilt_bw;
+	ICM42688_AAF_En_t			gyro_aaf_state;
+	ICM42688_Notch_Filt_En_t	gyro_notch_filt_state;
 } ICM42688_Gyro_Config_t;
 
 
 typedef struct
 {
-	ICM42688_AccelODR_t accel_odr;
-	ICM42688_AccelFSR_t accel_fsr;
-	ICM42688_AccelUIFiltOrder_t accel_filt_order;
-	ICM42688_AccelMode_t accel_mode;
-	ICM42688_UIFilt_BW_t accel_uifilt_bw;
+	ICM42688_AccelODR_t 		accel_odr;
+	ICM42688_AccelFSR_t 		accel_fsr;
+	ICM42688_AccelUIFiltOrder_t 	accel_filt_order;
+	ICM42688_AccelMode_t 		accel_mode;
+	ICM42688_UIFilt_BW_t 		accel_uifilt_bw;
+	ICM42688_AAF_En_t			accel_aaf_state;
 } ICM42688_Accel_Config_t;
 
 
@@ -392,23 +402,23 @@ typedef struct
 
 typedef struct
 {
-	ICM42688_Int_Polarity_t int1_polarity;
-	ICM42688_Int_Drive_Circuit_t int1_drive;
-	ICM42688_Int_Mode_t int1_mode;
+	ICM42688_Int_Polarity_t 	int1_polarity;
+	ICM42688_Int_Drive_Circuit_t 	int1_drive;
+	ICM42688_Int_Mode_t 		int1_mode;
 } ICM42688_Int1_Config_t;
 
 
 typedef struct
 {
-	ICM42688_Int_Polarity_t int2_polarity;
-	ICM42688_Int_Drive_Circuit_t int2_drive;
-	ICM42688_Int_Mode_t int2_mode;
+	ICM42688_Int_Polarity_t 	int2_polarity;
+	ICM42688_Int_Drive_Circuit_t 	int2_drive;
+	ICM42688_Int_Mode_t 		int2_mode;
 } ICM42688_Int2_Config_t;
 
 
 typedef struct
 {
-	ICM42688_UI_SIFS_Cfg_t ui_sifs_config;
+	ICM42688_UI_SIFS_Cfg_t 		ui_sifs_config;
 	ICM42688_Sensor_Data_Endian_t sensor_data_endian;
 } ICM42688_Intf_Config0_t;
 
