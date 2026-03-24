@@ -631,36 +631,62 @@ ICM42688_Get_FIFO_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *frame)
 
 
 
-/* @brief	Read the entire FIFO bytes one for single SPI read
- * @note	This function assumes PARTIAL_READ bit is disabled and FIFO_COUNT is in byte */
+/* @brief	Read all available FIFO bytes in one SPI burst
+ * @note 	This function is valid only:
+ * 			FIFO is enabled NOT BYPASS
+ * 			FIFO count is configured to report in BYTES
+ * 			Partial FIFO read is DISABLED
+ * 		In this mode, FIFO_COUNT gives the total number of bytes to read,
+ * 		and the driver performs one burst read from FIFO_DATA */
 HAL_StatusTypeDef
-ICM42688_FIFO_Parse_Frames(ICM42688_Handle_t *handle, const uint8_t *rawFIFOBuf,
-					uint16_t fifoCountInByte, ICM42688_FIFO_Frame_t *frame)
+ICM42688_Get_FIFO_Block(ICM42688_Handle_t *handle, const uint8_t *rawFIFOBuf, uint16_t rawBufSize,
+				uint16_t *fifoCountInByte)
 {
-	if (!handle || !rawFIFOBuf || !frame) return HAL_ERROR;
-	if (fifoCountInByte <= 0U) return HAL_ERROR;
+	if (!handle || !rawFIFOBuf || !fifoCountInByte) return HAL_ERROR;
+	if (rawBufSize == 0U) return HAL_ERROR;
+	if (handle->fifo_config.fifo_mode == BYPASS) return HAL_ERROR;
+
+	if (handle->fifo_config.fifo_count_rec != FIFO_COUNT_IN_BYTE) return HAL_ERROR;
+	if (handle->fifo_config.fifo_partial_read_state != FIFO_PARTIAL_READ_DISABLE) return HAL_ERROR;
+
+	*fifoCountInByte = 0U;
+
+	HAL_StatusTypeDef status = ICM42688_Get_FIFO_Count(	handle,
+										fifoCountInByte);
+	if (status != HAL_OK) return status;
+
+	if ((*fifoCountInByte == 0U) || (*fifoCountInByte > rawBufSize)) return HAL_ERROR;
+
+	status = ICM42688_ReadRegs(	handle,
+						ICM42688_UB0_FIFO_DATA,
+						rawFIFOBuf,
+						*fifoCountInByte);
+	if (status != HAL_OK) return status;
+
+	return HAL_OK;
+}
+
+
+
+HAL_StatusTypeDef
+ICM42688_FIFO_Parse_One_Frame_From_Block(ICM42688_Handle_t *handle, const uint8_t *rawFIFOBuf,
+							uint16_t fifoCountInByte, uint16_t *curPos,
+							ICM42688_FIFO_Frame_t *frame)
+{
+	if (!handle || !rawFIFOBuf || !curPos || !frame) return HAL_ERROR;
+	if(*curPos >= fifoCountInByte) return HAL_ERROR;
+
+	uint8_t header = rawFIFOBuf[*curPos];
+	ICM42688_FIFO_Packet_t packetType = FIFO_PACKET_INVALID;
+	uint16_t packetSize = 0U;
+
+	HAL_StatusTypeDef status = ICM42688_Get_FIFO_Packet_Info_From_Header(header, &packetType, &packetSize);
+	if(status != HAL_OK) return status;
+	if((packetSize == 0U) || (packetType == FIFO_PACKET_INVALID)) return HAL_ERROR;
 
 
 
 }
-
-//HAL_StatusTypeDef
-//ICM42688_Get_FIFO_Block(ICM42688_Handle_t* handle, uint8_t* , )
-//{
-//	if(!handle) return HAL_ERROR;
-//
-//	// FIFO mode must not be BYPASS
-//	if(handle -> fifo_config.fifo_mode == BYPASS) return HAL_ERROR;
-//
-//	uint16_t fifoCountInByte = 0U;
-//
-//	HAL_StatusTypeDef status = ICM42688_Get_FIFO_Count(handle, &fifoCountInByte);
-//	if(status != HAL_OK) return status;
-//	if(fifoCountInByte <= 0U) return HAL_ERROR;
-//
-//
-//	return HAL_OK;
-//}
 
 
 
