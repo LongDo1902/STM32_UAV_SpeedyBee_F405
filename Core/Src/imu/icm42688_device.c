@@ -161,6 +161,9 @@ ICM42688_Init(ICM42688_Handle_t *handle)
 	status = ICM42688_Set_Accel_UIFilt_Order(handle, ACCEL_FIRST_ORDER);
 	if(status != HAL_OK) return status;
 
+	status = ICM42688_Set_Accel_Anti_Alias_Filt(handle, ENABLE_AAF);
+	if(status != HAL_OK) return status;
+
 	// Gyro configuring
 	status = ICM42688_Set_GyroConfig(handle, GYRO_LOW_NOISE, GYRO_ODR_8KHz, GYRO_FSR_2000dps);
 	if(status != HAL_OK) return status;
@@ -169,6 +172,10 @@ ICM42688_Init(ICM42688_Handle_t *handle)
 	if(status != HAL_OK) return status;
 
 	status = ICM42688_Set_Gyro_UIFilt_Order(handle, GYRO_FIRST_ORDER);
+	if(status != HAL_OK) return status;
+
+	status = ICM42688_Set_Gyro_Anti_Alias_Filt(handle, ENABLE_AAF);
+	if(status != HAL_OK) return status;
 
 	return HAL_OK;
 }
