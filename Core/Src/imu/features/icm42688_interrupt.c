@@ -40,6 +40,8 @@ ICM42688_Set_Int1_Config(ICM42688_Handle_t *handle, ICM42688_Int_Polarity_t pola
     return HAL_OK;
 }
 
+
+
 HAL_StatusTypeDef
 ICM42688_Set_Int2_Config(ICM42688_Handle_t *handle, ICM42688_Int_Polarity_t polarity,
                          ICM42688_Int_Drive_Circuit_t drive, ICM42688_Int_Mode_t mode)
@@ -70,6 +72,8 @@ ICM42688_Set_Int2_Config(ICM42688_Handle_t *handle, ICM42688_Int_Polarity_t pola
     return HAL_OK;
 }
 
+
+
 HAL_StatusTypeDef
 ICM42688_Get_Int_Status(ICM42688_Handle_t *handle, uint8_t *outStatus)
 {
@@ -84,6 +88,8 @@ ICM42688_Get_Int_Status(ICM42688_Handle_t *handle, uint8_t *outStatus)
     *outStatus = reg;
     return HAL_OK;
 }
+
+
 
 /*==========================================================================================
  * 	INT_STATUS
@@ -122,6 +128,8 @@ ICM42688_Int_Status_Has(uint8_t status, ICM42688_Int_Status_t intState)
     return (((status & 0x7FU) & mask) != 0U);
 }
 
+
+
 /*==========================================================================================
  * 	INT_SOURCE0
  *==========================================================================================*/
@@ -138,6 +146,8 @@ ICM42688_Set_Int1_FIFO_Full_Enable(ICM42688_Handle_t *handle, bool enable)
     return HAL_OK;
 }
 
+
+
 HAL_StatusTypeDef
 ICM42688_Set_Int1_FIFO_Threshold_Enable(ICM42688_Handle_t *handle, bool enable)
 {
@@ -151,6 +161,8 @@ ICM42688_Set_Int1_FIFO_Threshold_Enable(ICM42688_Handle_t *handle, bool enable)
     return HAL_OK;
 }
 
+
+
 HAL_StatusTypeDef
 ICM42688_Set_Int1_DataReady_Enable(ICM42688_Handle_t *handle, bool enable)
 {
@@ -163,6 +175,8 @@ ICM42688_Set_Int1_DataReady_Enable(ICM42688_Handle_t *handle, bool enable)
         return status;
     return HAL_OK;
 }
+
+
 
 HAL_StatusTypeDef
 ICM42688_Set_Int1_ResetDone_Enable(ICM42688_Handle_t *handle, bool enable)

@@ -584,6 +584,8 @@ ICM42688_FIFO_Parse_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *FIFO
     return HAL_OK;
 }
 
+
+
 HAL_StatusTypeDef
 ICM42688_Get_FIFO_Frame_In_Record(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *FIFO_frame)
 {
@@ -644,6 +646,8 @@ ICM42688_Get_FIFO_Frame_In_Record(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame
     return HAL_OK;
 }
 
+
+
 /* @brief	Read all available FIFO bytes in one SPI burst
  * @note 	This function is valid only:
  * 			FIFO is enabled NOT BYPASS
@@ -685,6 +689,8 @@ ICM42688_Get_FIFO_Frame_In_Byte(ICM42688_Handle_t *handle, uint8_t *rawFIFOBuf, 
 
     return HAL_OK;
 }
+
+
 
 /* @brief	Parse one byte FIFO frame.
  * @note	Must call ICM42688_Get_FIFO_Frame_In_Byte before using this function */

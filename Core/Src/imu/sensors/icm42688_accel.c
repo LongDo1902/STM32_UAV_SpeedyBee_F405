@@ -20,6 +20,8 @@ ICM42688_Update_AccelScaleFactor(ICM42688_Handle_t *handle)
     handle->accel_g_per_lsb         = 1.0f / handle->accel_lsb_per_g_dtsheet;
 }
 
+
+
 /*=============================================================================
  *	ACCEL CONFIG / FILTER
  *============================================================================= */
@@ -101,6 +103,8 @@ ICM42688_Set_AccelConfig(ICM42688_Handle_t *handle, ICM42688_AccelMode_t mode,
     return HAL_OK;
 }
 
+
+
 HAL_StatusTypeDef
 ICM42688_Get_Accel_Mode(ICM42688_Handle_t *handle, uint8_t *modeInfo)
 {
@@ -132,6 +136,8 @@ ICM42688_Get_Accel_Mode(ICM42688_Handle_t *handle, uint8_t *modeInfo)
     }
     return HAL_OK;
 }
+
+
 
 HAL_StatusTypeDef
 ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t *handle, ICM42688_UIFilt_BW_t bw)
@@ -177,6 +183,8 @@ ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t *handle, ICM42688_UIFilt_BW_t bw)
     return HAL_OK;
 }
 
+
+
 HAL_StatusTypeDef
 ICM42688_Set_Accel_UIFilt_Order(ICM42688_Handle_t *handle, ICM42688_AccelUIFiltOrder_t filterOrder)
 {
@@ -199,6 +207,8 @@ ICM42688_Set_Accel_UIFilt_Order(ICM42688_Handle_t *handle, ICM42688_AccelUIFiltO
 
     return HAL_OK;
 }
+
+
 
 HAL_StatusTypeDef
 ICM42688_Set_Accel_Anti_Alias_Filt(ICM42688_Handle_t *handle, ICM42688_AAF_En_t antiAliasState)

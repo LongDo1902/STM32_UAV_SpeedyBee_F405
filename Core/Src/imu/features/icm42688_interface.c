@@ -26,6 +26,8 @@ ICM42688_Set_SPI_Mode(ICM42688_Handle_t *handle, ICM42688_SPI_Mode_t spiMode)
     return HAL_OK;
 }
 
+
+
 HAL_StatusTypeDef
 ICM42688_Get_SPI_SlewRate(ICM42688_Handle_t *handle, ICM42688_SPI_SLEWRATE_t *slewRate)
 {
@@ -42,6 +44,8 @@ ICM42688_Get_SPI_SlewRate(ICM42688_Handle_t *handle, ICM42688_SPI_SLEWRATE_t *sl
 
     return status;
 }
+
+
 
 HAL_StatusTypeDef
 ICM42688_Set_SPI_SlewRate(ICM42688_Handle_t *handle, ICM42688_SPI_SLEWRATE_t slewRate)
@@ -63,6 +67,8 @@ ICM42688_Set_SPI_SlewRate(ICM42688_Handle_t *handle, ICM42688_SPI_SLEWRATE_t sle
     return HAL_OK;
 }
 
+
+
 HAL_StatusTypeDef
 ICM42688_Set_UI_SIFS_Conf(ICM42688_Handle_t *handle, ICM42688_UI_SIFS_Cfg_t config)
 {
@@ -77,6 +83,8 @@ ICM42688_Set_UI_SIFS_Conf(ICM42688_Handle_t *handle, ICM42688_UI_SIFS_Cfg_t conf
     handle->intf_config.ui_sifs_config = config;
     return HAL_OK;
 }
+
+
 
 HAL_StatusTypeDef
 ICM42688_Set_Sensor_Data_Endian(ICM42688_Handle_t            *handle,
