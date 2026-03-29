@@ -8,18 +8,18 @@
 #ifndef INC_IMU_ICM42688_INTERRUPT_H_
 #define INC_IMU_ICM42688_INTERRUPT_H_
 
-#include "imu/core/icm42688_registers.h"
 #include "imu/core/icm42688_masks.h"
-#include "imu/core/icm42688_types.h"
+#include "imu/core/icm42688_registers.h"
 #include "imu/core/icm42688_rw.h"
+#include "imu/core/icm42688_types.h"
 
 HAL_StatusTypeDef
 ICM42688_Set_Int1_Config(ICM42688_Handle_t *handle, ICM42688_Int_Polarity_t polarity,
-					ICM42688_Int_Drive_Circuit_t drive, ICM42688_Int_Mode_t mode);
+                         ICM42688_Int_Drive_Circuit_t drive, ICM42688_Int_Mode_t mode);
 
 HAL_StatusTypeDef
 ICM42688_Set_Int2_Config(ICM42688_Handle_t *handle, ICM42688_Int_Polarity_t polarity,
-					ICM42688_Int_Drive_Circuit_t drive, ICM42688_Int_Mode_t mode);
+                         ICM42688_Int_Drive_Circuit_t drive, ICM42688_Int_Mode_t mode);
 
 HAL_StatusTypeDef
 ICM42688_Get_Int_Status(ICM42688_Handle_t *handle, uint8_t *outStatus);

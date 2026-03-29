@@ -1,0 +1,13 @@
+{
+    "editor.formatOnSave": true,
+    "[c]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools"
+    },
+    "[cpp]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools"
+    },
+    "C_Cpp.default.cStandard": "gnu11",
+    "stm32-for-vscode.openOCDPath": false,
+    "stm32-for-vscode.makePath": false,
+    "stm32-for-vscode.armToolchainPath": false
+}

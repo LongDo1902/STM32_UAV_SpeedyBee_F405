@@ -23,4 +23,10 @@ ICM42688_Get_Accel_Mode(ICM42688_Handle_t *handle, uint8_t *modeInfo);
 HAL_StatusTypeDef
 ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t *handle, ICM42688_UIFilt_BW_t bw);
 
+HAL_StatusTypeDef
+ICM42688_Set_Accel_UIFilt_Order(ICM42688_Handle_t *handle, ICM42688_AccelUIFiltOrder_t filterOrder);
+
+HAL_StatusTypeDef
+ICM42688_Set_Accel_Anti_Alias_Filt(ICM42688_Handle_t *handle, ICM42688_AAF_En_t antiAliasState);
+
 #endif /* SRC_IMU_SENSORS_ICM42688_ACCEL_H_ */
