@@ -8,18 +8,18 @@
 #ifndef INC_IMU_ICM42688_DEVICE_H_
 #define INC_IMU_ICM42688_DEVICE_H_
 
-#include "imu/core/icm42688_registers.h"
 #include "imu/core/icm42688_masks.h"
-#include "imu/core/icm42688_types.h"
+#include "imu/core/icm42688_registers.h"
 #include "imu/core/icm42688_rw.h"
+#include "imu/core/icm42688_types.h"
 
 #include "imu/features/icm42688_interface.h"
 #include "imu/features/icm42688_interrupt.h"
 
 #include "imu/sensors/icm42688_accel.h"
+#include "imu/sensors/icm42688_data.h"
 #include "imu/sensors/icm42688_gyro.h"
 #include "imu/sensors/icm42688_temp.h"
-#include "imu/sensors/icm42688_data.h"
 
 #define ICM42688_WHO_AM_I_DEFAULT	0x47U
 

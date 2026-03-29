@@ -8,10 +8,10 @@
 #ifndef INC_IMU_ICM42688_FIFO_H_
 #define INC_IMU_ICM42688_FIFO_H_
 
-#include "imu/core/icm42688_registers.h"
 #include "imu/core/icm42688_masks.h"
-#include "imu/core/icm42688_types.h"
+#include "imu/core/icm42688_registers.h"
 #include "imu/core/icm42688_rw.h"
+#include "imu/core/icm42688_types.h"
 
 HAL_StatusTypeDef
 ICM42688_Set_FIFO_Count_Endian(ICM42688_Handle_t *handle, ICM42688_FIFO_Count_Endian_t which_endian);
@@ -54,23 +54,24 @@ ICM42688_Get_FIFO_Count(ICM42688_Handle_t *handle, uint16_t *fifoCount);
 
 HAL_StatusTypeDef
 ICM42688_Get_FIFO_Packet_Info_From_Header(uint8_t header, ICM42688_FIFO_Packet_t *packetType,
-							uint8_t *packetSize);
+                                          uint8_t *packetSize);
 
 HAL_StatusTypeDef
 ICM42688_FIFO_Parse_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *FIFO_frame,
-					const uint8_t *FIFO_packet, uint8_t FIFO_packetSize,
-					ICM42688_FIFO_Packet_t FIFO_packetType);
+                          const uint8_t *FIFO_packet, uint8_t FIFO_packetSize,
+                          ICM42688_FIFO_Packet_t FIFO_packetType);
 
 HAL_StatusTypeDef
-ICM42688_Get_FIFO_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *frame);
+ICM42688_Get_FIFO_Frame_In_Record(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *frame);
 
 HAL_StatusTypeDef
-ICM42688_Get_FIFO_Block(ICM42688_Handle_t *handle, uint8_t *rawFIFOBuf, uint16_t rawBufSize,
-				uint16_t *fifoCountInByte);
+ICM42688_Get_FIFO_Frame_In_Byte(ICM42688_Handle_t *handle, uint8_t *rawFIFOBuf, uint16_t rawBufSize,
+                                uint16_t *FIFOCountInByte);
 
 HAL_StatusTypeDef
-ICM42688_FIFO_Parse_One_Frame_From_Block(ICM42688_Handle_t *handle, const uint8_t *rawFIFOBuf,
-							uint16_t FIFOCountInByte, uint16_t *currentPos,
-							ICM42688_FIFO_Frame_t *frame);
+ICM42688_FIFO_Parse_One_Byte_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *FIFO_frame,
+                                   const uint8_t *FIFO_byteBuf, uint16_t FIFOCountInByte,
+                                   uint16_t *currentPos);
+
 
 #endif /* INC_IMU_ICM42688_FIFO_H_ */
