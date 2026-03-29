@@ -339,12 +339,9 @@ ICM42688_Get_FIFO_Packet_Info_From_Header(uint8_t header, ICM42688_FIFO_Packet_t
     if (!packetType || !packetSize)
         return HAL_ERROR;
 
-    const bool hasMsg = ICM42688_FIFO_Header_Has(header, ICM42688_FIFO_HEADER_MSG_Msk);
-
+    const bool hasMsg   = ICM42688_FIFO_Header_Has(header, ICM42688_FIFO_HEADER_MSG_Msk);
     const bool hasAccel = ICM42688_FIFO_Header_Has(header, ICM42688_FIFO_HEADER_ACCEL_Msk);
-
-    const bool hasGyro = ICM42688_FIFO_Header_Has(header, ICM42688_FIFO_HEADER_GYRO_Msk);
-
+    const bool hasGyro  = ICM42688_FIFO_Header_Has(header, ICM42688_FIFO_HEADER_GYRO_Msk);
     const bool has20bit = ICM42688_FIFO_Header_Has(header, ICM42688_FIFO_HEADER_20_Msk);
 
     if (hasMsg) {
@@ -438,149 +435,164 @@ ICM42688_FIFO_Parse_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *FIFO
     FIFO_frame->timestamp_fsync_valid = (FIFO_frame->timestamp_fsync_mode == 3U);
 
     switch (FIFO_frame->packet_type) {
-    case FIFO_PACKET_1: {
-        FIFO_frame->accel_valid = true;
-        FIFO_frame->gyro_valid  = false;
-        FIFO_frame->temp_valid  = true;
-        FIFO_frame->hires_valid = false;
+        case FIFO_PACKET_1: {
+            FIFO_frame->accel_valid = true;
+            FIFO_frame->gyro_valid  = false;
+            FIFO_frame->temp_valid  = true;
+            FIFO_frame->hires_valid = false;
 
-        FIFO_frame->accel_raw16[0] = ICM42688_Decode_BE16_Signed(FIFO_packet[1], FIFO_packet[2]);
+            FIFO_frame->accel_raw16[0] =
+                ICM42688_Decode_BE16_Signed(FIFO_packet[1], FIFO_packet[2]);
 
-        FIFO_frame->accel_raw16[1] = ICM42688_Decode_BE16_Signed(FIFO_packet[3], FIFO_packet[4]);
+            FIFO_frame->accel_raw16[1] =
+                ICM42688_Decode_BE16_Signed(FIFO_packet[3], FIFO_packet[4]);
 
-        FIFO_frame->accel_raw16[2] = ICM42688_Decode_BE16_Signed(FIFO_packet[5], FIFO_packet[6]);
+            FIFO_frame->accel_raw16[2] =
+                ICM42688_Decode_BE16_Signed(FIFO_packet[5], FIFO_packet[6]);
 
-        if (handle->accel_g_per_lsb > 0.0f) {
-            float s                = handle->accel_g_per_lsb;
-            FIFO_frame->accel_g[0] = (float)(FIFO_frame->accel_raw16[0] * s);
-            FIFO_frame->accel_g[1] = (float)(FIFO_frame->accel_raw16[1] * s);
-            FIFO_frame->accel_g[2] = (float)(FIFO_frame->accel_raw16[2] * s);
+            if (handle->accel_g_per_lsb > 0.0f) {
+                float s                = handle->accel_g_per_lsb;
+                FIFO_frame->accel_g[0] = (float)(FIFO_frame->accel_raw16[0] * s);
+                FIFO_frame->accel_g[1] = (float)(FIFO_frame->accel_raw16[1] * s);
+                FIFO_frame->accel_g[2] = (float)(FIFO_frame->accel_raw16[2] * s);
+            }
+
+            FIFO_frame->temp_raw8 = (int8_t)FIFO_packet[7];
+            FIFO_frame->temp_c    = ((float)FIFO_frame->temp_raw8 / 2.07f) + 25.0f;
+
+            break;
         }
 
-        FIFO_frame->temp_raw8 = (int8_t)FIFO_packet[7];
-        FIFO_frame->temp_c    = ((float)FIFO_frame->temp_raw8 / 2.07f) + 25.0f;
+        case FIFO_PACKET_2: {
+            FIFO_frame->accel_valid = false;
+            FIFO_frame->gyro_valid  = true;
+            FIFO_frame->temp_valid  = true;
+            FIFO_frame->hires_valid = false;
 
-        break;
-    }
+            FIFO_frame->gyro_raw16[0] = ICM42688_Decode_BE16_Signed(FIFO_packet[1], FIFO_packet[2]);
 
-    case FIFO_PACKET_2: {
-        FIFO_frame->accel_valid = false;
-        FIFO_frame->gyro_valid  = true;
-        FIFO_frame->temp_valid  = true;
-        FIFO_frame->hires_valid = false;
+            FIFO_frame->gyro_raw16[1] = ICM42688_Decode_BE16_Signed(FIFO_packet[3], FIFO_packet[4]);
 
-        FIFO_frame->gyro_raw16[0] = ICM42688_Decode_BE16_Signed(FIFO_packet[1], FIFO_packet[2]);
+            FIFO_frame->gyro_raw16[2] = ICM42688_Decode_BE16_Signed(FIFO_packet[5], FIFO_packet[6]);
 
-        FIFO_frame->gyro_raw16[1] = ICM42688_Decode_BE16_Signed(FIFO_packet[3], FIFO_packet[4]);
+            if (handle->gyro_dps_per_lsb > 0.0f) {
+                float s                 = handle->gyro_dps_per_lsb;
+                FIFO_frame->gyro_dps[0] = (float)(FIFO_frame->gyro_raw16[0] * s);
+                FIFO_frame->gyro_dps[1] = (float)(FIFO_frame->gyro_raw16[1] * s);
+                FIFO_frame->gyro_dps[2] = (float)(FIFO_frame->gyro_raw16[2] * s);
+            }
 
-        FIFO_frame->gyro_raw16[2] = ICM42688_Decode_BE16_Signed(FIFO_packet[5], FIFO_packet[6]);
+            FIFO_frame->temp_raw8 = (int8_t)FIFO_packet[7];
+            FIFO_frame->temp_c    = ((float)FIFO_frame->temp_raw8 / 2.07f) + 25.0f;
 
-        if (handle->gyro_dps_per_lsb > 0.0f) {
-            float s                 = handle->gyro_dps_per_lsb;
-            FIFO_frame->gyro_dps[0] = (float)(FIFO_frame->gyro_raw16[0] * s);
-            FIFO_frame->gyro_dps[1] = (float)(FIFO_frame->gyro_raw16[1] * s);
-            FIFO_frame->gyro_dps[2] = (float)(FIFO_frame->gyro_raw16[2] * s);
+            break;
         }
 
-        FIFO_frame->temp_raw8 = (int8_t)FIFO_packet[7];
-        FIFO_frame->temp_c    = ((float)FIFO_frame->temp_raw8 / 2.07f) + 25.0f;
+        case FIFO_PACKET_3: {
+            FIFO_frame->accel_valid = true;
+            FIFO_frame->gyro_valid  = true;
+            FIFO_frame->temp_valid  = true;
+            FIFO_frame->hires_valid = false;
 
-        break;
-    }
+            FIFO_frame->accel_raw16[0] =
+                ICM42688_Decode_BE16_Signed(FIFO_packet[1], FIFO_packet[2]);
 
-    case FIFO_PACKET_3: {
-        FIFO_frame->accel_valid = true;
-        FIFO_frame->gyro_valid  = true;
-        FIFO_frame->temp_valid  = true;
-        FIFO_frame->hires_valid = false;
+            FIFO_frame->accel_raw16[1] =
+                ICM42688_Decode_BE16_Signed(FIFO_packet[3], FIFO_packet[4]);
 
-        FIFO_frame->accel_raw16[0] = ICM42688_Decode_BE16_Signed(FIFO_packet[1], FIFO_packet[2]);
+            FIFO_frame->accel_raw16[2] =
+                ICM42688_Decode_BE16_Signed(FIFO_packet[5], FIFO_packet[6]);
 
-        FIFO_frame->accel_raw16[1] = ICM42688_Decode_BE16_Signed(FIFO_packet[3], FIFO_packet[4]);
+            FIFO_frame->gyro_raw16[0] = ICM42688_Decode_BE16_Signed(FIFO_packet[7], FIFO_packet[8]);
 
-        FIFO_frame->accel_raw16[2] = ICM42688_Decode_BE16_Signed(FIFO_packet[5], FIFO_packet[6]);
+            FIFO_frame->gyro_raw16[1] =
+                ICM42688_Decode_BE16_Signed(FIFO_packet[9], FIFO_packet[10]);
 
-        FIFO_frame->gyro_raw16[0] = ICM42688_Decode_BE16_Signed(FIFO_packet[7], FIFO_packet[8]);
+            FIFO_frame->gyro_raw16[2] =
+                ICM42688_Decode_BE16_Signed(FIFO_packet[11], FIFO_packet[12]);
 
-        FIFO_frame->gyro_raw16[1] = ICM42688_Decode_BE16_Signed(FIFO_packet[9], FIFO_packet[10]);
+            if ((handle->gyro_dps_per_lsb > 0.0f) && (handle->accel_g_per_lsb > 0.0f)) {
+                float sa = handle->accel_g_per_lsb;
+                float sg = handle->gyro_dps_per_lsb;
 
-        FIFO_frame->gyro_raw16[2] = ICM42688_Decode_BE16_Signed(FIFO_packet[11], FIFO_packet[12]);
+                FIFO_frame->accel_g[0] = (float)(FIFO_frame->accel_raw16[0] * sa);
+                FIFO_frame->accel_g[1] = (float)(FIFO_frame->accel_raw16[1] * sa);
+                FIFO_frame->accel_g[2] = (float)(FIFO_frame->accel_raw16[2] * sa);
 
-        if ((handle->gyro_dps_per_lsb > 0.0f) && (handle->accel_g_per_lsb > 0.0f)) {
-            float sa = handle->accel_g_per_lsb;
-            float sg = handle->gyro_dps_per_lsb;
+                FIFO_frame->gyro_dps[0] = (float)(FIFO_frame->gyro_raw16[0] * sg);
+                FIFO_frame->gyro_dps[1] = (float)(FIFO_frame->gyro_raw16[1] * sg);
+                FIFO_frame->gyro_dps[2] = (float)(FIFO_frame->gyro_raw16[2] * sg);
+            }
 
-            FIFO_frame->accel_g[0] = (float)(FIFO_frame->accel_raw16[0] * sa);
-            FIFO_frame->accel_g[1] = (float)(FIFO_frame->accel_raw16[1] * sa);
-            FIFO_frame->accel_g[2] = (float)(FIFO_frame->accel_raw16[2] * sa);
+            FIFO_frame->temp_raw8 = (int8_t)FIFO_packet[13];
+            FIFO_frame->temp_c    = ((float)FIFO_frame->temp_raw8 / 2.07f) + 25.0f;
+            FIFO_frame->timestamp = ICM42688_Decode_BE16_Unsigned(FIFO_packet[14], FIFO_packet[15]);
 
-            FIFO_frame->gyro_dps[0] = (float)(FIFO_frame->gyro_raw16[0] * sg);
-            FIFO_frame->gyro_dps[1] = (float)(FIFO_frame->gyro_raw16[1] * sg);
-            FIFO_frame->gyro_dps[2] = (float)(FIFO_frame->gyro_raw16[2] * sg);
+            break;
         }
 
-        FIFO_frame->temp_raw8 = (int8_t)FIFO_packet[13];
-        FIFO_frame->temp_c    = ((float)FIFO_frame->temp_raw8 / 2.07f) + 25.0f;
-        FIFO_frame->timestamp = ICM42688_Decode_BE16_Unsigned(FIFO_packet[14], FIFO_packet[15]);
+        case FIFO_PACKET_4: {
+            FIFO_frame->accel_valid = true;
+            FIFO_frame->gyro_valid  = true;
+            FIFO_frame->temp_valid  = true;
+            FIFO_frame->hires_valid = true;
 
-        break;
+            uint32_t accel_x_raw = (uint32_t)(FIFO_packet[1] << 12) |
+                                   (uint32_t)(FIFO_packet[2] << 4) |
+                                   (uint32_t)((FIFO_packet[17] >> 4) & 0x0F);
+
+            uint32_t accel_y_raw = (uint32_t)(FIFO_packet[3] << 12) |
+                                   (uint32_t)(FIFO_packet[4] << 4) |
+                                   (uint32_t)((FIFO_packet[18] >> 4) & 0x0F);
+
+            uint32_t accel_z_raw = (uint32_t)(FIFO_packet[5] << 12) |
+                                   (uint32_t)(FIFO_packet[6] << 4) |
+                                   (uint32_t)((FIFO_packet[19] >> 4) & 0x0F);
+
+            uint32_t gyro_x_raw = (uint32_t)(FIFO_packet[7] << 12) |
+                                  (uint32_t)(FIFO_packet[8] << 4) |
+                                  (uint32_t)(FIFO_packet[17] & 0x0F);
+
+            uint32_t gyro_y_raw = (uint32_t)(FIFO_packet[9] << 12) |
+                                  (uint32_t)(FIFO_packet[10] << 4) |
+                                  (uint32_t)(FIFO_packet[18] & 0x0F);
+
+            uint32_t gyro_z_raw = (uint32_t)(FIFO_packet[11] << 12) |
+                                  (uint32_t)(FIFO_packet[12] << 4) |
+                                  (uint32_t)(FIFO_packet[19] & 0x0F);
+
+            FIFO_frame->accel_raw20[0] = ICM42688_SignExtend20(accel_x_raw);
+            FIFO_frame->accel_raw20[1] = ICM42688_SignExtend20(accel_y_raw);
+            FIFO_frame->accel_raw20[2] = ICM42688_SignExtend20(accel_z_raw);
+
+            FIFO_frame->gyro_raw20[0] = ICM42688_SignExtend20(gyro_x_raw);
+            FIFO_frame->gyro_raw20[1] = ICM42688_SignExtend20(gyro_y_raw);
+            FIFO_frame->gyro_raw20[2] = ICM42688_SignExtend20(gyro_z_raw);
+
+            FIFO_frame->temp_raw16 = ICM42688_Decode_BE16_Signed(FIFO_packet[13], FIFO_packet[14]);
+
+            FIFO_frame->temp_c = (float)((FIFO_frame->temp_raw16) / 132.48f) + 25.0f;
+
+            FIFO_frame->timestamp = ICM42688_Decode_BE16_Unsigned(FIFO_packet[15], FIFO_packet[16]);
+
+            const float accel_g_per_lsb_p4  = 1.0f / 8192.0f;
+            const float gyro_dps_per_lsb_p4 = 1.0f / 131.0f;
+
+            FIFO_frame->accel_g[0] = accel_g_per_lsb_p4 * (FIFO_frame->accel_raw20[0]);
+            FIFO_frame->accel_g[1] = accel_g_per_lsb_p4 * (FIFO_frame->accel_raw20[1]);
+            FIFO_frame->accel_g[2] = accel_g_per_lsb_p4 * (FIFO_frame->accel_raw20[2]);
+
+            FIFO_frame->gyro_dps[0] = gyro_dps_per_lsb_p4 * (FIFO_frame->gyro_raw20[0]);
+            FIFO_frame->gyro_dps[1] = gyro_dps_per_lsb_p4 * (FIFO_frame->gyro_raw20[1]);
+            FIFO_frame->gyro_dps[2] = gyro_dps_per_lsb_p4 * (FIFO_frame->gyro_raw20[2]);
+
+            break;
+        }
+
+        default:
+            return HAL_ERROR;
     }
 
-    case FIFO_PACKET_4: {
-        FIFO_frame->accel_valid = true;
-        FIFO_frame->gyro_valid  = true;
-        FIFO_frame->temp_valid  = true;
-        FIFO_frame->hires_valid = true;
-
-        uint32_t accel_x_raw = (uint32_t)(FIFO_packet[1] << 12) | (uint32_t)(FIFO_packet[2] << 4) |
-                               (uint32_t)((FIFO_packet[17] >> 4) & 0x0F);
-
-        uint32_t accel_y_raw = (uint32_t)(FIFO_packet[3] << 12) | (uint32_t)(FIFO_packet[4] << 4) |
-                               (uint32_t)((FIFO_packet[18] >> 4) & 0x0F);
-
-        uint32_t accel_z_raw = (uint32_t)(FIFO_packet[5] << 12) | (uint32_t)(FIFO_packet[6] << 4) |
-                               (uint32_t)((FIFO_packet[19] >> 4) & 0x0F);
-
-        uint32_t gyro_x_raw = (uint32_t)(FIFO_packet[7] << 12) | (uint32_t)(FIFO_packet[8] << 4) |
-                              (uint32_t)(FIFO_packet[17] & 0x0F);
-
-        uint32_t gyro_y_raw = (uint32_t)(FIFO_packet[9] << 12) | (uint32_t)(FIFO_packet[10] << 4) |
-                              (uint32_t)(FIFO_packet[18] & 0x0F);
-
-        uint32_t gyro_z_raw = (uint32_t)(FIFO_packet[11] << 12) | (uint32_t)(FIFO_packet[12] << 4) |
-                              (uint32_t)(FIFO_packet[19] & 0x0F);
-
-        FIFO_frame->accel_raw20[0] = ICM42688_SignExtend20(accel_x_raw);
-        FIFO_frame->accel_raw20[1] = ICM42688_SignExtend20(accel_y_raw);
-        FIFO_frame->accel_raw20[2] = ICM42688_SignExtend20(accel_z_raw);
-
-        FIFO_frame->gyro_raw20[0] = ICM42688_SignExtend20(gyro_x_raw);
-        FIFO_frame->gyro_raw20[1] = ICM42688_SignExtend20(gyro_y_raw);
-        FIFO_frame->gyro_raw20[2] = ICM42688_SignExtend20(gyro_z_raw);
-
-        FIFO_frame->temp_raw16 = ICM42688_Decode_BE16_Signed(FIFO_packet[13], FIFO_packet[14]);
-
-        FIFO_frame->temp_c = (float)((FIFO_frame->temp_raw16) / 132.48f) + 25.0f;
-
-        FIFO_frame->timestamp = ICM42688_Decode_BE16_Unsigned(FIFO_packet[15], FIFO_packet[16]);
-
-        const float accel_g_per_lsb_p4  = 1.0f / 8192.0f;
-        const float gyro_dps_per_lsb_p4 = 1.0f / 131.0f;
-
-        FIFO_frame->accel_g[0] = accel_g_per_lsb_p4 * (FIFO_frame->accel_raw20[0]);
-        FIFO_frame->accel_g[1] = accel_g_per_lsb_p4 * (FIFO_frame->accel_raw20[1]);
-        FIFO_frame->accel_g[2] = accel_g_per_lsb_p4 * (FIFO_frame->accel_raw20[2]);
-
-        FIFO_frame->gyro_dps[0] = gyro_dps_per_lsb_p4 * (FIFO_frame->gyro_raw20[0]);
-        FIFO_frame->gyro_dps[1] = gyro_dps_per_lsb_p4 * (FIFO_frame->gyro_raw20[1]);
-        FIFO_frame->gyro_dps[2] = gyro_dps_per_lsb_p4 * (FIFO_frame->gyro_raw20[2]);
-
-        break;
-    }
-
-    default:
-        return HAL_ERROR;
-    }
     return HAL_OK;
 }
 

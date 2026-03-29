@@ -6,6 +6,7 @@ AlignConsecutiveDeclarations: true
 AlignConsecutiveAssignments: true
 AlignConsecutiveMacros: Consecutive
 SkipMacroDefinitionBody: true
+IndentCaseLabels: true
 
 IndentPPDirectives: None
 
