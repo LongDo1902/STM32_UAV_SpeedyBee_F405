@@ -23,6 +23,13 @@
 
 #define ICM42688_WHO_AM_I_DEFAULT	0x47U
 
+#define CHECK_FOR(expr)         \
+do{                             \
+    status = (expr);            \
+    if(status != HAL_OK)        \
+        return status;          \
+}while(0)
+
 HAL_StatusTypeDef
 ICM42688_IsAlive(ICM42688_Handle_t *handle);
 

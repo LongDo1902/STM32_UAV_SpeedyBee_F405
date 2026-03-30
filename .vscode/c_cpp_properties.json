@@ -2,6 +2,7 @@
     "configurations": [
         {
             "name": "STM32F4",
+            "compilerPath": "${env:STM32_GCC_EXE}",
             "includePath": [
                 "${workspaceFolder}/Core/Inc",
                 "${workspaceFolder}/Drivers/STM32F4xx_HAL_Driver/Inc",

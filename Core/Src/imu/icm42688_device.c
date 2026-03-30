@@ -128,63 +128,39 @@ ICM42688_Init(ICM42688_Handle_t *handle)
     if (!handle)
         return HAL_ERROR;
 
-    HAL_StatusTypeDef status = ICM42688_SoftReset(handle);
-    if (status != HAL_OK)
-        return status;
+    HAL_StatusTypeDef status = HAL_OK;
 
-    status = ICM42688_IsAlive(handle);
-    if (status != HAL_OK)
-        return status;
+    CHECK_FOR(ICM42688_IsAlive(handle));
 
-    status = ICM42688_Set_SPI_Mode(handle, SPI_MODE_0_3);
-    if (status != HAL_OK)
-        return status;
+    // Reset and gating
+    CHECK_FOR(ICM42688_Set_Int1_ResetDone_Enable(handle, true));
+    CHECK_FOR(ICM42688_SoftReset(handle));
 
-    status = ICM42688_Set_SPI_SlewRate(handle, SPI_SR_2NS);
-    if (status != HAL_OK)
-        return status;
+    uint8_t intStatus     = 0U;
+    bool    resetDoneFlag = false;
+    do {
+        CHECK_FOR(ICM42688_Get_Int_Status(handle, &intStatus));
+    } while (!ICM42688_Int_Status_Has(intStatus, INT_RESET_DONE));
 
-    status = ICM42688_Set_UI_SIFS_Conf(handle, UI_SIFS_DISABLE_I2C);
-    if (status != HAL_OK)
-        return status;
-
-    status = ICM42688_Set_Sensor_Data_Endian(handle, SENSOR_DATA_BIG_ENDIAN);
-    if (status != HAL_OK)
-        return status;
+    // Interface configuration
+    CHECK_FOR(ICM42688_Set_SPI_Mode(handle, SPI_MODE_0_3));
+    CHECK_FOR(ICM42688_Set_SPI_SlewRate(handle, SPI_SR_2NS));
+    CHECK_FOR(ICM42688_Set_UI_SIFS_Conf(handle, UI_SIFS_DISABLE_I2C));
+    CHECK_FOR(ICM42688_Set_Sensor_Data_Endian(handle, SENSOR_DATA_BIG_ENDIAN));
 
     // Accel configuring
-    status = ICM42688_Set_AccelConfig(handle, ACCEL_LOW_NOISE, ACCEL_ODR_8KHz, ACCEL_FSR_8g);
-    if (status != HAL_OK)
-        return status;
-
-    status = ICM42688_Set_Accel_UIFilt_BW(handle, BW_ODR_DIV_2);
-    if (status != HAL_OK)
-        return status;
-
-    status = ICM42688_Set_Accel_UIFilt_Order(handle, ACCEL_FIRST_ORDER);
-    if (status != HAL_OK)
-        return status;
-
-    status = ICM42688_Set_Accel_Anti_Alias_Filt(handle, ENABLE_AAF);
-    if (status != HAL_OK)
-        return status;
+    CHECK_FOR(ICM42688_Set_AccelConfig(handle, ACCEL_LOW_NOISE, ACCEL_ODR_8KHz, ACCEL_FSR_8g));
+    CHECK_FOR(ICM42688_Set_Accel_UIFilt_BW(handle, BW_ODR_DIV_2));
+    CHECK_FOR(ICM42688_Set_Accel_UIFilt_Order(handle, ACCEL_FIRST_ORDER));
+    CHECK_FOR(ICM42688_Set_Accel_Anti_Alias_Filt(handle, ENABLE_AAF));
 
     // Gyro configuring
-    status = ICM42688_Set_GyroConfig(handle, GYRO_LOW_NOISE, GYRO_ODR_8KHz, GYRO_FSR_2000dps);
-    if (status != HAL_OK)
-        return status;
+    CHECK_FOR(ICM42688_Set_GyroConfig(handle, GYRO_LOW_NOISE, GYRO_ODR_8KHz, GYRO_FSR_2000dps));
+    CHECK_FOR(ICM42688_Set_Gyro_UIFilt_BW(handle, BW_ODR_DIV_2));
+    CHECK_FOR(ICM42688_Set_Gyro_UIFilt_Order(handle, GYRO_FIRST_ORDER));
+    CHECK_FOR(ICM42688_Set_Gyro_Anti_Alias_Filt(handle, ENABLE_AAF));
 
-    status = ICM42688_Set_Gyro_UIFilt_BW(handle, BW_ODR_DIV_2);
-    if (status != HAL_OK)
-        return status;
-
-    status = ICM42688_Set_Gyro_UIFilt_Order(handle, GYRO_FIRST_ORDER);
-    if (status != HAL_OK)
-        return status;
-
-    status = ICM42688_Set_Gyro_Anti_Alias_Filt(handle, ENABLE_AAF);
-    if (status != HAL_OK)
-        return status;
+    HAL_Delay(50);
 
     return HAL_OK;
 }
