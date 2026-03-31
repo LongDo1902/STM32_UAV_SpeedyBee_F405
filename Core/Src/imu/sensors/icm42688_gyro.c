@@ -5,6 +5,7 @@
  *      Author: dobao
  */
 #include "imu/sensors/icm42688_gyro.h"
+#include "math.h"
 
 static const float lsb_per_dps[] = {16.4f, 32.8f, 65.5f, 131.0f, 262.0f, 524.3f, 1048.6f, 2097.2f};
 
@@ -200,4 +201,174 @@ ICM42688_Set_Gyro_Notch_Filt(ICM42688_Handle_t *handle, ICM42688_Notch_Filt_En_t
     handle->gyro_config.gyro_notch_filt_state = notchFiltState;
 
     return HAL_OK;
+}
+
+
+
+static HAL_StatusTypeDef
+ICM42688_Compute_NotchFreq(uint8_t desiredNotchFreq_kHz, uint16_t *nf_coswz, uint8_t *nf_coswz_sel)
+{
+    if (!nf_coswz || !nf_coswz_sel)
+        return HAL_ERROR;
+
+    if ((desiredNotchFreq_kHz < 1U) || (desiredNotchFreq_kHz > 3U))
+        return HAL_ERROR;
+
+    float coswz = cosf(2.0f * M_PI * (float)desiredNotchFreq_kHz / 32.0f);
+
+    if (fabsf(coswz) <= 0.875f) {
+        *nf_coswz     = (uint16_t)lroundf(coswz * 256.0f);
+        *nf_coswz_sel = 0U;
+        return HAL_OK;
+    }
+    else {
+        *nf_coswz_sel = 1U;
+        if (coswz > 0.875) {
+            *nf_coswz = (uint16_t)lroundf(8.0f * (1.0f - coswz) * 256.0f);
+            return HAL_OK;
+        }
+        else if (coswz < -0.875f) {
+            *nf_coswz = (uint16_t)lroundf(-8.0f * (1.0 + coswz) * 256.0);
+            return HAL_OK;
+        }
+    }
+    return HAL_ERROR;
+}
+
+
+
+static HAL_StatusTypeDef
+ICM42688_Set_NotchFreq_X(ICM42688_Handle_t *handle, uint8_t desiredNotchFreq_kHz)
+{
+    if (!handle)
+        return HAL_ERROR;
+
+    // Compute desired notch frequency and convert it to integer
+    uint16_t          nf_coswz_x     = 0U;
+    uint8_t           nf_coswz_x_sel = 0U;
+    HAL_StatusTypeDef status =
+        ICM42688_Compute_NotchFreq(desiredNotchFreq_kHz, &nf_coswz_x, &nf_coswz_x_sel);
+    if (status != HAL_OK)
+        return status;
+
+    // Write nf_coswz_x[7:0] to GYRO_CONF_STATIC6 register
+    uint8_t regLow  = 0U;
+    uint8_t regHigh = 0U;
+
+    regLow = (uint8_t)ICM42688_GYRO_X_NF_COSWZ_LOW_Val(nf_coswz_x);
+    status = ICM42688_WriteReg(handle, ICM42688_UB1_GYRO_CONF_STATIC6, regLow);
+    if (status != HAL_OK)
+        return status;
+
+    // Write nf_coswz_x (bit 8) and and nf_coswz_x_sel to the GYRO_CONF_STATIC9 register
+    status = ICM42688_ReadReg(handle, ICM42688_UB1_GYRO_CONF_STATIC9, &regHigh);
+    if (status != HAL_OK)
+        return status;
+
+    regHigh &= (uint8_t)~(ICM42688_GYRO_X_NF_COSWZ_HIGH_Msk | ICM42688_GYRO_X_NF_COSWZ_SEL_Msk);
+    regHigh |= (uint8_t)(ICM42688_GYRO_X_NF_COSWZ_HIGH_Val((nf_coswz_x >> 8U) & 0x01U) |
+                         ICM42688_GYRO_X_NF_COSWZ_SEL_Val(nf_coswz_x_sel));
+    status = ICM42688_WriteReg(handle, ICM42688_UB1_GYRO_CONF_STATIC9, regHigh);
+    if (status != HAL_OK)
+        return status;
+
+    return HAL_OK;
+}
+
+
+
+static HAL_StatusTypeDef
+ICM42688_Set_NotchFreq_Y(ICM42688_Handle_t *handle, uint8_t desiredNotchFreq_kHz)
+{
+    if (!handle)
+        return HAL_ERROR;
+
+    // Compute desired notch frequency and convert it to integer
+    uint16_t          nf_coswz_y     = 0U;
+    uint8_t           nf_coswz_y_sel = 0U;
+    HAL_StatusTypeDef status =
+        ICM42688_Compute_NotchFreq(desiredNotchFreq_kHz, &nf_coswz_y, &nf_coswz_y_sel);
+    if (status != HAL_OK)
+        return status;
+
+    // Write nf_coswz_y[7:0] to GYRO_CONF_STATIC6 register
+    uint8_t regLow  = 0U;
+    uint8_t regHigh = 0U;
+
+    regLow = (uint8_t)ICM42688_GYRO_Y_NF_COSWZ_LOW_Val(nf_coswz_y);
+    status = ICM42688_WriteReg(handle, ICM42688_UB1_GYRO_CONF_STATIC7, regLow);
+    if (status != HAL_OK)
+        return status;
+
+    // Write nf_coswz_y (bit 8) and and nf_coswz_7_sel to the GYRO_CONF_STATIC9 register
+    status = ICM42688_ReadReg(handle, ICM42688_UB1_GYRO_CONF_STATIC9, &regHigh);
+    if (status != HAL_OK)
+        return status;
+
+    regHigh &= (uint8_t)~(ICM42688_GYRO_Y_NF_COSWZ_HIGH_Msk | ICM42688_GYRO_Y_NF_COSWZ_SEL_Msk);
+    regHigh |= (uint8_t)(ICM42688_GYRO_Y_NF_COSWZ_HIGH_Val((nf_coswz_y >> 8U) & 0x01U) |
+                         ICM42688_GYRO_Y_NF_COSWZ_SEL_Val(nf_coswz_y_sel));
+    status = ICM42688_WriteReg(handle, ICM42688_UB1_GYRO_CONF_STATIC9, regHigh);
+    if (status != HAL_OK)
+        return status;
+
+    return HAL_OK;
+}
+
+
+
+static HAL_StatusTypeDef
+ICM42688_Set_NotchFreq_Z(ICM42688_Handle_t *handle, uint8_t desiredNotchFreq_kHz)
+{
+    if (!handle)
+        return HAL_ERROR;
+
+    // Compute desired notch frequency and convert it to integer
+    uint16_t          nf_coswz_z     = 0U;
+    uint8_t           nf_coswz_z_sel = 0U;
+    HAL_StatusTypeDef status =
+        ICM42688_Compute_NotchFreq(desiredNotchFreq_kHz, &nf_coswz_z, &nf_coswz_z_sel);
+    if (status != HAL_OK)
+        return status;
+
+    // Write nf_coswz_z[7:0] to GYRO_CONF_STATIC8 register
+    uint8_t regLow  = 0U;
+    uint8_t regHigh = 0U;
+
+    regLow = (uint8_t)ICM42688_GYRO_Z_NF_COSWZ_LOW_Val(nf_coswz_z);
+    status = ICM42688_WriteReg(handle, ICM42688_UB1_GYRO_CONF_STATIC8, regLow);
+    if (status != HAL_OK)
+        return status;
+
+    // Write nf_coswz_z (bit 8) and and nf_coswz_z_sel to the GYRO_CONF_STATIC9 register
+    status = ICM42688_ReadReg(handle, ICM42688_UB1_GYRO_CONF_STATIC9, &regHigh);
+    if (status != HAL_OK)
+        return status;
+
+    regHigh &= (uint8_t)~(ICM42688_GYRO_Z_NF_COSWZ_HIGH_Msk | ICM42688_GYRO_Z_NF_COSWZ_SEL_Msk);
+    regHigh |= (uint8_t)(ICM42688_GYRO_Z_NF_COSWZ_HIGH_Val((nf_coswz_z >> 8U) & 0x01U) |
+                         ICM42688_GYRO_Z_NF_COSWZ_SEL_Val(nf_coswz_z_sel));
+    status = ICM42688_WriteReg(handle, ICM42688_UB1_GYRO_CONF_STATIC9, regHigh);
+    if (status != HAL_OK)
+        return status;
+
+    return HAL_OK;
+}
+
+
+static HAL_StatusTypeDef
+ICM42688_Set_NotchFreq_XYZ(ICM42688_Handle_t *handle, uint8_t desired_X_NotchFreq_kHz,
+                           uint8_t desired_Y_NotchFreq_kHz, uint8_t desired_Z_NotchFreq_kHz)
+{
+    HAL_StatusTypeDef status = ICM42688_Set_NotchFreq_X(handle, desired_X_NotchFreq_kHz);
+    if (status != HAL_OK)
+        return status;
+
+    status = ICM42688_Set_NotchFreq_Y(handle, desired_Y_NotchFreq_kHz);
+    if (status != HAL_OK)
+        return status;
+
+    status = ICM42688_Set_NotchFreq_Z(handle, desired_Z_NotchFreq_kHz);
+    if (status != HAL_OK)
+        return status;
 }

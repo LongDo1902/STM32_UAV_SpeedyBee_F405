@@ -8,10 +8,10 @@
 #ifndef INC_IMU_SENSORS_ICM42688_DATA_H_
 #define INC_IMU_SENSORS_ICM42688_DATA_H_
 
-#include "imu/core/icm42688_registers.h"
 #include "imu/core/icm42688_masks.h"
-#include "imu/core/icm42688_types.h"
+#include "imu/core/icm42688_registers.h"
 #include "imu/core/icm42688_rw.h"
+#include "imu/core/icm42688_types.h"
 
 HAL_StatusTypeDef
 ICM42688_Get_Temperature_C(ICM42688_Handle_t *handle, float *out_temp_c);
@@ -27,5 +27,12 @@ ICM42688_Get_Gyro_XYZ(ICM42688_Handle_t *handle, int16_t *buf);
 
 HAL_StatusTypeDef
 ICM42688_Get_Gyro_DPS(ICM42688_Handle_t *handle, float dps[3]);
+
+HAL_StatusTypeDef
+ICM42688_Get_Temp_Accel_Gyro_Raw(ICM42688_Handle_t *handle, int16_t *buf);
+
+HAL_StatusTypeDef
+ICM42688_Get_Temp_Accel_Gyro_Scaled(ICM42688_Handle_t                 *handle,
+                                    ICM42688_Temp_Accel_Gyro_Scaled_t *sample_out);
 
 #endif /* INC_IMU_SENSORS_ICM42688_DATA_H_ */

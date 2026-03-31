@@ -136,8 +136,7 @@ ICM42688_Init(ICM42688_Handle_t *handle)
     CHECK_FOR(ICM42688_Set_Int1_ResetDone_Enable(handle, true));
     CHECK_FOR(ICM42688_SoftReset(handle));
 
-    uint8_t intStatus     = 0U;
-    bool    resetDoneFlag = false;
+    uint8_t intStatus = 0U;
     do {
         CHECK_FOR(ICM42688_Get_Int_Status(handle, &intStatus));
     } while (!ICM42688_Int_Status_Has(intStatus, INT_RESET_DONE));
@@ -159,6 +158,8 @@ ICM42688_Init(ICM42688_Handle_t *handle)
     CHECK_FOR(ICM42688_Set_Gyro_UIFilt_BW(handle, BW_ODR_DIV_2));
     CHECK_FOR(ICM42688_Set_Gyro_UIFilt_Order(handle, GYRO_FIRST_ORDER));
     CHECK_FOR(ICM42688_Set_Gyro_Anti_Alias_Filt(handle, ENABLE_AAF));
+
+    
 
     HAL_Delay(50);
 
