@@ -393,14 +393,6 @@ typedef struct
 
 typedef struct
 {
-    float temp_c;
-    float accel_g[3];
-    float gyro_dps[3];
-} ICM42688_Temp_Accel_Gyro_Scaled_t;
-
-
-typedef struct
-{
     ICM42688_Int_Polarity_t      int1_polarity;
     ICM42688_Int_Drive_Circuit_t int1_drive;
     ICM42688_Int_Mode_t          int1_mode;
@@ -500,8 +492,6 @@ typedef struct
 
 typedef struct
 {
-    ICM42688_Temp_Accel_Gyro_Scaled_t last_tag; // tag = Temperature Accel Gyro
-    bool                              last_tag_valid;
 } ICM42688_Cached_Val_t;
 
 
@@ -512,24 +502,24 @@ typedef struct
 // Struct stores every important thing
 typedef struct
 {
-    float gyro_dps_per_lsb;         //
-    float gyro_lsb_per_dps_dtsheet; //
-    float accel_g_per_lsb;          //
-    float accel_lsb_per_g_dtsheet;  //
+    float gyro_dps_per_lsb;
+    float gyro_lsb_per_dps_dtsheet;
+    float accel_g_per_lsb;
+    float accel_lsb_per_g_dtsheet;
 
     ICM42688_SPI_Config_t   spi_config;
-    ICM42688_Gyro_Config_t  gyro_config;  //
-    ICM42688_Accel_Config_t accel_config; //
-    ICM42688_Int1_Config_t  int1_config;  //
-    ICM42688_Int2_Config_t  int2_config;  //
-    ICM42688_Intf_Config0_t intf_config;  //
-    ICM42688_Temp_Config_t  temp_config;  //
+    ICM42688_Gyro_Config_t  gyro_config;
+    ICM42688_Accel_Config_t accel_config;
+    ICM42688_Int1_Config_t  int1_config;
+    ICM42688_Int2_Config_t  int2_config;
+    ICM42688_Intf_Config0_t intf_config;
+    ICM42688_Temp_Config_t  temp_config;
     ICM42688_FIFO_Config_t  fifo_config;
-    ICM42688_Cached_Val_t   cached; //
+    ICM42688_Cached_Val_t   cached;
 
-    bool is_initialized;    //
-    bool is_reset;          //
-    bool is_icm42688_alive; //
+    bool is_initialized;
+    bool is_reset;
+    bool is_icm42688_alive;
 } ICM42688_Handle_t;
 
 #endif /* INC_IMU_ICM42688_TYPES_H_ */

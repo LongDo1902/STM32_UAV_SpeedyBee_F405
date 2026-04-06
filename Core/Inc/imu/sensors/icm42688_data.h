@@ -13,6 +13,20 @@
 #include "imu/core/icm42688_rw.h"
 #include "imu/core/icm42688_types.h"
 
+typedef struct
+{
+    float temp_c;
+    float accel_g[3];
+    float gyro_dps[3];
+} ICM42688_Temp_Accel_Gyro_Scaled_t;
+
+typedef struct
+{
+    float roll;
+    float pitch;
+    float yaw;
+} ICM42688_Est_Angle_complement_t;
+
 HAL_StatusTypeDef
 ICM42688_Get_Temperature_C(ICM42688_Handle_t *handle, float *out_temp_c);
 
@@ -33,6 +47,10 @@ ICM42688_Get_Temp_Accel_Gyro_Raw(ICM42688_Handle_t *handle, int16_t *buf);
 
 HAL_StatusTypeDef
 ICM42688_Get_Temp_Accel_Gyro_Scaled(ICM42688_Handle_t                 *handle,
-                                    ICM42688_Temp_Accel_Gyro_Scaled_t *sample_out);
+                                    ICM42688_Temp_Accel_Gyro_Scaled_t *sampleOut);
+
+HAL_StatusTypeDef
+ICM42688_Get_Est_Angle_Complement(ICM42688_Handle_t               *handle,
+                                  ICM42688_Est_Angle_complement_t *attitudeOut, float dt_s);
 
 #endif /* INC_IMU_SENSORS_ICM42688_DATA_H_ */

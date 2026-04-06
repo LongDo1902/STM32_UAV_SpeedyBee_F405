@@ -32,4 +32,8 @@ ICM42688_Set_Gyro_Anti_Alias_Filt(ICM42688_Handle_t *handle, ICM42688_AAF_En_t a
 HAL_StatusTypeDef
 ICM42688_Set_Gyro_Notch_Filt(ICM42688_Handle_t *handle, ICM42688_Notch_Filt_En_t notchFiltState);
 
+HAL_StatusTypeDef
+ICM42688_Set_NotchFreq_XYZ(ICM42688_Handle_t *handle, uint16_t desired_X_NotchFreq_Hz,
+                           uint16_t desired_Y_NotchFreq_Hz, uint16_t desired_Z_NotchFreq_Hz);
+
 #endif /* SRC_IMU_SENSORS_ICM42688_GYRO_H_ */

@@ -36,4 +36,7 @@ ICM42688_IsAlive(ICM42688_Handle_t *handle);
 HAL_StatusTypeDef
 ICM42688_SoftReset(ICM42688_Handle_t *handle);
 
+HAL_StatusTypeDef
+ICM42688_Init(ICM42688_Handle_t *handle);
+
 #endif /* INC_IMU_ICM42688_DEVICE_H_ */

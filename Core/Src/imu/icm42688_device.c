@@ -60,24 +60,15 @@ ICM42688_SoftReset(ICM42688_Handle_t *handle)
     HAL_Delay(5);
 
     // After reset, set every flag to a default/known state
-    handle->is_reset              = true;
-    handle->is_initialized        = false;
-    handle->is_icm42688_alive     = false;
-    handle->cached.last_tag_valid = false;
+    handle->is_reset          = true;
+    handle->is_initialized    = false;
+    handle->is_icm42688_alive = false;
 
     handle->gyro_dps_per_lsb         = 0.0f;
     handle->gyro_lsb_per_dps_dtsheet = 0.0f;
 
     handle->accel_g_per_lsb         = 0.0f;
     handle->accel_lsb_per_g_dtsheet = 0.0f;
-
-    handle->cached.last_tag.temp_c      = 0.0f;
-    handle->cached.last_tag.accel_g[0]  = 0.0f;
-    handle->cached.last_tag.accel_g[1]  = 0.0f;
-    handle->cached.last_tag.accel_g[2]  = 0.0f;
-    handle->cached.last_tag.gyro_dps[0] = 0.0f;
-    handle->cached.last_tag.gyro_dps[1] = 0.0f;
-    handle->cached.last_tag.gyro_dps[2] = 0.0f;
 
     handle->temp_config.temp_state = TEMP_ENABLE;
 
@@ -147,19 +138,20 @@ ICM42688_Init(ICM42688_Handle_t *handle)
     CHECK_FOR(ICM42688_Set_UI_SIFS_Conf(handle, UI_SIFS_DISABLE_I2C));
     CHECK_FOR(ICM42688_Set_Sensor_Data_Endian(handle, SENSOR_DATA_BIG_ENDIAN));
 
-    // Accel configuring
-    CHECK_FOR(ICM42688_Set_AccelConfig(handle, ACCEL_LOW_NOISE, ACCEL_ODR_8KHz, ACCEL_FSR_8g));
+    // Accel configuration
+    CHECK_FOR(ICM42688_Set_AccelConfig(handle, ACCEL_LOW_NOISE, ACCEL_ODR_8KHz, ACCEL_FSR_4g));
     CHECK_FOR(ICM42688_Set_Accel_UIFilt_BW(handle, BW_ODR_DIV_2));
     CHECK_FOR(ICM42688_Set_Accel_UIFilt_Order(handle, ACCEL_FIRST_ORDER));
     CHECK_FOR(ICM42688_Set_Accel_Anti_Alias_Filt(handle, ENABLE_AAF));
 
-    // Gyro configuring
-    CHECK_FOR(ICM42688_Set_GyroConfig(handle, GYRO_LOW_NOISE, GYRO_ODR_8KHz, GYRO_FSR_2000dps));
+    // Gyro configuration
+    CHECK_FOR(ICM42688_Set_GyroConfig(handle, GYRO_LOW_NOISE, GYRO_ODR_8KHz, GYRO_FSR_1000dps));
     CHECK_FOR(ICM42688_Set_Gyro_UIFilt_BW(handle, BW_ODR_DIV_2));
     CHECK_FOR(ICM42688_Set_Gyro_UIFilt_Order(handle, GYRO_FIRST_ORDER));
     CHECK_FOR(ICM42688_Set_Gyro_Anti_Alias_Filt(handle, ENABLE_AAF));
 
-    
+    // Temperature configuration
+    ICM42688_Set_Temperature_Enable(handle, TEMP_ENABLE);
 
     HAL_Delay(50);
 

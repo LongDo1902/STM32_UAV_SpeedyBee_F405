@@ -22,7 +22,9 @@ ICM42688_Set_SPI_Mode(ICM42688_Handle_t *handle, ICM42688_SPI_Mode_t spiMode)
         ICM42688_DEVICE_CONFIG_SPI_MODE_Val(spiMode));
     if (status != HAL_OK)
         return status;
+
     handle->spi_config.spi_mode = spiMode;
+
     return HAL_OK;
 }
 
@@ -52,6 +54,7 @@ ICM42688_Set_SPI_SlewRate(ICM42688_Handle_t *handle, ICM42688_SPI_SLEWRATE_t sle
 {
     if (!handle)
         return HAL_ERROR;
+
     if ((uint8_t)slewRate > 5U)
         return HAL_ERROR;
 
@@ -63,7 +66,9 @@ ICM42688_Set_SPI_SlewRate(ICM42688_Handle_t *handle, ICM42688_SPI_SLEWRATE_t sle
                                  ICM42688_DRIVE_CONFIG_SPI_SR_Val(slewRate));
     if (status != HAL_OK)
         return status;
+
     handle->spi_config.spi_slew_rate = (ICM42688_SPI_SLEWRATE_t)slewRate;
+
     return HAL_OK;
 }
 
@@ -80,6 +85,7 @@ ICM42688_Set_UI_SIFS_Conf(ICM42688_Handle_t *handle, ICM42688_UI_SIFS_Cfg_t conf
                                  ICM42688_UI_SIFS_CFG_Val(config));
     if (status != HAL_OK)
         return status;
+
     handle->intf_config.ui_sifs_config = config;
     return HAL_OK;
 }
@@ -98,6 +104,8 @@ ICM42688_Set_Sensor_Data_Endian(ICM42688_Handle_t            *handle,
                                  ICM42688_SENSOR_DATA_ENDIAN_Val(which_endian));
     if (status != HAL_OK)
         return status;
+
     handle->intf_config.sensor_data_endian = which_endian;
+
     return HAL_OK;
 }

@@ -4,8 +4,8 @@
  *  Created on: Mar 14, 2026
  *      Author: dobao
  */
-
 #include "imu/sensors/icm42688_data.h"
+#include <math.h>
 
 /* ==========================================================================================
  * 	TEMPERATURE DATA ONLY
@@ -210,9 +210,9 @@ ICM42688_Get_Temp_Accel_Gyro_Raw(ICM42688_Handle_t *handle, int16_t *buf)
 
 HAL_StatusTypeDef
 ICM42688_Get_Temp_Accel_Gyro_Scaled(ICM42688_Handle_t                 *handle,
-                                    ICM42688_Temp_Accel_Gyro_Scaled_t *sample_out)
+                                    ICM42688_Temp_Accel_Gyro_Scaled_t *sampleOut)
 {
-    if (!handle || !sample_out)
+    if (!handle || !sampleOut)
         return HAL_ERROR;
     if ((handle->gyro_dps_per_lsb <= 0.0f) || (handle->accel_g_per_lsb <= 0.0f))
         return HAL_ERROR;
@@ -226,21 +226,56 @@ ICM42688_Get_Temp_Accel_Gyro_Scaled(ICM42688_Handle_t                 *handle,
     const float gyro_s  = handle->gyro_dps_per_lsb;
 
     // Temperature in C
-    sample_out->temp_c = (float)((raw[0] / 132.48f) + 25.0f);
+    sampleOut->temp_c = (float)((raw[0] / 132.48f) + 25.0f);
 
     // Accel in g
-    sample_out->accel_g[0] = (float)(raw[1] * accel_s);
-    sample_out->accel_g[1] = (float)(raw[2] * accel_s);
-    sample_out->accel_g[2] = (float)(raw[3] * accel_s);
+    sampleOut->accel_g[0] = (float)(raw[1] * accel_s);
+    sampleOut->accel_g[1] = (float)(raw[2] * accel_s);
+    sampleOut->accel_g[2] = (float)(raw[3] * accel_s);
 
     // Gyro in dps
-    sample_out->gyro_dps[0] = (float)(raw[4] * gyro_s);
-    sample_out->gyro_dps[1] = (float)(raw[5] * gyro_s);
-    sample_out->gyro_dps[2] = (float)(raw[6] * gyro_s);
+    sampleOut->gyro_dps[0] = (float)(raw[4] * gyro_s);
+    sampleOut->gyro_dps[1] = (float)(raw[5] * gyro_s);
+    sampleOut->gyro_dps[2] = (float)(raw[6] * gyro_s);
 
-    // Update cache
-    handle->cached.last_tag       = *sample_out;
-    handle->cached.last_tag_valid = true;
+    return HAL_OK;
+}
+
+
+
+HAL_StatusTypeDef
+ICM42688_Get_Est_Angle_Complement(ICM42688_Handle_t               *handle,
+                                  ICM42688_Est_Angle_complement_t *attitudeOut, float dt_s)
+{
+    if (!handle || !attitudeOut)
+        return HAL_ERROR;
+
+    // Extract and store scaled accel and gyro
+    ICM42688_Temp_Accel_Gyro_Scaled_t scaled_data_buf = {0};
+
+    HAL_StatusTypeDef status = ICM42688_Get_Temp_Accel_Gyro_Scaled(handle, &scaled_data_buf);
+    if (status != HAL_OK)
+        return status;
+
+    float accel_x = scaled_data_buf.accel_g[0];
+    float accel_y = scaled_data_buf.accel_g[1];
+    float accel_z = scaled_data_buf.accel_g[2];
+
+    float gyro_x = scaled_data_buf.gyro_dps[0];
+    float gyro_y = scaled_data_buf.gyro_dps[1];
+    float gyro_z = scaled_data_buf.gyro_dps[2];
+
+    // Calculate estimated angle from accelerometer
+    float roll_acc = atan2f(accel_y, accel_z) * 180.0f / M_PI;
+    float pitch_acc =
+        atan2f(-accel_x, sqrtf(accel_y * accel_y + accel_z * accel_z)) * 180.0f / M_PI;
+
+    const float alpha = 0.98f;
+
+    attitudeOut->roll = (alpha * (attitudeOut->roll + gyro_x * dt_s)) + ((1.0f - alpha) * roll_acc);
+    attitudeOut->pitch =
+        (alpha * (attitudeOut->pitch + gyro_y * dt_s)) + ((1.0f - alpha) * pitch_acc);
+    attitudeOut->yaw = attitudeOut->yaw + gyro_z * dt_s;
 
     return HAL_OK;
 }
