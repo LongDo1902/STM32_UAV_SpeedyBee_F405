@@ -15,6 +15,21 @@
 
 typedef struct
 {
+    uint16_t raw_temperature;
+    uint16_t raw_accel[3];
+    uint16_t raw_gyro[3];
+
+} ICM42688_Raw_t;
+
+typedef struct
+{
+    uint16_t offset_raw_accel[3];
+    uint16_t offset_raw_gyro[3];
+
+} ICM42688_Offset_Raw_t;
+
+typedef struct
+{
     float temp_c;
     float accel_g[3];
     float gyro_dps[3];
@@ -43,14 +58,19 @@ HAL_StatusTypeDef
 ICM42688_Get_Gyro_DPS(ICM42688_Handle_t *handle, float dps[3]);
 
 HAL_StatusTypeDef
-ICM42688_Get_Temp_Accel_Gyro_Raw(ICM42688_Handle_t *handle, int16_t *buf);
+ICM42688_Get_Temp_Accel_Gyro_Raw(ICM42688_Handle_t *handle, ICM42688_Raw_t *outRaw);
+
+HAL_StatusTypeDef
+ICM42688_Get_Calibrated_Raw(ICM42688_Handle_t *handle, ICM42688_Offset_Raw_t *offsetCalibratedRaw,
+                            uint32_t samples);
 
 HAL_StatusTypeDef
 ICM42688_Get_Temp_Accel_Gyro_Scaled(ICM42688_Handle_t                 *handle,
+                                    const ICM42688_Offset_Raw_t       *offsetRaw,
                                     ICM42688_Temp_Accel_Gyro_Scaled_t *sampleOut);
-
 HAL_StatusTypeDef
-ICM42688_Get_Est_Angle_Complement(ICM42688_Handle_t               *handle,
+ICM42688_Get_Est_Angle_Complement(ICM42688_Handle_t                 *handle,
+                                  ICM42688_Temp_Accel_Gyro_Scaled_t *scaledData,
                                   ICM42688_Est_Angle_complement_t *attitudeOut, float dt_s);
 
 #endif /* INC_IMU_SENSORS_ICM42688_DATA_H_ */
