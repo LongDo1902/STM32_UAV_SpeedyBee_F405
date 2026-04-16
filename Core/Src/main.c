@@ -23,7 +23,7 @@
 #include "spi.h"
 #include "usart.h"
 #include "gpio.h"
-#include "spi.h"
+#include "crsf.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -48,6 +48,7 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+crsf_handle_t crsf_handle;
 
 /* USER CODE BEGIN PV */
 bool ready = false;
@@ -107,12 +108,22 @@ main(void)
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
   Long_ADC_startADC1Int(&hadc1);	//Start reading STM32's temperature using interrupt
+  crsf_init(&crsf_handle, &huart6);
+
   /* USER CODE END 2 */
 
     while (1) {
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
+        if(crsf_update(&crsf_handle)){
+            uint16_t throttle = crsf_get_channel(&crsf_handle, 2);
+            printf("THR: %4d | OK: %d\r\n",
+                    throttle,
+                    crsf_handle.signal_ok);
+        }
+        printf("asdasd\n");
+
     }
     /* USER CODE END 3 */
 }
@@ -162,7 +173,12 @@ SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+    uint8_t rx_bytes;
+    if(huart->Instance == USART6){
+        crsf_receive_byte(&crsf_handle, rx_bytes);
+    }
+}
 /* USER CODE END 4 */
 
 /**
