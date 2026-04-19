@@ -155,5 +155,7 @@ ICM42688_Init(ICM42688_Handle_t *handle)
 
     HAL_Delay(50);
 
+    handle->is_initialized = true;
+
     return HAL_OK;
 }

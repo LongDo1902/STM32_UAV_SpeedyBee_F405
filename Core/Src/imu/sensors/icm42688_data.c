@@ -177,31 +177,31 @@ ICM42688_Get_Temp_Accel_Gyro_Raw(ICM42688_Handle_t *handle, ICM42688_Raw_t *outR
 
     if (handle->intf_config.sensor_data_endian == SENSOR_DATA_BIG_ENDIAN) {
         // Get temperature raw
-        outRaw->raw_temperature = ((uint16_t)raw[0] << 8) | (uint16_t)raw[1];
+        outRaw->raw_temperature = (int16_t)((uint16_t)raw[0] << 8) | (uint16_t)raw[1];
 
         // Get accel raw
-        outRaw->raw_accel[0] = ((uint16_t)raw[2] << 8) | (uint16_t)raw[3];
-        outRaw->raw_accel[1] = ((uint16_t)raw[4] << 8) | (uint16_t)raw[5];
-        outRaw->raw_accel[2] = ((uint16_t)raw[6] << 8) | (uint16_t)raw[7];
+        outRaw->raw_accel[0] = (int16_t)((uint16_t)raw[2] << 8) | (uint16_t)raw[3];
+        outRaw->raw_accel[1] = (int16_t)((uint16_t)raw[4] << 8) | (uint16_t)raw[5];
+        outRaw->raw_accel[2] = (int16_t)((uint16_t)raw[6] << 8) | (uint16_t)raw[7];
 
         // Get gyro raw
-        outRaw->raw_gyro[0] = ((uint16_t)raw[8] << 8) | (uint16_t)raw[9];
-        outRaw->raw_gyro[1] = ((uint16_t)raw[10] << 8) | (uint16_t)raw[11];
-        outRaw->raw_gyro[2] = ((uint16_t)raw[12] << 8) | (uint16_t)raw[13];
+        outRaw->raw_gyro[0] = (int16_t)((uint16_t)raw[8] << 8) | (uint16_t)raw[9];
+        outRaw->raw_gyro[1] = (int16_t)((uint16_t)raw[10] << 8) | (uint16_t)raw[11];
+        outRaw->raw_gyro[2] = (int16_t)((uint16_t)raw[12] << 8) | (uint16_t)raw[13];
     }
     else {
         // Get temperature raw
-        outRaw->raw_temperature = ((uint16_t)raw[1] << 8) | (uint16_t)raw[0];
+        outRaw->raw_temperature = (int16_t)((uint16_t)raw[1] << 8) | (uint16_t)raw[0];
 
         // Get accel raw
-        outRaw->raw_accel[0] = ((uint16_t)raw[3] << 8) | (uint16_t)raw[2];
-        outRaw->raw_accel[1] = ((uint16_t)raw[5] << 8) | (uint16_t)raw[4];
-        outRaw->raw_accel[2] = ((uint16_t)raw[7] << 8) | (uint16_t)raw[6];
+        outRaw->raw_accel[0] = (int16_t)((uint16_t)raw[3] << 8) | (uint16_t)raw[2];
+        outRaw->raw_accel[1] = (int16_t)((uint16_t)raw[5] << 8) | (uint16_t)raw[4];
+        outRaw->raw_accel[2] = (int16_t)((uint16_t)raw[7] << 8) | (uint16_t)raw[6];
 
         // Get gyro raw
-        outRaw->raw_gyro[0] = ((uint16_t)raw[9] << 8) | (uint16_t)raw[8];
-        outRaw->raw_gyro[1] = ((uint16_t)raw[11] << 8) | (uint16_t)raw[10];
-        outRaw->raw_gyro[2] = ((uint16_t)raw[13] << 8) | (uint16_t)raw[12];
+        outRaw->raw_gyro[0] = (int16_t)((uint16_t)raw[9] << 8) | (uint16_t)raw[8];
+        outRaw->raw_gyro[1] = (int16_t)((uint16_t)raw[11] << 8) | (uint16_t)raw[10];
+        outRaw->raw_gyro[2] = (int16_t)((uint16_t)raw[13] << 8) | (uint16_t)raw[12];
     }
 
     return HAL_OK;
@@ -210,23 +210,17 @@ ICM42688_Get_Temp_Accel_Gyro_Raw(ICM42688_Handle_t *handle, ICM42688_Raw_t *outR
 
 
 HAL_StatusTypeDef
-ICM42688_Get_Calibrated_Raw(ICM42688_Handle_t *handle, ICM42688_Offset_Raw_t *offsetCalibratedRaw,
-                            uint32_t samples)
+ICM42688_Get_Calibrate_Raw(ICM42688_Handle_t *handle, ICM42688_Offset_Raw_t *offsetCalibratedRaw,
+                           uint32_t samples)
 {
     if (!handle || !offsetCalibratedRaw)
         return HAL_ERROR;
 
     ICM42688_Raw_t raw = {0};
 
-    uint32_t sumGyroX = {0};
-    uint32_t sumGyroY = {0};
-    uint32_t sumGyroZ = {0};
+    int32_t sumAccelX = {0}, sumAccelY = {0}, sumAccelZ = {0};
+    int32_t sumGyroX = {0}, sumGyroY = {0}, sumGyroZ = {0};
 
-    uint32_t sumAccelX = {0};
-    uint32_t sumAccelY = {0};
-    uint32_t sumAccelZ = {0};
-
-    // Store the extracted raw data in a 2D buffer with a size of @p samples.
     for (size_t i = 0; i < samples; i++) {
         (void)ICM42688_Get_Temp_Accel_Gyro_Raw(handle, &raw);
 
@@ -239,13 +233,15 @@ ICM42688_Get_Calibrated_Raw(ICM42688_Handle_t *handle, ICM42688_Offset_Raw_t *of
         sumGyroZ += raw.raw_gyro[2]; // Gyro Z
     }
 
-    offsetCalibratedRaw->offset_raw_gyro[0]  = sumGyroX / samples;
-    offsetCalibratedRaw->offset_raw_gyro[1]  = sumGyroY / samples;
-    offsetCalibratedRaw->offset_raw_accel[2] = sumGyroZ / samples;
+    // Save the offsets
+    offsetCalibratedRaw->offset_raw_accel[0] = (int32_t)(sumAccelX / (int32_t)samples);
+    offsetCalibratedRaw->offset_raw_accel[1] = (int32_t)(sumAccelY / (int32_t)samples);
+    offsetCalibratedRaw->offset_raw_accel[2] = (int32_t)(sumAccelZ / (int32_t)samples) -
+                                               (int32_t)(lroundf(handle->accel_lsb_per_g_dtsheet));
 
-    offsetCalibratedRaw->offset_raw_accel[0] = sumAccelX / samples;
-    offsetCalibratedRaw->offset_raw_accel[1] = sumAccelY / samples;
-    offsetCalibratedRaw->offset_raw_accel[2] = sumAccelZ / samples;
+    offsetCalibratedRaw->offset_raw_gyro[0] = (int32_t)(sumGyroX / (int32_t)samples);
+    offsetCalibratedRaw->offset_raw_gyro[1] = (int32_t)(sumGyroY / (int32_t)samples);
+    offsetCalibratedRaw->offset_raw_gyro[2] = (int32_t)(sumGyroZ / (int32_t)samples);
 
     return HAL_OK;
 }
@@ -275,14 +271,14 @@ ICM42688_Get_Temp_Accel_Gyro_Scaled(ICM42688_Handle_t                 *handle,
     sampleOut->temp_c = (float)((raw.raw_temperature / 132.48f) + 25.0f);
 
     // Accel in g
-    sampleOut->accel_g[0] = (float)((raw.raw_accel[0] + offsetRaw->offset_raw_accel[0]) * accel_s);
-    sampleOut->accel_g[1] = (float)((raw.raw_accel[1] + offsetRaw->offset_raw_accel[1]) * accel_s);
-    sampleOut->accel_g[2] = (float)((raw.raw_accel[2] + offsetRaw->offset_raw_accel[2]) * accel_s);
+    sampleOut->accel_g[0] = (float)((raw.raw_accel[0] - offsetRaw->offset_raw_accel[0]) * accel_s);
+    sampleOut->accel_g[1] = (float)((raw.raw_accel[1] - offsetRaw->offset_raw_accel[1]) * accel_s);
+    sampleOut->accel_g[2] = (float)((raw.raw_accel[2] - offsetRaw->offset_raw_accel[2]) * accel_s);
 
     // Gyro in dps
-    sampleOut->gyro_dps[0] = (float)((raw.raw_gyro[0] + offsetRaw->offset_raw_gyro[0]) * gyro_s);
-    sampleOut->gyro_dps[1] = (float)((raw.raw_gyro[1] + offsetRaw->offset_raw_gyro[1]) * gyro_s);
-    sampleOut->gyro_dps[2] = (float)((raw.raw_gyro[2] + offsetRaw->offset_raw_gyro[2]) * gyro_s);
+    sampleOut->gyro_dps[0] = (float)((raw.raw_gyro[0] - offsetRaw->offset_raw_gyro[0]) * gyro_s);
+    sampleOut->gyro_dps[1] = (float)((raw.raw_gyro[1] - offsetRaw->offset_raw_gyro[1]) * gyro_s);
+    sampleOut->gyro_dps[2] = (float)((raw.raw_gyro[2] - offsetRaw->offset_raw_gyro[2]) * gyro_s);
 
     return HAL_OK;
 }
@@ -306,7 +302,7 @@ ICM42688_Get_Est_Angle_Complement(ICM42688_Handle_t                 *handle,
     float gyro_z = scaledData->gyro_dps[2];
 
     // Calculate estimated angle from accelerometer
-    float roll_acc = atan2f(accel_y, accel_z) * 180.0f / M_PI;
+    float roll_acc = atan2f(accel_y, sqrt(accel_z * accel_z + accel_x * accel_x)) * 180.0f / M_PI;
     float pitch_acc =
         atan2f(-accel_x, sqrtf(accel_y * accel_y + accel_z * accel_z)) * 180.0f / M_PI;
 

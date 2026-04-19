@@ -74,7 +74,7 @@ ICM42688_main()
 
     CHECK_FOR(ICM42688_Init(&icm42688_handle));
 
-    ICM42688_Get_Calibrated_Raw(&icm42688_handle, &icm42688_offset_raw, 500);
+    (void)ICM42688_Get_Calibrate_Raw(&icm42688_handle, &icm42688_offset_raw, 5);
 
     uint32_t prevTick = HAL_GetTick();
 

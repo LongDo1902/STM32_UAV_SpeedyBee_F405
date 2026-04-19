@@ -15,16 +15,16 @@
 
 typedef struct
 {
-    uint16_t raw_temperature;
-    uint16_t raw_accel[3];
-    uint16_t raw_gyro[3];
+    int16_t raw_temperature;
+    int16_t raw_accel[3];
+    int16_t raw_gyro[3];
 
 } ICM42688_Raw_t;
 
 typedef struct
 {
-    uint16_t offset_raw_accel[3];
-    uint16_t offset_raw_gyro[3];
+    int32_t offset_raw_accel[3];
+    int32_t offset_raw_gyro[3];
 
 } ICM42688_Offset_Raw_t;
 
@@ -61,8 +61,8 @@ HAL_StatusTypeDef
 ICM42688_Get_Temp_Accel_Gyro_Raw(ICM42688_Handle_t *handle, ICM42688_Raw_t *outRaw);
 
 HAL_StatusTypeDef
-ICM42688_Get_Calibrated_Raw(ICM42688_Handle_t *handle, ICM42688_Offset_Raw_t *offsetCalibratedRaw,
-                            uint32_t samples);
+ICM42688_Get_Calibrate_Raw(ICM42688_Handle_t *handle, ICM42688_Offset_Raw_t *offsetCalibratedRaw,
+                           uint32_t samples);
 
 HAL_StatusTypeDef
 ICM42688_Get_Temp_Accel_Gyro_Scaled(ICM42688_Handle_t                 *handle,
