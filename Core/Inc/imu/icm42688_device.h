@@ -16,6 +16,7 @@
 #include "imu/features/icm42688_interface.h"
 #include "imu/features/icm42688_interrupt.h"
 
+#include "imu/features/icm42688_fifo.h"
 #include "imu/sensors/icm42688_accel.h"
 #include "imu/sensors/icm42688_data.h"
 #include "imu/sensors/icm42688_gyro.h"

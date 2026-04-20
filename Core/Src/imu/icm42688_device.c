@@ -113,6 +113,80 @@ ICM42688_SoftReset(ICM42688_Handle_t *handle)
 
 
 
+static HAL_StatusTypeDef
+_ICM42688_Interface_Config(ICM42688_Handle_t *handle)
+{
+    HAL_StatusTypeDef status = HAL_OK;
+
+    CHECK_FOR(ICM42688_Set_SPI_Mode(handle, SPI_MODE_0_3));
+    CHECK_FOR(ICM42688_Set_SPI_SlewRate(handle, SPI_SR_2NS));
+    CHECK_FOR(ICM42688_Set_UI_SIFS_Conf(handle, UI_SIFS_DISABLE_I2C));
+    CHECK_FOR(ICM42688_Set_Sensor_Data_Endian(handle, SENSOR_DATA_BIG_ENDIAN));
+
+    return HAL_OK;
+}
+
+
+
+static HAL_StatusTypeDef
+_ICM42688_Accel_Config(ICM42688_Handle_t *handle)
+{
+    HAL_StatusTypeDef status = HAL_OK;
+
+    CHECK_FOR(ICM42688_Set_AccelConfig(handle, ACCEL_LOW_NOISE, ACCEL_ODR_8KHz, ACCEL_FSR_4g));
+    CHECK_FOR(ICM42688_Set_Accel_UIFilt_BW(handle, BW_ODR_DIV_2));
+    CHECK_FOR(ICM42688_Set_Accel_UIFilt_Order(handle, ACCEL_FIRST_ORDER));
+    CHECK_FOR(ICM42688_Set_Accel_Anti_Alias_Filt(handle, ENABLE_AAF));
+
+    return HAL_OK;
+}
+
+
+
+static HAL_StatusTypeDef
+_ICM42688_Gyro_Config(ICM42688_Handle_t *handle)
+{
+    HAL_StatusTypeDef status = HAL_OK;
+
+    CHECK_FOR(ICM42688_Set_GyroConfig(handle, GYRO_LOW_NOISE, GYRO_ODR_8KHz, GYRO_FSR_1000dps));
+    CHECK_FOR(ICM42688_Set_Gyro_UIFilt_BW(handle, BW_ODR_DIV_2));
+    CHECK_FOR(ICM42688_Set_Gyro_UIFilt_Order(handle, GYRO_FIRST_ORDER));
+    CHECK_FOR(ICM42688_Set_Gyro_Anti_Alias_Filt(handle, ENABLE_AAF));
+
+    return HAL_OK;
+}
+
+
+
+static HAL_StatusTypeDef
+_ICM42688_Temperature_Config(ICM42688_Handle_t *handle)
+{
+    HAL_StatusTypeDef status = HAL_OK;
+    CHECK_FOR(ICM42688_Set_Temperature_Enable(handle, TEMP_ENABLE));
+
+    return HAL_OK;
+}
+
+
+
+static HAL_StatusTypeDef
+_ICM42688_FIFO_Config(ICM42688_Handle_t *handle)
+{
+    HAL_StatusTypeDef status = HAL_OK;
+
+    CHECK_FOR(ICM42688_Set_FIFO_Count_Endian(handle, FIFO_COUNT_BIG_ENDIAN));
+    CHECK_FOR(ICM42688_Set_FIFO_Count_Rec(handle, FIFO_COUNT_IN_BYTE));
+    CHECK_FOR(ICM42688_Set_FIFO_Mode(handle, STREAM_TO_FIFO));
+    CHECK_FOR(ICM42688_Set_FIFO_Gyro_Enable(handle, FIFO_GAT_ENABLE));
+    CHECK_FOR(ICM42688_Set_FIFO_Accel_Enable(handle, FIFO_GAT_ENABLE));
+    CHECK_FOR(ICM42688_Set_FIFO_Temp_Enable(handle, FIFO_GAT_ENABLE));
+    CHECK_FOR(ICM42688_Set_FIFO_HIRES_Enable(handle, FIFO_HIRES_DISABLE));
+
+    return HAL_OK;
+}
+
+
+
 HAL_StatusTypeDef
 ICM42688_Init(ICM42688_Handle_t *handle)
 {
@@ -133,25 +207,19 @@ ICM42688_Init(ICM42688_Handle_t *handle)
     } while (!ICM42688_Int_Status_Has(intStatus, INT_RESET_DONE));
 
     // Interface configuration
-    CHECK_FOR(ICM42688_Set_SPI_Mode(handle, SPI_MODE_0_3));
-    CHECK_FOR(ICM42688_Set_SPI_SlewRate(handle, SPI_SR_2NS));
-    CHECK_FOR(ICM42688_Set_UI_SIFS_Conf(handle, UI_SIFS_DISABLE_I2C));
-    CHECK_FOR(ICM42688_Set_Sensor_Data_Endian(handle, SENSOR_DATA_BIG_ENDIAN));
+    _ICM42688_Interface_Config(handle);
 
     // Accel configuration
-    CHECK_FOR(ICM42688_Set_AccelConfig(handle, ACCEL_LOW_NOISE, ACCEL_ODR_8KHz, ACCEL_FSR_4g));
-    CHECK_FOR(ICM42688_Set_Accel_UIFilt_BW(handle, BW_ODR_DIV_2));
-    CHECK_FOR(ICM42688_Set_Accel_UIFilt_Order(handle, ACCEL_FIRST_ORDER));
-    CHECK_FOR(ICM42688_Set_Accel_Anti_Alias_Filt(handle, ENABLE_AAF));
+    _ICM42688_Accel_Config(handle);
 
     // Gyro configuration
-    CHECK_FOR(ICM42688_Set_GyroConfig(handle, GYRO_LOW_NOISE, GYRO_ODR_8KHz, GYRO_FSR_1000dps));
-    CHECK_FOR(ICM42688_Set_Gyro_UIFilt_BW(handle, BW_ODR_DIV_2));
-    CHECK_FOR(ICM42688_Set_Gyro_UIFilt_Order(handle, GYRO_FIRST_ORDER));
-    CHECK_FOR(ICM42688_Set_Gyro_Anti_Alias_Filt(handle, ENABLE_AAF));
+    _ICM42688_Gyro_Config(handle);
 
     // Temperature configuration
-    ICM42688_Set_Temperature_Enable(handle, TEMP_ENABLE);
+    _ICM42688_Temperature_Config(handle);
+
+    // FIFO configuration
+    _ICM42688_FIFO_Config(handle);
 
     HAL_Delay(50);
 

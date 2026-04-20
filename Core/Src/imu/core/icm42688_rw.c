@@ -43,7 +43,7 @@ ICM42688_WriteBankAuto(ICM42688_Handle_t *handle, ICM42688_Reg_t encodedReg)
 
     uint8_t bankSelAddr = ICM42688_REG_ADDR(ICM42688_UB0_REG_BANK_SEL);
     uint8_t bank_tx[2]  = {/* 1st sent is register address + write command bit
-                           * 2nd sent is data byte */
+                            * 2nd sent is data byte */
                           (uint8_t)(bankSelAddr & ICM42688_SPI_ADDR_MASK), (uint8_t)(bank)};
 
     ICM42688_CS_Low(handle);

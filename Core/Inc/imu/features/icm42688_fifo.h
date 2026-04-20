@@ -73,5 +73,4 @@ ICM42688_FIFO_Parse_One_Byte_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Fram
                                    const uint8_t *FIFO_byteBuf, uint16_t FIFOCountInByte,
                                    uint16_t *currentPos);
 
-
 #endif /* INC_IMU_ICM42688_FIFO_H_ */
