@@ -20,18 +20,17 @@
 #include "main.h"
 #include "adc.h"
 #include "dma.h"
+#include "gpio.h"
 #include "spi.h"
 #include "usart.h"
-#include "gpio.h"
-#include "crsf.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "crsf.h"
 #include "imu\icm42688_device.h"
 #include "leds.h"
 #include "temperature.h"
 #include <stdbool.h>
-
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -41,6 +40,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define CRSF_PROTOCOL
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -49,7 +49,6 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-crsf_handle_t crsf_handle;
 
 /* USER CODE BEGIN PV */
 ICM42688_Handle_t                 icm42688_handle     = {0};
@@ -58,6 +57,8 @@ ICM42688_Temp_Accel_Gyro_Scaled_t icm42688_scaled     = {0};
 ICM42688_Est_Angle_complement_t   icm42688_est_angle  = {0};
 
 HAL_StatusTypeDef status = HAL_ERROR;
+bool              ready  = false;
+crsf_handle_t     crsf_handle;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -104,6 +105,7 @@ ICM42688_main()
 int
 main(void)
 {
+
     /* USER CODE BEGIN 1 */
 
     /* USER CODE END 1 */
@@ -122,8 +124,6 @@ main(void)
 
     /* USER CODE BEGIN SysInit */
 
-    /* USER CODE END SysInit */
-
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
     MX_DMA_Init();
@@ -132,31 +132,34 @@ main(void)
     /* USER CODE BEGIN 2 */
     ICM42688_main();
     Long_ADC_startADC1Int(&hadc1); // Start reading STM32's temperature using interrupt
+                                   /* USER CODE END 2 */
+
+    /* Initialize all configured peripherals */
+    MX_GPIO_Init();
+    MX_DMA_Init();
+    MX_SPI1_Init();
+    MX_ADC1_Init();
+    MX_USART1_UART_Init();
+    /* USER CODE BEGIN 2 */
+    Long_ADC_startADC1Int(&hadc1); // Start reading STM32's temperature using interrupt
+
+#ifdef CRSF_PROTOCOL
+    crsf_init(&crsf_handle, &huart1);
+#endif
+
     /* USER CODE END 2 */
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_DMA_Init();
-  MX_SPI1_Init();
-  MX_ADC1_Init();
-  MX_USART6_UART_Init();
-  /* USER CODE BEGIN 2 */
-  Long_ADC_startADC1Int(&hadc1);	//Start reading STM32's temperature using interrupt
-  crsf_init(&crsf_handle, &huart6);
-
-  /* USER CODE END 2 */
-
+    /* Infinite loop */
+    /* USER CODE BEGIN WHILE */
     while (1) {
         /* USER CODE END WHILE */
+
         /* USER CODE BEGIN 3 */
-        if(crsf_update(&crsf_handle)){
+        if (crsf_update(&crsf_handle)) {
             uint16_t throttle = crsf_get_channel(&crsf_handle, 2);
-            printf("THR: %4d | OK: %d\r\n",
-                    throttle,
-                    crsf_handle.signal_ok);
+            printf("THR: %4d | OK: %d\r\n", throttle, crsf_handle.signal_ok);
         }
         printf("asdasd\n");
-
     }
     /* USER CODE END 3 */
 }
@@ -206,9 +209,11 @@ SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+void
+HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
     uint8_t rx_bytes;
-    if(huart->Instance == USART6){
+    if (huart->Instance == USART1) {
         crsf_receive_byte(&crsf_handle, rx_bytes);
     }
 }
