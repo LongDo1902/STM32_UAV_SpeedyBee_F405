@@ -8,15 +8,16 @@
 #include "crsf_parser.h"
 #include "crsf_protocol.h"
 
-typedef struct {
+typedef struct
+{
     UART_HandleTypeDef *uart;
-    crsf_parser_t parser;
-    uint16_t channels[CRSF_MAX_CHANNEL];
-    uint8_t signal_ok; 
-}crsf_handle_t;
+    crsf_parser_t       parser;
+    uint16_t            channels[CRSF_MAX_CHANNEL];
+    uint8_t             signal_ok;
+} crsf_handle_t;
 
-void crsf_init(crsf_handle_t *handle, UART_HandleTypeDef *huart);
-bool crsf_update(crsf_handle_t *handle);
+void     crsf_init(crsf_handle_t *handle, UART_HandleTypeDef *huart);
+bool     crsf_update(crsf_handle_t *handle);
 uint16_t crsf_get_channel(crsf_handle_t *handle, uint8_t channel);
 
 void crsf_receive_byte(crsf_handle_t *crsf_handle, uint8_t byte);
