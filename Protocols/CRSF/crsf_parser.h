@@ -1,29 +1,31 @@
-//đọc buffer DMA
-//parse frame
-//verify CRC
+// đọc buffer DMA
+// parse frame
+// verify CRC
 
 #ifndef _CRSF_PARSER_H_
 #define _CRSF_PARSER_H_
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "crsf_protocol.h"
 
-typedef enum{
+typedef enum
+{
     CRSF_STATE_SYNC,
     CRSF_STATE_LEN,
     CRSF_STATE_TYPE,
     CRSF_STATE_PAYLOAD,
     CRSF_STATE_CRC
-}crsf_state_t;
+} crsf_state_t;
 
-typedef struct{
+typedef struct
+{
     crsf_state_t state;
     crsf_frame_t frame;
-    uint8_t frame_position;
-    uint8_t frame_done;
-}crsf_parser_t;
+    uint8_t      frame_position;
+    uint8_t      frame_done;
+} crsf_parser_t;
 
 void crsf_parser_init(crsf_parser_t *parser);
 
