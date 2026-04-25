@@ -28,16 +28,16 @@
 do{                             \
     status = (expr);            \
     if(status != HAL_OK)        \
-        return status;          \
+        return ICM42688_ERROR;  \
 }while(0)
 
-HAL_StatusTypeDef
+ICM42688_Status_t
 ICM42688_IsAlive(ICM42688_Handle_t *handle);
 
-HAL_StatusTypeDef
+ICM42688_Status_t
 ICM42688_SoftReset(ICM42688_Handle_t *handle);
 
-HAL_StatusTypeDef
+ICM42688_Status_t
 ICM42688_Init(ICM42688_Handle_t *handle);
 
 #endif /* INC_IMU_ICM42688_DEVICE_H_ */

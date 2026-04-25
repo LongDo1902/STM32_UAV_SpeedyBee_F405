@@ -13,23 +13,23 @@
 #include "imu/core/icm42688_rw.h"
 #include "imu/core/icm42688_types.h"
 
-HAL_StatusTypeDef
-ICM42688_Set_GyroConfig(ICM42688_Handle_t *handle, ICM42688_GyroMode_t mode, ICM42688_GyroODR_t odr,
-                        ICM42688_GyroFSR_t fsr);
+ICM42688_Status_t
+ICM42688_Set_GyroConfig(ICM42688_Handle_t *handle, ICM42688_Gyro_Mode_t mode, ICM42688_Gyro_ODR_t odr,
+                        ICM42688_Gyro_FSR_t fsr);
 
-HAL_StatusTypeDef
+ICM42688_Status_t
 ICM42688_Get_Gyro_Mode(ICM42688_Handle_t *handle, uint8_t *modeInfo);
 
-HAL_StatusTypeDef
+ICM42688_Status_t
 ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t *handle, ICM42688_UIFilt_BW_t bw);
 
-HAL_StatusTypeDef
-ICM42688_Set_Gyro_UIFilt_Order(ICM42688_Handle_t *handle, ICM42688_GyroUIFiltOrder_t filterOrder);
+ICM42688_Status_t
+ICM42688_Set_Gyro_UIFilt_Order(ICM42688_Handle_t *handle, ICM42688_Gyro_UIFilt_Order_t filterOrder);
 
-HAL_StatusTypeDef
+ICM42688_Status_t
 ICM42688_Set_Gyro_Anti_Alias_Filt(ICM42688_Handle_t *handle, ICM42688_AAF_En_t antiAliasState);
 
-HAL_StatusTypeDef
+ICM42688_Status_t
 ICM42688_Set_Gyro_Notch_Filt(ICM42688_Handle_t *handle, ICM42688_Notch_Filt_En_t notchFiltState);
 
 HAL_StatusTypeDef

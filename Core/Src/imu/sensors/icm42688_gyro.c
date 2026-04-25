@@ -25,41 +25,41 @@ ICM42688_Update_GyroScaleFactor(ICM42688_Handle_t *handle)
 /*=============================================================================
  *	GYRO CONFIG / FILTER
  *============================================================================= */
-HAL_StatusTypeDef
-ICM42688_Set_GyroConfig(ICM42688_Handle_t *handle, ICM42688_GyroMode_t mode, ICM42688_GyroODR_t odr,
-                        ICM42688_GyroFSR_t fsr)
+ICM42688_Status_t
+ICM42688_Set_GyroConfig(ICM42688_Handle_t *handle, ICM42688_Gyro_Mode_t mode,
+                        ICM42688_Gyro_ODR_t odr, ICM42688_Gyro_FSR_t fsr)
 {
     if (!handle)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
     if (((uint8_t)mode > 3U) || ((uint8_t)mode == 2U))
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
     if ((((uint8_t)odr > (uint8_t)GYRO_ODR_500Hz)) || ((uint8_t)odr == 0x00U) ||
         ((uint8_t)odr == 0x0CU) || ((uint8_t)odr == 0x0DU) || ((uint8_t)odr == 0x0EU))
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
     if ((uint8_t)fsr > (uint8_t)GYRO_FSR_15dps625)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
     HAL_StatusTypeDef status = HAL_OK;
 
     // (1) PWR_MGMT0: Set Gyro Mode
-    ICM42688_GyroMode_t prevMode        = handle->gyro_config.gyro_mode;
-    ICM42688_GyroMode_t currMode        = mode;
-    bool                need_write_mode = (!(handle->is_initialized) || (currMode != prevMode));
+    ICM42688_Gyro_Mode_t prev_mode       = handle->gyro_config.gyro_mode;
+    ICM42688_Gyro_Mode_t curr_mode       = mode;
+    bool                 need_write_mode = (!(handle->is_initialized) || (curr_mode != prev_mode));
     {
         // Skip if already cached & initialized
         if (need_write_mode == true) {
             status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_PWR_MGMT0,
                                               ICM42688_GYRO_MODE_Msk, ICM42688_GYRO_MODE_Val(mode));
             if (status != HAL_OK)
-                return status;
+                return ICM42688_ERROR;
 
             handle->gyro_config.gyro_mode = mode;
 
             // Add delay >= 200us according to datasheet
-            if ((prevMode == GYRO_OFF) && (currMode != GYRO_OFF)) {
+            if ((prev_mode == GYRO_OFF) && (curr_mode != GYRO_OFF)) {
                 HAL_Delay(1); // 1000us
             }
         }
@@ -70,137 +70,144 @@ ICM42688_Set_GyroConfig(ICM42688_Handle_t *handle, ICM42688_GyroMode_t mode, ICM
                             (fsr != (handle->gyro_config.gyro_fsr)));
     {
         if (need_write_conf == true) {
-            uint8_t mask        = ICM42688_GYRO_ODR_Msk | ICM42688_GYRO_FS_SEL_Msk;
-            uint8_t valueMasked = ICM42688_GYRO_ODR_Val(odr) | ICM42688_GYRO_FS_SEL_Val(fsr);
-            status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_GYRO_CONF0, mask, valueMasked);
+            uint8_t mask         = ICM42688_GYRO_ODR_Msk | ICM42688_GYRO_FS_SEL_Msk;
+            uint8_t value_masked = ICM42688_GYRO_ODR_Val(odr) | ICM42688_GYRO_FS_SEL_Val(fsr);
+
+            status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_GYRO_CONF0, mask, value_masked);
             if (status != HAL_OK)
-                return status;
+                return ICM42688_ERROR;
 
             // Update cache + scale factor after successful HW write
             handle->gyro_config.gyro_odr = odr;
             handle->gyro_config.gyro_fsr = fsr;
+
             ICM42688_Update_GyroScaleFactor(handle);
         }
     }
-    return status;
+    return ICM42688_OK;
 }
 
 
 
-HAL_StatusTypeDef
+ICM42688_Status_t
 ICM42688_Get_Gyro_Mode(ICM42688_Handle_t *handle, uint8_t *modeInfo)
 {
     if (!handle || !modeInfo)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
     uint8_t           reg    = 0U;
     HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB0_PWR_MGMT0, &reg);
     if (status != HAL_OK)
-        return status;
+        return ICM42688_ERROR;
 
     reg &= ICM42688_GYRO_MODE_Msk;
-    uint8_t rawMode = (uint8_t)(reg >> ICM42688_GYRO_MODE_Pos);
+    uint8_t raw_mode = (uint8_t)(reg >> ICM42688_GYRO_MODE_Pos);
 
-    if ((rawMode == 0U) || (rawMode == 1U) || (rawMode == 3U)) {
-        *modeInfo                     = rawMode;
-        handle->gyro_config.gyro_mode = (ICM42688_GyroMode_t)rawMode;
-        return HAL_OK;
+    if ((raw_mode == 0U) || (raw_mode == 1U) || (raw_mode == 3U)) {
+        *modeInfo                     = raw_mode;
+        handle->gyro_config.gyro_mode = (ICM42688_Gyro_Mode_t)raw_mode;
+        return ICM42688_OK;
     }
-    return HAL_ERROR;
+    return ICM42688_ERROR;
 }
 
 
 
-HAL_StatusTypeDef
-ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t *handle, ICM42688_UIFilt_BW_t bw)
+ICM42688_Status_t
+ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t *handle, ICM42688_UIFilt_BW_t UI_Filt_BandWidth)
 {
     if (!handle)
-        return HAL_ERROR;
-    if ((((uint8_t)bw >= 8U) && ((uint8_t)bw <= 13U)) || (uint8_t)bw > 0x0FU)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
-    HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_GYRO_ACCEL_CONF0,
-                                                        ICM42688_GYRO_UI_FILT_BW_Msk,
-                                                        ICM42688_GYRO_UI_FILT_BW_Val((uint8_t)bw));
+    if ((((uint8_t)UI_Filt_BandWidth >= 8U) && ((uint8_t)UI_Filt_BandWidth <= 13U)) ||
+        (uint8_t)UI_Filt_BandWidth > 0x0FU)
+        return ICM42688_ERROR;
+
+    HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(
+        handle, ICM42688_UB0_GYRO_ACCEL_CONF0, ICM42688_GYRO_UI_FILT_BW_Msk,
+        ICM42688_GYRO_UI_FILT_BW_Val((uint8_t)UI_Filt_BandWidth));
     if (status != HAL_OK)
-        return status;
-    handle->gyro_config.gyro_uifilt_bw = bw;
-    return HAL_OK;
+        return ICM42688_ERROR;
+
+    handle->gyro_config.gyro_uifilt_bw = UI_Filt_BandWidth;
+
+    return ICM42688_OK;
 }
 
 
 
-HAL_StatusTypeDef
-ICM42688_Set_Gyro_UIFilt_Order(ICM42688_Handle_t *handle, ICM42688_GyroUIFiltOrder_t filterOrder)
+ICM42688_Status_t
+ICM42688_Set_Gyro_UIFilt_Order(ICM42688_Handle_t           *handle,
+                               ICM42688_Gyro_UIFilt_Order_t UI_Filt_Order)
 {
     if (!handle)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
     uint8_t           reg    = 0U;
     HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB0_GYRO_CONF1, &reg);
     if (status != HAL_OK)
-        return status;
+        return ICM42688_ERROR;
 
     reg &= (uint8_t)~ICM42688_GYRO_UI_FILT_ORD_Msk;
-    reg |= (uint8_t)ICM42688_GYRO_UI_FILT_ORD_Val(filterOrder);
+    reg |= (uint8_t)ICM42688_GYRO_UI_FILT_ORD_Val(UI_Filt_Order);
     status = ICM42688_WriteReg(handle, ICM42688_UB0_GYRO_CONF1, reg);
 
     if (status != HAL_OK)
-        return status;
+        return ICM42688_ERROR;
 
-    handle->gyro_config.gyro_filt_order = filterOrder;
+    handle->gyro_config.gyro_filt_order = UI_Filt_Order;
 
-    return HAL_OK;
+    return ICM42688_OK;
 }
 
 
 
-HAL_StatusTypeDef
+ICM42688_Status_t
 ICM42688_Set_Gyro_Anti_Alias_Filt(ICM42688_Handle_t *handle, ICM42688_AAF_En_t antiAliasState)
 {
     if (!handle)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
     uint8_t           reg    = 0U;
     HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB1_GYRO_CONF_STATIC2, &reg);
     if (status != HAL_OK)
-        return status;
+        return ICM42688_ERROR;
 
     reg &= (uint8_t)~ICM42688_GYRO_AAF_DIS_Msk;
     reg |= (uint8_t)ICM42688_GYRO_AAF_DIS_Val(antiAliasState);
     status = ICM42688_WriteReg(handle, ICM42688_UB1_GYRO_CONF_STATIC2, reg);
 
     if (status != HAL_OK)
-        return status;
+        return ICM42688_ERROR;
 
     handle->gyro_config.gyro_aaf_state = antiAliasState;
 
-    return HAL_OK;
+    return ICM42688_OK;
 }
 
 
 
-HAL_StatusTypeDef
+ICM42688_Status_t
 ICM42688_Set_Gyro_Notch_Filt(ICM42688_Handle_t *handle, ICM42688_Notch_Filt_En_t notchFiltState)
 {
     if (!handle)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
     uint8_t           reg    = 0U;
     HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB1_GYRO_CONF_STATIC2, &reg);
     if (status != HAL_OK)
-        return status;
+        return ICM42688_ERROR;
 
     reg &= (uint8_t)~ICM42688_GYRO_NOTCH_FILT_Msk;
     reg |= (uint8_t)ICM42688_GYRO_NOTCH_FILT_Val(notchFiltState);
     status = ICM42688_WriteReg(handle, ICM42688_UB1_GYRO_CONF_STATIC2, reg);
 
     if (status != HAL_OK)
-        return status;
+        return ICM42688_ERROR;
 
     handle->gyro_config.gyro_notch_filt_state = notchFiltState;
 
-    return HAL_OK;
+    return ICM42688_OK;
 }
 
 

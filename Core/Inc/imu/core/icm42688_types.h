@@ -14,6 +14,15 @@
 
 
 /* ===========================================================================
+ *	RETURN DEFINES
+ * =========================================================================== */
+typedef HAL_StatusTypeDef ICM42688_Status_t;
+
+#define ICM42688_OK     HAL_OK
+#define ICM42688_ERROR  HAL_ERROR
+
+
+/* ===========================================================================
  *	GYROSCOPE DEFINES
  * =========================================================================== */
 typedef enum
@@ -33,7 +42,7 @@ typedef enum
     GYRO_ODR_3Hz125  = (uint8_t)0x0D, // Low Power Mode & Accel Only
     GYRO_ODR_1Hz5625 = (uint8_t)0x0E, // Low Power Mode & Accel Only
     GYRO_ODR_500Hz   = (uint8_t)0x0F,
-} ICM42688_GyroODR_t;
+} ICM42688_Gyro_ODR_t;
 
 
 typedef enum
@@ -46,7 +55,7 @@ typedef enum
     GYRO_FSR_65dps5   = (uint8_t)0x05,
     GYRO_FSR_31dps25  = (uint8_t)0x06,
     GYRO_FSR_15dps625 = (uint8_t)0x07
-} ICM42688_GyroFSR_t;
+} ICM42688_Gyro_FSR_t;
 
 
 typedef enum
@@ -59,7 +68,7 @@ typedef enum
     GYRO_NOTCHBW_40Hz    = (uint8_t)0x05,
     GYRO_NOTCHBW_20Hz    = (uint8_t)0x06,
     GYRO_NOTCHBW_10Hz    = (uint8_t)0x07
-} ICM42688_GyroNotch_t;
+} ICM42688_Gyro_Notch_t;
 
 
 typedef enum
@@ -67,7 +76,7 @@ typedef enum
     GYRO_FIRST_ORDER  = (uint8_t)0x00,
     GYRO_SECOND_ORDER = (uint8_t)0x01,
     GYRO_THIRD_ORDER  = (uint8_t)0x02
-} ICM42688_GyroUIFiltOrder_t;
+} ICM42688_Gyro_UIFilt_Order_t;
 
 
 typedef enum
@@ -75,7 +84,7 @@ typedef enum
     GYRO_OFF       = (uint8_t)0x00,
     GYRO_STANDBY   = (uint8_t)0x01,
     GYRO_LOW_NOISE = (uint8_t)0x03
-} ICM42688_GyroMode_t;
+} ICM42688_Gyro_Mode_t;
 
 
 typedef enum
@@ -113,7 +122,7 @@ typedef enum
     ACCEL_ODR_3Hz125  = (uint8_t)0x0D,
     ACCEL_ODR_1Hz5625 = (uint8_t)0x0E,
     ACCEL_ODR_500Hz   = (uint8_t)0x0F
-} ICM42688_AccelODR_t;
+} ICM42688_Accel_ODR_t;
 
 
 typedef enum
@@ -122,7 +131,7 @@ typedef enum
     ACCEL_FSR_8g  = (uint8_t)0x01,
     ACCEL_FSR_4g  = (uint8_t)0x02,
     ACCEL_FSR_2g  = (uint8_t)0x03
-} ICM42688_AccelFSR_t;
+} ICM42688_Accel_FSR_t;
 
 
 typedef enum
@@ -130,7 +139,7 @@ typedef enum
     ACCEL_FIRST_ORDER  = (uint8_t)0x00,
     ACCEL_SECOND_ORDER = (uint8_t)0x01,
     ACCEL_THIRD_ORDER  = (uint8_t)0x02
-} ICM42688_AccelUIFiltOrder_t;
+} ICM42688_Accel_UIFilt_Order_t;
 
 
 typedef enum
@@ -138,7 +147,7 @@ typedef enum
     ACCEL_OFF       = (uint8_t)0x00,
     ACCEL_LOW_POWER = (uint8_t)0x02,
     ACCEL_LOW_NOISE = (uint8_t)0x03
-} ICM42688_AccelMode_t;
+} ICM42688_Accel_Mode_t;
 
 
 typedef enum
@@ -369,26 +378,34 @@ typedef struct
 
 typedef struct
 {
-    ICM42688_GyroODR_t         gyro_odr;
-    ICM42688_GyroFSR_t         gyro_fsr;
-    ICM42688_GyroNotch_t       gyro_notch;
-    ICM42688_GyroUIFiltOrder_t gyro_filt_order;
-    ICM42688_GyroMode_t        gyro_mode;
-    ICM42688_UIFilt_BW_t       gyro_uifilt_bw;
-    ICM42688_AAF_En_t          gyro_aaf_state;
-    ICM42688_Notch_Filt_En_t   gyro_notch_filt_state;
+    ICM42688_Gyro_ODR_t          gyro_odr;
+    ICM42688_Gyro_FSR_t          gyro_fsr;
+    ICM42688_Gyro_Notch_t        gyro_notch;
+    ICM42688_Gyro_UIFilt_Order_t gyro_filt_order;
+    ICM42688_Gyro_Mode_t         gyro_mode;
+    ICM42688_UIFilt_BW_t         gyro_uifilt_bw;
+    ICM42688_AAF_En_t            gyro_aaf_state;
+    ICM42688_Notch_Filt_En_t     gyro_notch_filt_state;
 } ICM42688_Gyro_Config_t;
 
 
 typedef struct
 {
-    ICM42688_AccelODR_t         accel_odr;
-    ICM42688_AccelFSR_t         accel_fsr;
-    ICM42688_AccelUIFiltOrder_t accel_filt_order;
-    ICM42688_AccelMode_t        accel_mode;
-    ICM42688_UIFilt_BW_t        accel_uifilt_bw;
-    ICM42688_AAF_En_t           accel_aaf_state;
+    ICM42688_Accel_ODR_t          accel_odr;
+    ICM42688_Accel_FSR_t          accel_fsr;
+    ICM42688_Accel_UIFilt_Order_t accel_filt_order;
+    ICM42688_Accel_Mode_t         accel_mode;
+    ICM42688_UIFilt_BW_t          accel_uifilt_bw;
+    ICM42688_AAF_En_t             accel_aaf_state;
 } ICM42688_Accel_Config_t;
+
+
+typedef struct
+{
+    float accel_g[3];
+    float gyro_dps[3];
+    float temp_c;
+} ICM42688_Temp_Accel_Gyro_FIFO_Scaled_t;
 
 
 typedef struct
@@ -420,16 +437,20 @@ typedef struct
 } ICM42688_Temp_Config_t;
 
 
+
 typedef struct
 {
-    uint8_t header; //
+    uint8_t header;
 
     /* Packet 1 = 8 bytes
      * 		header(1) + accel(6) + fifo_temp(1)
+     *
      * Packet 2 = 8 bytes
      * 		header(1) + gyro(6) + fifo_temp(1)
+     *
      * Packet 3 = 16 bytes
      * 		header(1) + accel(6) + gyro(6) + fifo_temp(1) + timestamp(2)
+     *
      * Packet 4 = 20 bytes (not being built for now) */
     ICM42688_FIFO_Packet_t packet_type;
     uint8_t                packet_size;
@@ -460,10 +481,8 @@ typedef struct
     int16_t temp_raw16;
 
     // Converted outputs
-    float    accel_g[3];
-    float    gyro_dps[3];
-    float    temp_c;
-    uint16_t timestamp;
+    ICM42688_Temp_Accel_Gyro_FIFO_Scaled_t gat_scaled;
+    uint16_t                               timestamp;
 
     // Raw packet bytes for debugging only
     uint8_t raw[20];

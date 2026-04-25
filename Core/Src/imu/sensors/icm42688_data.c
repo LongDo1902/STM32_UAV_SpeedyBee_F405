@@ -10,18 +10,19 @@
 /* ==========================================================================================
  * 	TEMPERATURE DATA ONLY
  * ========================================================================================== */
-HAL_StatusTypeDef
+ICM42688_Status_t
 ICM42688_Get_Temperature_C(ICM42688_Handle_t *handle, float *out_temp_c)
 {
     if (!handle || !out_temp_c)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
+
     if (handle->temp_config.temp_state == TEMP_DISABLE)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
     uint8_t           buf[2] = {0};
     HAL_StatusTypeDef status = ICM42688_ReadRegs(handle, ICM42688_UB0_TEMP_DATA1, buf, 2);
     if (status != HAL_OK)
-        return status;
+        return ICM42688_ERROR;
 
     int16_t raw = 0;
     if (handle->intf_config.sensor_data_endian == SENSOR_DATA_BIG_ENDIAN) {
@@ -33,7 +34,7 @@ ICM42688_Get_Temperature_C(ICM42688_Handle_t *handle, float *out_temp_c)
 
     *out_temp_c = (float)((raw / 132.48f) + 25.0f);
 
-    return HAL_OK;
+    return ICM42688_OK;
 }
 
 
@@ -41,18 +42,19 @@ ICM42688_Get_Temperature_C(ICM42688_Handle_t *handle, float *out_temp_c)
 /* ==========================================================================================
  * 	ACCEL DATA ONLY
  * ========================================================================================== */
-HAL_StatusTypeDef
+ICM42688_Status_t
 ICM42688_Get_Accel_XYZ(ICM42688_Handle_t *handle, int16_t *buf)
 {
     if (!handle || !buf)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
+
     if (handle->accel_config.accel_mode == ACCEL_OFF)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
     uint8_t           raw[6] = {0};
     HAL_StatusTypeDef status = ICM42688_ReadRegs(handle, ICM42688_UB0_ACCEL_DATA_X1, raw, 6);
     if (status != HAL_OK)
-        return status;
+        return ICM42688_ERROR;
 
     if (handle->intf_config.sensor_data_endian == SENSOR_DATA_BIG_ENDIAN) {
         buf[0] = (int16_t)(((uint16_t)raw[0] << 8) | (uint16_t)raw[1]); // Extract Accel X
@@ -68,30 +70,31 @@ ICM42688_Get_Accel_XYZ(ICM42688_Handle_t *handle, int16_t *buf)
 
         buf[2] = (int16_t)(((uint16_t)raw[5] << 8) | (uint16_t)raw[4]); // Extract Accel Z
     }
-    return HAL_OK;
+    return ICM42688_OK;
 }
 
 
 
-HAL_StatusTypeDef
+ICM42688_Status_t
 ICM42688_Get_Accel_G(ICM42688_Handle_t *handle, float g[3])
 {
     if (!handle || !g)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
+
     if (handle->accel_g_per_lsb <= 0.0f)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
     int16_t           raw[3] = {0};
     HAL_StatusTypeDef status = ICM42688_Get_Accel_XYZ(handle, raw);
     if (status != HAL_OK)
-        return status;
+        return ICM42688_ERROR;
 
     const float s = handle->accel_g_per_lsb;
     g[0]          = (float)(raw[0] * s);
     g[1]          = (float)(raw[1] * s);
     g[2]          = (float)(raw[2] * s);
 
-    return HAL_OK;
+    return ICM42688_OK;
 }
 
 
@@ -99,18 +102,19 @@ ICM42688_Get_Accel_G(ICM42688_Handle_t *handle, float g[3])
 /* ==========================================================================================
  * 	GYRO DATA ONLY
  * ========================================================================================== */
-HAL_StatusTypeDef
+ICM42688_Status_t
 ICM42688_Get_Gyro_XYZ(ICM42688_Handle_t *handle, int16_t *buf)
 {
     if (!handle || !buf)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
+
     if (handle->gyro_config.gyro_mode == GYRO_OFF)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
     uint8_t           raw[6] = {0};
     HAL_StatusTypeDef status = ICM42688_ReadRegs(handle, ICM42688_UB0_GYRO_DATA_X1, raw, 6);
     if (status != HAL_OK)
-        return status;
+        return ICM42688_ERROR;
 
     if (handle->intf_config.sensor_data_endian == SENSOR_DATA_BIG_ENDIAN) {
 
@@ -127,23 +131,24 @@ ICM42688_Get_Gyro_XYZ(ICM42688_Handle_t *handle, int16_t *buf)
 
         buf[2] = (int16_t)(((uint16_t)raw[5] << 8) | (uint16_t)raw[4]); // Extract Gyro Z
     }
-    return HAL_OK;
+    return ICM42688_OK;
 }
 
 
 
-HAL_StatusTypeDef
+ICM42688_Status_t
 ICM42688_Get_Gyro_DPS(ICM42688_Handle_t *handle, float dps[3])
 {
     if (!handle || !dps)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
+
     if (handle->gyro_dps_per_lsb <= 0.0f)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
     int16_t           raw[3] = {0};
     HAL_StatusTypeDef status = ICM42688_Get_Gyro_XYZ(handle, raw);
     if (status != HAL_OK)
-        return status;
+        return ICM42688_ERROR;
 
     // Extract gyro X, Y and Z dps
     const float s = handle->gyro_dps_per_lsb;
@@ -151,7 +156,7 @@ ICM42688_Get_Gyro_DPS(ICM42688_Handle_t *handle, float dps[3])
     dps[1]        = (float)(raw[1] * s);
     dps[2]        = (float)(raw[2] * s);
 
-    return HAL_OK;
+    return ICM42688_OK;
 }
 
 
@@ -159,21 +164,21 @@ ICM42688_Get_Gyro_DPS(ICM42688_Handle_t *handle, float dps[3])
 /* ==========================================================================================
  * 	TEMP ACCEL GYRO DATA IN ONE BURST READ
  * ========================================================================================== */
-HAL_StatusTypeDef
+ICM42688_Status_t
 ICM42688_Get_Temp_Accel_Gyro_Raw(ICM42688_Handle_t *handle, ICM42688_Raw_t *outRaw)
 {
     if (!handle || !outRaw)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
     if ((handle->temp_config.temp_state == TEMP_DISABLE) ||
         (handle->accel_config.accel_mode == ACCEL_OFF) ||
         (handle->gyro_config.gyro_mode == GYRO_OFF))
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
     uint8_t           raw[14] = {0};
     HAL_StatusTypeDef status  = ICM42688_ReadRegs(handle, ICM42688_UB0_TEMP_DATA1, raw, 14);
     if (status != HAL_OK)
-        return status;
+        return ICM42688_ERROR;
 
     if (handle->intf_config.sensor_data_endian == SENSOR_DATA_BIG_ENDIAN) {
         // Get temperature raw
@@ -204,7 +209,7 @@ ICM42688_Get_Temp_Accel_Gyro_Raw(ICM42688_Handle_t *handle, ICM42688_Raw_t *outR
         outRaw->raw_gyro[2] = (int16_t)((uint16_t)raw[13] << 8) | (uint16_t)raw[12];
     }
 
-    return HAL_OK;
+    return ICM42688_OK;
 }
 
 
@@ -248,21 +253,21 @@ ICM42688_Get_Calibrate_Raw(ICM42688_Handle_t *handle, ICM42688_Offset_Raw_t *off
 
 
 
-HAL_StatusTypeDef
+ICM42688_Status_t
 ICM42688_Get_Temp_Accel_Gyro_Scaled(ICM42688_Handle_t                 *handle,
                                     const ICM42688_Offset_Raw_t       *offsetRaw,
                                     ICM42688_Temp_Accel_Gyro_Scaled_t *sampleOut)
 {
     if (!handle || !offsetRaw || !sampleOut)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
     if ((handle->gyro_dps_per_lsb <= 0.0f) || (handle->accel_g_per_lsb <= 0.0f))
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
     ICM42688_Raw_t    raw    = {0};
-    HAL_StatusTypeDef status = ICM42688_Get_Temp_Accel_Gyro_Raw(handle, &raw);
+    ICM42688_Status_t status = ICM42688_Get_Temp_Accel_Gyro_Raw(handle, &raw);
     if (status != HAL_OK)
-        return status;
+        return ICM42688_ERROR;
 
     const float accel_s = handle->accel_g_per_lsb;
     const float gyro_s  = handle->gyro_dps_per_lsb;
@@ -280,7 +285,7 @@ ICM42688_Get_Temp_Accel_Gyro_Scaled(ICM42688_Handle_t                 *handle,
     sampleOut->gyro_dps[1] = (float)((raw.raw_gyro[1] - offsetRaw->offset_raw_gyro[1]) * gyro_s);
     sampleOut->gyro_dps[2] = (float)((raw.raw_gyro[2] - offsetRaw->offset_raw_gyro[2]) * gyro_s);
 
-    return HAL_OK;
+    return ICM42688_OK;
 }
 
 
