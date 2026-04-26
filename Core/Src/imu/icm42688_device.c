@@ -113,66 +113,65 @@ ICM42688_SoftReset(ICM42688_Handle_t *handle)
 
 
 
-static HAL_StatusTypeDef
+static ICM42688_Status_t
 _ICM42688_Interface_Config(ICM42688_Handle_t *handle)
 {
-    HAL_StatusTypeDef status = HAL_OK;
+    ICM42688_Status_t status = ICM42688_ERROR;
 
     CHECK_FOR(ICM42688_Set_SPI_Mode(handle, SPI_MODE_0_3));
     CHECK_FOR(ICM42688_Set_SPI_SlewRate(handle, SPI_SR_2NS));
     CHECK_FOR(ICM42688_Set_UI_SIFS_Conf(handle, UI_SIFS_DISABLE_I2C));
     CHECK_FOR(ICM42688_Set_Sensor_Data_Endian(handle, SENSOR_DATA_BIG_ENDIAN));
 
-    return HAL_OK;
+    return ICM42688_OK;
 }
 
 
 
-static HAL_StatusTypeDef
+static ICM42688_Status_t
 _ICM42688_Accel_Config(ICM42688_Handle_t *handle)
 {
-    HAL_StatusTypeDef status = HAL_OK;
+    ICM42688_Status_t status = ICM42688_ERROR;
 
     CHECK_FOR(ICM42688_Set_AccelConfig(handle, ACCEL_LOW_NOISE, ACCEL_ODR_8KHz, ACCEL_FSR_4g));
     CHECK_FOR(ICM42688_Set_Accel_UIFilt_BW(handle, BW_ODR_DIV_2));
     CHECK_FOR(ICM42688_Set_Accel_UIFilt_Order(handle, ACCEL_FIRST_ORDER));
     CHECK_FOR(ICM42688_Set_Accel_Anti_Alias_Filt(handle, ENABLE_AAF));
 
-    return HAL_OK;
+    return ICM42688_OK;
 }
 
 
 
-static HAL_StatusTypeDef
+static ICM42688_Status_t
 _ICM42688_Gyro_Config(ICM42688_Handle_t *handle)
 {
-    HAL_StatusTypeDef status = HAL_OK;
+    ICM42688_Status_t status = ICM42688_ERROR;
 
     CHECK_FOR(ICM42688_Set_GyroConfig(handle, GYRO_LOW_NOISE, GYRO_ODR_8KHz, GYRO_FSR_1000dps));
     CHECK_FOR(ICM42688_Set_Gyro_UIFilt_BW(handle, BW_ODR_DIV_2));
     CHECK_FOR(ICM42688_Set_Gyro_UIFilt_Order(handle, GYRO_FIRST_ORDER));
     CHECK_FOR(ICM42688_Set_Gyro_Anti_Alias_Filt(handle, ENABLE_AAF));
 
-    return HAL_OK;
+    return ICM42688_OK;
 }
 
 
 
-static HAL_StatusTypeDef
+static ICM42688_Status_t
 _ICM42688_Temperature_Config(ICM42688_Handle_t *handle)
 {
-    HAL_StatusTypeDef status = HAL_OK;
+    ICM42688_Status_t status = ICM42688_ERROR;
     CHECK_FOR(ICM42688_Set_Temperature_Enable(handle, TEMP_ENABLE));
-
-    return HAL_OK;
+    return ICM42688_OK;
 }
 
 
 
-static HAL_StatusTypeDef
+static ICM42688_Status_t
 _ICM42688_FIFO_Config(ICM42688_Handle_t *handle)
 {
-    HAL_StatusTypeDef status = HAL_OK;
+    ICM42688_Status_t status = ICM42688_ERROR;
 
     CHECK_FOR(ICM42688_Set_FIFO_Count_Endian(handle, FIFO_COUNT_BIG_ENDIAN));
     CHECK_FOR(ICM42688_Set_FIFO_Count_Rec(handle, FIFO_COUNT_IN_BYTE));
@@ -182,7 +181,7 @@ _ICM42688_FIFO_Config(ICM42688_Handle_t *handle)
     CHECK_FOR(ICM42688_Set_FIFO_Temp_Enable(handle, FIFO_GAT_ENABLE));
     CHECK_FOR(ICM42688_Set_FIFO_HIRES_Enable(handle, FIFO_HIRES_DISABLE));
 
-    return HAL_OK;
+    return ICM42688_OK;
 }
 
 
@@ -193,8 +192,9 @@ ICM42688_Init(ICM42688_Handle_t *handle)
     if (!handle)
         return ICM42688_ERROR;
 
-    HAL_StatusTypeDef status = HAL_OK;
+    ICM42688_Status_t status = ICM42688_ERROR;
 
+    // Discover if the sensor is active
     CHECK_FOR(ICM42688_IsAlive(handle));
 
     // Reset and gating
@@ -206,24 +206,28 @@ ICM42688_Init(ICM42688_Handle_t *handle)
         CHECK_FOR(ICM42688_Get_Int_Status(handle, &intStatus));
     } while (!ICM42688_Int_Status_Has(intStatus, INT_RESET_DONE));
 
+    // Discover if the sensor is active after reseting
+    CHECK_FOR(ICM42688_IsAlive(handle));
+
     // Interface configuration
-    _ICM42688_Interface_Config(handle);
+    CHECK_FOR(_ICM42688_Interface_Config(handle));
 
     // Accel configuration
-    _ICM42688_Accel_Config(handle);
+    CHECK_FOR(_ICM42688_Accel_Config(handle));
 
     // Gyro configuration
-    _ICM42688_Gyro_Config(handle);
+    CHECK_FOR(_ICM42688_Gyro_Config(handle));
 
     // Temperature configuration
-    _ICM42688_Temperature_Config(handle);
+    CHECK_FOR(_ICM42688_Temperature_Config(handle));
 
     // FIFO configuration
-    _ICM42688_FIFO_Config(handle);
+    CHECK_FOR(_ICM42688_FIFO_Config(handle));
 
     HAL_Delay(50);
 
-    handle->is_initialized = true;
+    handle->is_initialized    = true;
+    handle->is_icm42688_alive = true;
 
     return ICM42688_OK;
 }

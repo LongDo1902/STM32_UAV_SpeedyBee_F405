@@ -53,10 +53,10 @@ ICM42688_WriteBankAuto(ICM42688_Handle_t *handle, ICM42688_Reg_t encodedReg)
     HAL_StatusTypeDef status =
         HAL_SPI_Transmit(handle->spi_config.hspi, bank_tx, 2, ICM42688_SPI_TIMEOUT_MS);
 
+    ICM42688_CS_High(handle);
+
     if (status != HAL_OK)
         return ICM42688_ERROR;
-
-    ICM42688_CS_High(handle);
 
     return ICM42688_OK;
 }
@@ -89,10 +89,11 @@ ICM42688_WriteReg(ICM42688_Handle_t *handle, ICM42688_Reg_t encodedReg, uint8_t 
     ICM42688_CS_Low(handle);
 
     status = HAL_SPI_Transmit(handle->spi_config.hspi, tx, 2, ICM42688_SPI_TIMEOUT_MS);
-    if (status != HAL_OK)
-        return ICM42688_ERROR;
 
     ICM42688_CS_High(handle);
+
+    if (status != HAL_OK)
+        return ICM42688_ERROR;
 
     return ICM42688_OK;
 }
@@ -128,10 +129,11 @@ ICM42688_ReadReg(ICM42688_Handle_t *handle, ICM42688_Reg_t encodedReg, uint8_t *
     ICM42688_CS_Low(handle);
 
     status = HAL_SPI_TransmitReceive(handle->spi_config.hspi, tx, rx, 2, ICM42688_SPI_TIMEOUT_MS);
-    if (status != HAL_OK)
-        return ICM42688_ERROR;
 
     ICM42688_CS_High(handle);
+
+    if (status != HAL_OK)
+        return ICM42688_ERROR;
 
     *outVal = rx[1]; // rx[0] corresponding to address phase (dummy)/undefined value
 
@@ -176,10 +178,10 @@ ICM42688_ReadRegs(ICM42688_Handle_t *handle, ICM42688_Reg_t startEncodedReg, uin
         status = HAL_SPI_Receive(handle->spi_config.hspi, buf, bufLength, ICM42688_SPI_TIMEOUT_MS);
     }
 
+    ICM42688_CS_High(handle);
+
     if (status != HAL_OK)
         return ICM42688_ERROR;
-
-    ICM42688_CS_High(handle);
 
     return ICM42688_OK;
 }
@@ -209,7 +211,9 @@ ICM42688_Update_Reg_Bits(ICM42688_Handle_t *handle, ICM42688_Reg_t encodedReg, u
         return ICM42688_ERROR;
 
     current_reg = (uint8_t)((current_reg & (uint8_t)~mask) | valueMasked);
-    ICM42688_WriteReg(handle, encodedReg, current_reg);
+    status      = ICM42688_WriteReg(handle, encodedReg, current_reg);
+    if (status != HAL_OK)
+        return ICM42688_ERROR;
 
     return ICM42688_OK;
 }
