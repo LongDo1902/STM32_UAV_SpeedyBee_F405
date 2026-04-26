@@ -10,7 +10,7 @@
 /*==================================================================================
  * 	TEMPERATURE CONFIG
  *================================================================================== */
-HAL_StatusTypeDef
+ICM42688_Status_t
 ICM42688_Set_Temperature_Enable(ICM42688_Handle_t *handle, ICM42688_Temp_t state)
 {
     if (!handle)

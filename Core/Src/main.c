@@ -25,9 +25,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "imu\icm42688_device.h"
 #include "leds.h"
 #include "temperature.h"
 #include <stdbool.h>
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -37,7 +39,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -48,18 +49,50 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-bool ready = false;
+ICM42688_Handle_t                 icm42688_handle     = {0};
+ICM42688_Offset_Raw_t             icm42688_offset_raw = {0};
+ICM42688_Temp_Accel_Gyro_Scaled_t icm42688_scaled     = {0};
+ICM42688_Est_Angle_complement_t   icm42688_est_angle  = {0};
+
+HAL_StatusTypeDef status = HAL_ERROR;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
+HAL_StatusTypeDef ICM42688_main();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+HAL_StatusTypeDef
+ICM42688_main()
+{
+    icm42688_handle.spi_config.hspi    = &hspi1;
+    icm42688_handle.spi_config.cs_port = GPIOA;
+    icm42688_handle.spi_config.cs_pin  = GPIO_PIN_4;
+
+    CHECK_FOR(ICM42688_Init(&icm42688_handle));
+
+    (void)ICM42688_Get_Calibrate_Raw(&icm42688_handle, &icm42688_offset_raw, 200);
+
+    uint32_t prevTick = HAL_GetTick();
+
+    while (1) {
+        uint32_t now  = HAL_GetTick();
+        float    dt_s = (now - prevTick) / 1000.0f;
+        prevTick      = now;
+
+        CHECK_FOR(ICM42688_Get_Temp_Accel_Gyro_Scaled(&icm42688_handle, &icm42688_offset_raw,
+                                                      &icm42688_scaled));
+
+        CHECK_FOR(ICM42688_Get_Est_Angle_Complement(&icm42688_handle, &icm42688_scaled,
+                                                    &icm42688_est_angle, dt_s));
+    }
+}
 /* USER CODE END 0 */
+
+
 
 /**
  * @brief  The application entry point.
@@ -94,6 +127,7 @@ main(void)
     MX_SPI1_Init();
     MX_ADC1_Init();
     /* USER CODE BEGIN 2 */
+    ICM42688_main();
     Long_ADC_startADC1Int(&hadc1); // Start reading STM32's temperature using interrupt
     /* USER CODE END 2 */
 
@@ -102,7 +136,6 @@ main(void)
 
     while (1) {
         /* USER CODE END WHILE */
-
         /* USER CODE BEGIN 3 */
     }
     /* USER CODE END 3 */

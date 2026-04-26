@@ -25,58 +25,63 @@ ICM42688_Update_AccelScaleFactor(ICM42688_Handle_t *handle)
 /*=============================================================================
  *	ACCEL CONFIG / FILTER
  *============================================================================= */
-HAL_StatusTypeDef
-ICM42688_Set_AccelConfig(ICM42688_Handle_t *handle, ICM42688_AccelMode_t mode,
-                         ICM42688_AccelODR_t odr, ICM42688_AccelFSR_t fsr)
+ICM42688_Status_t
+ICM42688_Set_AccelConfig(ICM42688_Handle_t *handle, ICM42688_Accel_Mode_t mode,
+                         ICM42688_Accel_ODR_t odr, ICM42688_Accel_FSR_t fsr)
 {
     if (!handle)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
+
     if ((uint8_t)mode > 3U)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
+
     if ((odr == 0x00U) || (uint8_t)odr > (uint8_t)ACCEL_ODR_500Hz)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
+
     if ((uint8_t)fsr > (uint8_t)ACCEL_FSR_2g)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
     // Validate ODR against accel mode
-    bool odrValid = false;
+    bool odr_valid = false;
+
     if (mode == ACCEL_LOW_NOISE) {
-        odrValid =
+        odr_valid =
             ((odr >= ACCEL_ODR_32KHz) && (odr <= ACCEL_ODR_12Hz5)) || (odr == ACCEL_ODR_500Hz);
     }
     else if (mode == ACCEL_LOW_POWER) {
-        odrValid = ((odr >= ACCEL_ODR_200Hz) && (odr <= ACCEL_ODR_500Hz));
+        odr_valid = ((odr >= ACCEL_ODR_200Hz) && (odr <= ACCEL_ODR_500Hz));
     }
     else { // Accel is OFF
-        odrValid = true;
+        odr_valid = true;
     }
 
-    if (!odrValid)
-        return HAL_ERROR;
+    if (!odr_valid)
+        return ICM42688_ERROR;
 
     HAL_StatusTypeDef status = HAL_OK;
 
     // (1) PWR_MGMT0: set Accel Mode (RMW)
-    uint8_t              currRawMode   = (uint8_t)mode;
-    bool                 currModeIsOff = (currRawMode == 0U) || (currRawMode == 1U);
-    ICM42688_AccelMode_t currNormMode =
-        currModeIsOff ? ACCEL_OFF : (ICM42688_AccelMode_t)currRawMode;
+    uint8_t               curr_raw_mode    = (uint8_t)mode;
+    bool                  curr_mode_is_off = (curr_raw_mode == 0U) || (curr_raw_mode == 1U);
+    ICM42688_Accel_Mode_t curr_norm_mode =
+        curr_mode_is_off ? ACCEL_OFF : (ICM42688_Accel_Mode_t)curr_raw_mode;
 
-    ICM42688_AccelMode_t prevMode      = handle->accel_config.accel_mode;
-    bool                 prevModeIsOff = (prevMode == 0U) || (prevMode == 1U);
-    ICM42688_AccelMode_t prevNormMode  = prevModeIsOff ? ACCEL_OFF : prevMode;
+    ICM42688_Accel_Mode_t prev_mode        = handle->accel_config.accel_mode;
+    bool                  prev_mode_is_off = (prev_mode == 0U) || (prev_mode == 1U);
+    ICM42688_Accel_Mode_t prev_norm_mode   = prev_mode_is_off ? ACCEL_OFF : prev_mode;
 
-    bool needWriteMode = ((!handle->is_initialized) || (currNormMode != prevNormMode));
+    bool need_write_mode = ((!handle->is_initialized) || (curr_norm_mode != prev_norm_mode));
     {
-        if (needWriteMode) {
+        if (need_write_mode) {
             status =
                 ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_PWR_MGMT0, ICM42688_ACCEL_MODE_Msk,
                                          ICM42688_ACCEL_MODE_Val(mode));
             if (status != HAL_OK)
-                return status;
-            handle->accel_config.accel_mode = currNormMode;
+                return ICM42688_ERROR;
 
-            if (prevModeIsOff && !currModeIsOff) {
+            handle->accel_config.accel_mode = curr_norm_mode;
+
+            if (prev_mode_is_off && !curr_mode_is_off) {
                 HAL_Delay(1); // Wait at least 200us if mode changes from OFF to any other mode
             }
         }
@@ -88,147 +93,154 @@ ICM42688_Set_AccelConfig(ICM42688_Handle_t *handle, ICM42688_AccelMode_t mode,
          (fsr != handle->accel_config.accel_fsr));
     {
         if (need_write_config) {
-            uint8_t mask        = ICM42688_ACCEL_ODR_Msk | ICM42688_ACCEL_FS_SEL_Msk;
-            uint8_t valueMasked = ICM42688_ACCEL_ODR_Val(odr) | ICM42688_ACCEL_FS_SEL_Val(fsr);
+            uint8_t mask         = ICM42688_ACCEL_ODR_Msk | ICM42688_ACCEL_FS_SEL_Msk;
+            uint8_t value_masked = ICM42688_ACCEL_ODR_Val(odr) | ICM42688_ACCEL_FS_SEL_Val(fsr);
 
-            status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_ACCEL_CONF0, mask, valueMasked);
+            status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_ACCEL_CONF0, mask, value_masked);
             if (status != HAL_OK)
-                return status;
+                return ICM42688_ERROR;
 
             handle->accel_config.accel_odr = odr;
             handle->accel_config.accel_fsr = fsr;
+
             ICM42688_Update_AccelScaleFactor(handle);
         }
     }
-    return HAL_OK;
+    return ICM42688_OK;
 }
 
 
 
-HAL_StatusTypeDef
+ICM42688_Status_t
 ICM42688_Get_Accel_Mode(ICM42688_Handle_t *handle, uint8_t *modeInfo)
 {
     if (!handle || !modeInfo)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
     uint8_t           reg    = 0;
     HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB0_PWR_MGMT0, &reg);
     if (status != HAL_OK)
-        return status;
+        return ICM42688_ERROR;
 
     reg &= (uint8_t)ICM42688_ACCEL_MODE_Msk;
-    uint8_t rawMode = (uint8_t)(reg >> ICM42688_ACCEL_MODE_Pos);
+    uint8_t raw_mode = (uint8_t)(reg >> ICM42688_ACCEL_MODE_Pos);
 
-    if ((rawMode == 0U) || (rawMode == 1U)) {
+    if ((raw_mode == 0U) || (raw_mode == 1U)) {
         *modeInfo                       = 0U;
         handle->accel_config.accel_mode = ACCEL_OFF;
     }
-    else if (rawMode == 2U) {
+    else if (raw_mode == 2U) {
         *modeInfo                       = 2U;
         handle->accel_config.accel_mode = ACCEL_LOW_POWER;
     }
-    else if (rawMode == 3U) {
+    else if (raw_mode == 3U) {
         *modeInfo                       = 3U;
         handle->accel_config.accel_mode = ACCEL_LOW_NOISE;
     }
     else {
-        return HAL_ERROR;
+        return ICM42688_ERROR;
     }
-    return HAL_OK;
+    return ICM42688_OK;
 }
 
 
 
-HAL_StatusTypeDef
-ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t *handle, ICM42688_UIFilt_BW_t bw)
+ICM42688_Status_t
+ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t *handle, ICM42688_UIFilt_BW_t UI_Filt_BandWidth)
 {
     if (!handle)
-        return HAL_ERROR;
-    uint8_t v = (uint8_t)bw;
-    if (((v >= 8U) && (v <= 13U)) || (v > 0x0F))
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
-    uint8_t           reg    = 0U;
+    uint8_t v = (uint8_t)UI_Filt_BandWidth;
+
+    if (((v >= 8U) && (v <= 13U)) || (v > 0x0F))
+        return ICM42688_ERROR;
+
+    uint8_t reg = 0U;
+
     HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB0_GYRO_ACCEL_CONF0, &reg);
     if (status != HAL_OK)
-        return status;
+        return ICM42688_ERROR;
+
     reg &= (uint8_t)~ICM42688_ACCEL_UI_FILT_BW_Msk;
 
     if (handle->accel_config.accel_mode == ACCEL_LOW_NOISE) {
-        if (bw == BW_1x_AVG_FILT)
-            bw = BW_400Hz_ODR_DIV_4;
-        else if (bw == BW_16x_AVG_FILT)
-            bw = BW_400Hz_ODR_DIV_20;
-        reg |= ICM42688_ACCEL_UI_FILT_BW_Val((uint8_t)bw);
+        if (UI_Filt_BandWidth == BW_1x_AVG_FILT)
+            UI_Filt_BandWidth = BW_400Hz_ODR_DIV_4;
+        else if (UI_Filt_BandWidth == BW_16x_AVG_FILT)
+            UI_Filt_BandWidth = BW_400Hz_ODR_DIV_20;
+        reg |= ICM42688_ACCEL_UI_FILT_BW_Val(UI_Filt_BandWidth);
     }
 
     else if (handle->accel_config.accel_mode == ACCEL_LOW_POWER) {
         if (v == 1U)
-            bw = BW_1x_AVG_FILT;
+            UI_Filt_BandWidth = BW_1x_AVG_FILT;
         else if (v == 6U)
-            bw = BW_16x_AVG_FILT;
+            UI_Filt_BandWidth = BW_16x_AVG_FILT;
         else
-            return HAL_ERROR;
-        reg |= ICM42688_ACCEL_UI_FILT_BW_Val((uint8_t)bw);
+            return ICM42688_ERROR;
+        reg |= ICM42688_ACCEL_UI_FILT_BW_Val((uint8_t)UI_Filt_BandWidth);
     }
 
     else
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
     status = ICM42688_WriteReg(handle, ICM42688_UB0_GYRO_ACCEL_CONF0, reg);
     if (status != HAL_OK)
-        return status;
+        return ICM42688_ERROR;
 
-    handle->accel_config.accel_uifilt_bw = (ICM42688_UIFilt_BW_t)bw;
-    return HAL_OK;
+    handle->accel_config.accel_uifilt_bw = (ICM42688_UIFilt_BW_t)UI_Filt_BandWidth;
+
+    return ICM42688_OK;
 }
 
 
 
-HAL_StatusTypeDef
-ICM42688_Set_Accel_UIFilt_Order(ICM42688_Handle_t *handle, ICM42688_AccelUIFiltOrder_t filterOrder)
+ICM42688_Status_t
+ICM42688_Set_Accel_UIFilt_Order(ICM42688_Handle_t            *handle,
+                                ICM42688_Accel_UIFilt_Order_t UI_Filt_Order)
 {
     if (!handle)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
     uint8_t           reg    = 0U;
     HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB0_ACCEL_CONF1, &reg);
     if (status != HAL_OK)
-        return status;
+        return ICM42688_ERROR;
 
     reg &= (uint8_t)~ICM42688_ACCEL_UI_FILT_ORD_Msk;
-    reg |= (uint8_t)ICM42688_ACCEL_UI_FILT_ORD_Val(filterOrder);
+    reg |= (uint8_t)ICM42688_ACCEL_UI_FILT_ORD_Val(UI_Filt_Order);
     status = ICM42688_WriteReg(handle, ICM42688_UB0_ACCEL_CONF1, reg);
 
     if (status != HAL_OK)
-        return status;
+        return ICM42688_ERROR;
 
-    handle->accel_config.accel_filt_order = filterOrder;
+    handle->accel_config.accel_filt_order = UI_Filt_Order;
 
-    return HAL_OK;
+    return ICM42688_OK;
 }
 
 
 
-HAL_StatusTypeDef
+ICM42688_Status_t
 ICM42688_Set_Accel_Anti_Alias_Filt(ICM42688_Handle_t *handle, ICM42688_AAF_En_t antiAliasState)
 {
     if (!handle)
-        return HAL_ERROR;
+        return ICM42688_ERROR;
 
     uint8_t           reg    = 0U;
     HAL_StatusTypeDef status = ICM42688_ReadReg(handle, ICM42688_UB2_ACCEL_CONF_STATIC2, &reg);
     if (status != HAL_OK)
-        return status;
+        return ICM42688_ERROR;
 
     reg &= (uint8_t)~ICM42688_ACCEL_AAF_DIS_Msk;
     reg |= (uint8_t)ICM42688_ACCEL_AAF_DIS_Val(antiAliasState);
     status = ICM42688_WriteReg(handle, ICM42688_UB2_ACCEL_CONF_STATIC2, reg);
 
     if (status != HAL_OK)
-        return status;
+        return ICM42688_ERROR;
 
     handle->accel_config.accel_aaf_state = antiAliasState;
 
-    return HAL_OK;
+    return ICM42688_OK;
 }
