@@ -6,7 +6,7 @@
 #include "crsf_parser.h"
 #include "crsf_protocol.h"
 
-static uint8_t rx_bytes;
+static volatile uint8_t rx_bytes;
 
 void
 crsf_init(crsf_handle_t *crsf_handle, UART_HandleTypeDef *huart)
@@ -36,9 +36,9 @@ crsf_get_channel(crsf_handle_t *handle, uint8_t channel)
 }
 
 void
-crsf_receive_byte(crsf_handle_t *crsf_handle, uint8_t byte)
+crsf_receive_byte(crsf_handle_t *crsf_handle)
 {
-    crsf_parse_byte(&crsf_handle->parser, byte);
+    crsf_parse_byte(&crsf_handle->parser, rx_bytes);
 
     HAL_UART_Receive_IT(crsf_handle->uart, &rx_bytes, 1);
 }

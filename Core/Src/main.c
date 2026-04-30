@@ -139,13 +139,11 @@ main(void)
     MX_DMA_Init();
     MX_SPI1_Init();
     MX_ADC1_Init();
-    MX_USART1_UART_Init();
+    MX_USART6_UART_Init();
     /* USER CODE BEGIN 2 */
     Long_ADC_startADC1Int(&hadc1); // Start reading STM32's temperature using interrupt
 
-#ifdef CRSF_PROTOCOL
-    crsf_init(&crsf_handle, &huart1);
-#endif
+    crsf_init(&crsf_handle, &huart6);
 
     /* USER CODE END 2 */
 
@@ -157,9 +155,7 @@ main(void)
         /* USER CODE BEGIN 3 */
         if (crsf_update(&crsf_handle)) {
             uint16_t throttle = crsf_get_channel(&crsf_handle, 2);
-            printf("THR: %4d | OK: %d\r\n", throttle, crsf_handle.signal_ok);
         }
-        printf("asdasd\n");
     }
     /* USER CODE END 3 */
 }
@@ -212,9 +208,8 @@ SystemClock_Config(void)
 void
 HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-    uint8_t rx_bytes;
-    if (huart->Instance == USART1) {
-        crsf_receive_byte(&crsf_handle, rx_bytes);
+    if (huart->Instance == USART6) {
+        crsf_receive_byte(&crsf_handle);
     }
 }
 /* USER CODE END 4 */
