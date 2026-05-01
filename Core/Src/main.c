@@ -22,13 +22,21 @@
 #include "dma.h"
 #include "gpio.h"
 #include "spi.h"
+#include "usart.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+
+#define LOGGING_DEBUG
+
 #include "imu\icm42688_device.h"
 #include "leds.h"
 #include "temperature.h"
 #include <stdbool.h>
+
+#ifdef LOGGING_DEBUG
+#include "logging.h"
+#endif
 
 /* USER CODE END Includes */
 
@@ -92,8 +100,6 @@ ICM42688_main()
 }
 /* USER CODE END 0 */
 
-
-
 /**
  * @brief  The application entry point.
  * @retval int
@@ -101,6 +107,7 @@ ICM42688_main()
 int
 main(void)
 {
+
     /* USER CODE BEGIN 1 */
 
     /* USER CODE END 1 */
@@ -126,22 +133,35 @@ main(void)
     MX_DMA_Init();
     MX_SPI1_Init();
     MX_ADC1_Init();
+    MX_UART4_Init();
     /* USER CODE BEGIN 2 */
     ICM42688_main();
     Long_ADC_startADC1Int(&hadc1); // Start reading STM32's temperature using interrupt
+#ifdef LOGGING_DEBUG
+    log_init(&huart4, 200);
+#endif
+
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
 
     while (1) {
-        /* USER CODE END WHILE */
-        /* USER CODE BEGIN 3 */
+/* USER CODE END WHILE */
+/* USER CODE BEGIN 3 */
+#ifdef LOGGING_DEBUG
+        log_status ret = log_write("Hello", 6);
+        HAL_Delay(100);
+        int   a = 5;
+        float d = 7.8;
+        log_write("Value of a: %d", a);
+        HAL_Delay(100);
+        log_write("Value of d: %f", d);
+        HAL_Delay(100);
+#endif
     }
     /* USER CODE END 3 */
 }
-
-
 
 /**
  * @brief System Clock Configuration
@@ -187,8 +207,6 @@ SystemClock_Config(void)
     }
 }
 
-
-
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
@@ -207,9 +225,6 @@ Error_Handler(void)
     }
     /* USER CODE END Error_Handler_Debug */
 }
-
-
-
 #ifdef USE_FULL_ASSERT
 /**
  * @brief  Reports the name of the source file and the source line number
