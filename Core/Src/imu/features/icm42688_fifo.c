@@ -558,11 +558,11 @@ ICM42688_FIFO_Parse_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *fram
 
             // Convert raw accel to accel in g
             if (handle->accel_g_per_lsb > 0.0f) {
-                float s = handle->accel_g_per_lsb;
+                float _s = handle->accel_g_per_lsb;
 
-                frame->gat_scaled.accel_g[0] = (float)(frame->accel_raw16[0] * s);
-                frame->gat_scaled.accel_g[1] = (float)(frame->accel_raw16[1] * s);
-                frame->gat_scaled.accel_g[2] = (float)(frame->accel_raw16[2] * s);
+                frame->gat_scaled.accel_g[0] = (float)(frame->accel_raw16[0] * _s);
+                frame->gat_scaled.accel_g[1] = (float)(frame->accel_raw16[1] * _s);
+                frame->gat_scaled.accel_g[2] = (float)(frame->accel_raw16[2] * _s);
             }
 
             frame->temp_raw8         = (int8_t)data[7];
@@ -583,11 +583,11 @@ ICM42688_FIFO_Parse_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *fram
 
             // Convert raw gyro to gyro in dps
             if (handle->gyro_dps_per_lsb > 0.0f) {
-                float s = handle->gyro_dps_per_lsb;
+                float _s = handle->gyro_dps_per_lsb;
 
-                frame->gat_scaled.gyro_dps[0] = (float)(frame->gyro_raw16[0] * s);
-                frame->gat_scaled.gyro_dps[1] = (float)(frame->gyro_raw16[1] * s);
-                frame->gat_scaled.gyro_dps[2] = (float)(frame->gyro_raw16[2] * s);
+                frame->gat_scaled.gyro_dps[0] = (float)(frame->gyro_raw16[0] * _s);
+                frame->gat_scaled.gyro_dps[1] = (float)(frame->gyro_raw16[1] * _s);
+                frame->gat_scaled.gyro_dps[2] = (float)(frame->gyro_raw16[2] * _s);
             }
 
             frame->temp_raw8         = (int8_t)data[7];
@@ -638,31 +638,31 @@ ICM42688_FIFO_Parse_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *fram
             frame->temp_valid  = true;
             frame->hires_valid = true;
 
-            uint32_t accel_x_raw = (uint32_t)(data[1] << 12) | (uint32_t)(data[2] << 4) |
-                                   (uint32_t)((data[17] >> 4) & 0x0F);
+            uint32_t _accel_x_raw = (uint32_t)(data[1] << 12) | (uint32_t)(data[2] << 4) |
+                                    (uint32_t)((data[17] >> 4) & 0x0F);
 
-            uint32_t accel_y_raw = (uint32_t)(data[3] << 12) | (uint32_t)(data[4] << 4) |
-                                   (uint32_t)((data[18] >> 4) & 0x0F);
+            uint32_t _accel_y_raw = (uint32_t)(data[3] << 12) | (uint32_t)(data[4] << 4) |
+                                    (uint32_t)((data[18] >> 4) & 0x0F);
 
-            uint32_t accel_z_raw = (uint32_t)(data[5] << 12) | (uint32_t)(data[6] << 4) |
-                                   (uint32_t)((data[19] >> 4) & 0x0F);
+            uint32_t _accel_z_raw = (uint32_t)(data[5] << 12) | (uint32_t)(data[6] << 4) |
+                                    (uint32_t)((data[19] >> 4) & 0x0F);
 
-            uint32_t gyro_x_raw =
+            uint32_t _gyro_x_raw =
                 (uint32_t)(data[7] << 12) | (uint32_t)(data[8] << 4) | (uint32_t)(data[17] & 0x0F);
 
-            uint32_t gyro_y_raw =
+            uint32_t _gyro_y_raw =
                 (uint32_t)(data[9] << 12) | (uint32_t)(data[10] << 4) | (uint32_t)(data[18] & 0x0F);
 
-            uint32_t gyro_z_raw = (uint32_t)(data[11] << 12) | (uint32_t)(data[12] << 4) |
-                                  (uint32_t)(data[19] & 0x0F);
+            uint32_t _gyro_z_raw = (uint32_t)(data[11] << 12) | (uint32_t)(data[12] << 4) |
+                                   (uint32_t)(data[19] & 0x0F);
 
-            frame->accel_raw20[0] = ICM42688_SignExtend20(accel_x_raw);
-            frame->accel_raw20[1] = ICM42688_SignExtend20(accel_y_raw);
-            frame->accel_raw20[2] = ICM42688_SignExtend20(accel_z_raw);
+            frame->accel_raw20[0] = ICM42688_SignExtend20(_accel_x_raw);
+            frame->accel_raw20[1] = ICM42688_SignExtend20(_accel_y_raw);
+            frame->accel_raw20[2] = ICM42688_SignExtend20(_accel_z_raw);
 
-            frame->gyro_raw20[0] = ICM42688_SignExtend20(gyro_x_raw);
-            frame->gyro_raw20[1] = ICM42688_SignExtend20(gyro_y_raw);
-            frame->gyro_raw20[2] = ICM42688_SignExtend20(gyro_z_raw);
+            frame->gyro_raw20[0] = ICM42688_SignExtend20(_gyro_x_raw);
+            frame->gyro_raw20[1] = ICM42688_SignExtend20(_gyro_y_raw);
+            frame->gyro_raw20[2] = ICM42688_SignExtend20(_gyro_z_raw);
 
             // Convert raw accel and gyro to accel(g) and gyro(dps)
             const float _accel_g_per_lsb_p4  = 1.0f / 8192.0f;
