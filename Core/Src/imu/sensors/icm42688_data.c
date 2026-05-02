@@ -58,16 +58,12 @@ ICM42688_Get_Accel_XYZ(ICM42688_Handle_t *handle, int16_t *buf)
 
     if (handle->intf_config.sensor_data_endian == SENSOR_DATA_BIG_ENDIAN) {
         buf[0] = (int16_t)(((uint16_t)raw[0] << 8) | (uint16_t)raw[1]); // Extract Accel X
-
         buf[1] = (int16_t)(((uint16_t)raw[2] << 8) | (uint16_t)raw[3]); // Extract Accel Y
-
         buf[2] = (int16_t)(((uint16_t)raw[4] << 8) | (uint16_t)raw[5]); // Extract Accel Z
     }
     else {
         buf[0] = (int16_t)(((uint16_t)raw[1] << 8) | (uint16_t)raw[0]); // Extract Accel X
-
         buf[1] = (int16_t)(((uint16_t)raw[3] << 8) | (uint16_t)raw[2]); // Extract Accel Y
-
         buf[2] = (int16_t)(((uint16_t)raw[5] << 8) | (uint16_t)raw[4]); // Extract Accel Z
     }
     return ICM42688_OK;
@@ -119,16 +115,12 @@ ICM42688_Get_Gyro_XYZ(ICM42688_Handle_t *handle, int16_t *buf)
     if (handle->intf_config.sensor_data_endian == SENSOR_DATA_BIG_ENDIAN) {
 
         buf[0] = (int16_t)(((uint16_t)raw[0] << 8) | (uint16_t)raw[1]); // Extract Gyro X
-
         buf[1] = (int16_t)(((uint16_t)raw[2] << 8) | (uint16_t)raw[3]); // Extract Gyro Y
-
         buf[2] = (int16_t)(((uint16_t)raw[4] << 8) | (uint16_t)raw[5]); // Extract Gyro Z
     }
     else {
         buf[0] = (int16_t)(((uint16_t)raw[1] << 8) | (uint16_t)raw[0]); // Extract Gyro X
-
         buf[1] = (int16_t)(((uint16_t)raw[3] << 8) | (uint16_t)raw[2]); // Extract Gyro Y
-
         buf[2] = (int16_t)(((uint16_t)raw[5] << 8) | (uint16_t)raw[4]); // Extract Gyro Z
     }
     return ICM42688_OK;
