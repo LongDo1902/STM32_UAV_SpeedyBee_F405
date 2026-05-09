@@ -8,18 +8,8 @@
 #ifndef INC_IMU_ICM42688_TYPES_H_
 #define INC_IMU_ICM42688_TYPES_H_
 
-#include "stm32f4xx_hal.h"
 #include <stdbool.h>
 #include <stdint.h>
-
-
-/* ===========================================================================
- *	RETURN DEFINES
- * =========================================================================== */
-typedef HAL_StatusTypeDef ICM42688_Status_t;
-
-#define ICM42688_OK     HAL_OK
-#define ICM42688_ERROR  HAL_ERROR
 
 
 /* ===========================================================================

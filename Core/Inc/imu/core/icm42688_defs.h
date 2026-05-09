@@ -8,6 +8,8 @@
 #ifndef INC_IMU_ICM42688_DEFS_H_
 #define INC_IMU_ICM42688_DEFS_H_
 
+#include "stm32f4xx_hal.h"
+
 /* =============================================================
  *	ICM42688-P MACROS
  * ============================================================= */
@@ -26,5 +28,14 @@
 #define ICM42688_SPI_TIMEOUT_MS           20U
 #define ICM42688_SPI_ADDR_MASK            0x7FU
 #define ICM42688_SPI_READ_BIT             0x80U
+
+
+/* ===========================================================================
+ *	RETURN DEFINES
+ * =========================================================================== */
+typedef HAL_StatusTypeDef ICM42688_Status_t;
+
+#define ICM42688_OK     HAL_OK
+#define ICM42688_ERROR  HAL_ERROR
 
 #endif /* INC_IMU_ICM42688_DEFS_H_ */

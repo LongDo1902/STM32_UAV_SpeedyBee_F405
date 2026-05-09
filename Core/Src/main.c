@@ -62,7 +62,7 @@ ICM42688_Offset_Raw_t             icm42688_offset_raw = {0};
 ICM42688_Temp_Accel_Gyro_Scaled_t icm42688_scaled     = {0};
 ICM42688_Est_Angle_complement_t   icm42688_est_angle  = {0};
 
-HAL_StatusTypeDef status = HAL_ERROR;
+HAL_StatusTypeDef _status = HAL_ERROR;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/

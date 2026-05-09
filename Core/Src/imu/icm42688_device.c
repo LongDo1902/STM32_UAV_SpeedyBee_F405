@@ -26,15 +26,15 @@ ICM42688_IsAlive(ICM42688_Handle_t *handle)
     if (!handle)
         return ICM42688_ERROR;
 
-    uint8_t           who    = 0U;
-    HAL_StatusTypeDef status = ICM42688_Get_WhoAmI(handle, &who);
+    uint8_t           _who    = 0U;
+    HAL_StatusTypeDef _status = ICM42688_Get_WhoAmI(handle, &_who);
 
-    if (status != HAL_OK) {
+    if (_status != HAL_OK) {
         handle->is_icm42688_alive = false;
         return ICM42688_ERROR;
     }
 
-    if (who == ICM42688_WHO_AM_I_DEFAULT) {
+    if (_who == ICM42688_WHO_AM_I_DEFAULT) {
         handle->is_icm42688_alive = true;
         return ICM42688_OK;
     }
@@ -51,10 +51,10 @@ ICM42688_SoftReset(ICM42688_Handle_t *handle)
     if (!handle)
         return ICM42688_ERROR;
 
-    HAL_StatusTypeDef status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_DEVICE_CONF,
-                                                        ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk,
-                                                        ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk);
-    if (status != HAL_OK)
+    HAL_StatusTypeDef _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_DEVICE_CONF,
+                                                         ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk,
+                                                         ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk);
+    if (_status != HAL_OK)
         return ICM42688_ERROR;
 
     HAL_Delay(5);
@@ -108,7 +108,7 @@ ICM42688_SoftReset(ICM42688_Handle_t *handle)
     handle->fifo_config.fifo_hires_state        = FIFO_HIRES_DISABLE;
     handle->fifo_config.fifo_partial_read_state = FIFO_PARTIAL_READ_DISABLE;
 
-    return status;
+    return _status;
 }
 
 
@@ -116,7 +116,7 @@ ICM42688_SoftReset(ICM42688_Handle_t *handle)
 static ICM42688_Status_t
 _ICM42688_Interface_Config(ICM42688_Handle_t *handle)
 {
-    ICM42688_Status_t status = ICM42688_ERROR;
+    ICM42688_Status_t _status = ICM42688_ERROR;
 
     CHECK_FOR(ICM42688_Set_SPI_Mode(handle, SPI_MODE_0_3));
     CHECK_FOR(ICM42688_Set_SPI_SlewRate(handle, SPI_SR_2NS));
@@ -131,7 +131,7 @@ _ICM42688_Interface_Config(ICM42688_Handle_t *handle)
 static ICM42688_Status_t
 _ICM42688_Accel_Config(ICM42688_Handle_t *handle)
 {
-    ICM42688_Status_t status = ICM42688_ERROR;
+    ICM42688_Status_t _status = ICM42688_ERROR;
 
     CHECK_FOR(ICM42688_Set_AccelConfig(handle, ACCEL_LOW_NOISE, ACCEL_ODR_8KHz, ACCEL_FSR_4g));
     CHECK_FOR(ICM42688_Set_Accel_UIFilt_BW(handle, BW_ODR_DIV_2));
@@ -146,7 +146,7 @@ _ICM42688_Accel_Config(ICM42688_Handle_t *handle)
 static ICM42688_Status_t
 _ICM42688_Gyro_Config(ICM42688_Handle_t *handle)
 {
-    ICM42688_Status_t status = ICM42688_ERROR;
+    ICM42688_Status_t _status = ICM42688_ERROR;
 
     CHECK_FOR(ICM42688_Set_GyroConfig(handle, GYRO_LOW_NOISE, GYRO_ODR_8KHz, GYRO_FSR_1000dps));
     CHECK_FOR(ICM42688_Set_Gyro_UIFilt_BW(handle, BW_ODR_DIV_2));
@@ -161,7 +161,7 @@ _ICM42688_Gyro_Config(ICM42688_Handle_t *handle)
 static ICM42688_Status_t
 _ICM42688_Temperature_Config(ICM42688_Handle_t *handle)
 {
-    ICM42688_Status_t status = ICM42688_ERROR;
+    ICM42688_Status_t _status = ICM42688_ERROR;
     CHECK_FOR(ICM42688_Set_Temperature_Enable(handle, TEMP_ENABLE));
     return ICM42688_OK;
 }
@@ -171,7 +171,7 @@ _ICM42688_Temperature_Config(ICM42688_Handle_t *handle)
 static ICM42688_Status_t
 _ICM42688_FIFO_Config(ICM42688_Handle_t *handle)
 {
-    ICM42688_Status_t status = ICM42688_ERROR;
+    ICM42688_Status_t _status = ICM42688_ERROR;
 
     CHECK_FOR(ICM42688_Set_FIFO_Count_Endian(handle, FIFO_COUNT_BIG_ENDIAN));
     CHECK_FOR(ICM42688_Set_FIFO_Count_Rec(handle, FIFO_COUNT_IN_BYTE));
@@ -192,7 +192,7 @@ ICM42688_Init(ICM42688_Handle_t *handle)
     if (!handle)
         return ICM42688_ERROR;
 
-    ICM42688_Status_t status = ICM42688_ERROR;
+    ICM42688_Status_t _status = ICM42688_ERROR;
 
     // Discover if the sensor is active
     CHECK_FOR(ICM42688_IsAlive(handle));

@@ -39,23 +39,23 @@ ICM42688_CS_High(ICM42688_Handle_t *handle)
 ICM42688_Status_t
 ICM42688_WriteBankAuto(ICM42688_Handle_t *handle, ICM42688_Reg_t encodedReg)
 {
-    ICM42688_RegBank_t bank = ICM42688_REG_BANK(encodedReg);
-    if ((bank > REG_BANK_4) || (bank == REG_BANK_3))
+    ICM42688_RegBank_t _bank = ICM42688_REG_BANK(encodedReg);
+    if ((_bank > REG_BANK_4) || (_bank == REG_BANK_3))
         return ICM42688_ERROR;
 
-    uint8_t bank_sel_addr = ICM42688_REG_ADDR(ICM42688_UB0_REG_BANK_SEL);
-    uint8_t bank_tx[2]    = {/* 1st sent is register address + write command bit
-                              * 2nd sent is data byte */
-                          (uint8_t)(bank_sel_addr & ICM42688_SPI_ADDR_MASK), (uint8_t)(bank)};
+    uint8_t _bank_sel_addr = ICM42688_REG_ADDR(ICM42688_UB0_REG_BANK_SEL);
+    uint8_t _bank_tx[2]    = {/* 1st sent is register address + write command bit
+                               * 2nd sent is data byte */
+                           (uint8_t)(_bank_sel_addr & ICM42688_SPI_ADDR_MASK), (uint8_t)(_bank)};
 
     ICM42688_CS_Low(handle);
 
-    HAL_StatusTypeDef status =
-        HAL_SPI_Transmit(handle->spi_config.hspi, bank_tx, 2, ICM42688_SPI_TIMEOUT_MS);
+    HAL_StatusTypeDef _status =
+        HAL_SPI_Transmit(handle->spi_config.hspi, _bank_tx, 2, ICM42688_SPI_TIMEOUT_MS);
 
     ICM42688_CS_High(handle);
 
-    if (status != HAL_OK)
+    if (_status != HAL_OK)
         return ICM42688_ERROR;
 
     return ICM42688_OK;
@@ -76,23 +76,23 @@ ICM42688_WriteReg(ICM42688_Handle_t *handle, ICM42688_Reg_t encodedReg, uint8_t 
     if ((!handle) || (!handle->spi_config.hspi) || (!handle->spi_config.cs_port))
         return ICM42688_ERROR;
 
-    HAL_StatusTypeDef status = ICM42688_WriteBankAuto(handle, encodedReg);
-    if (status != HAL_OK)
+    HAL_StatusTypeDef _status = ICM42688_WriteBankAuto(handle, encodedReg);
+    if (_status != HAL_OK)
         return ICM42688_ERROR;
 
     // Extract register address information and start writing to desired register
     /* 1st sent is write command + register address
      * 2nd sent is data byte */
-    uint8_t reg_addr = ICM42688_REG_ADDR(encodedReg);
-    uint8_t tx[2]    = {(uint8_t)(reg_addr & ICM42688_SPI_ADDR_MASK), val};
+    uint8_t _reg_addr = ICM42688_REG_ADDR(encodedReg);
+    uint8_t _tx[2]    = {(uint8_t)(_reg_addr & ICM42688_SPI_ADDR_MASK), val};
 
     ICM42688_CS_Low(handle);
 
-    status = HAL_SPI_Transmit(handle->spi_config.hspi, tx, 2, ICM42688_SPI_TIMEOUT_MS);
+    _status = HAL_SPI_Transmit(handle->spi_config.hspi, _tx, 2, ICM42688_SPI_TIMEOUT_MS);
 
     ICM42688_CS_High(handle);
 
-    if (status != HAL_OK)
+    if (_status != HAL_OK)
         return ICM42688_ERROR;
 
     return ICM42688_OK;
@@ -112,30 +112,31 @@ ICM42688_ReadReg(ICM42688_Handle_t *handle, ICM42688_Reg_t encodedReg, uint8_t *
     if ((!handle) || (!outVal) || (!handle->spi_config.hspi) || (!handle->spi_config.cs_port))
         return ICM42688_ERROR;
 
-    HAL_StatusTypeDef status = ICM42688_WriteBankAuto(handle, encodedReg);
-    if (status != HAL_OK)
+    HAL_StatusTypeDef _status = ICM42688_WriteBankAuto(handle, encodedReg);
+    if (_status != HAL_OK)
         return ICM42688_ERROR;
 
     // Extract register address information and start reading the desired register
     /* 1st sent is write command + register address
      * 2nd sent is data byte */
-    uint8_t reg_addr = ICM42688_REG_ADDR(encodedReg);
-    uint8_t tx[2]    = {
-        (uint8_t)((reg_addr & ICM42688_SPI_ADDR_MASK) | ICM42688_SPI_READ_BIT),
+    uint8_t _reg_addr = ICM42688_REG_ADDR(encodedReg);
+    uint8_t _tx[2]    = {
+        (uint8_t)((_reg_addr & ICM42688_SPI_ADDR_MASK) | ICM42688_SPI_READ_BIT),
         0x00U // Dummy to clock out data
     };
-    uint8_t rx[2] = {0};
+    uint8_t _rx[2] = {0};
 
     ICM42688_CS_Low(handle);
 
-    status = HAL_SPI_TransmitReceive(handle->spi_config.hspi, tx, rx, 2, ICM42688_SPI_TIMEOUT_MS);
+    _status =
+        HAL_SPI_TransmitReceive(handle->spi_config.hspi, _tx, _rx, 2, ICM42688_SPI_TIMEOUT_MS);
 
     ICM42688_CS_High(handle);
 
-    if (status != HAL_OK)
+    if (_status != HAL_OK)
         return ICM42688_ERROR;
 
-    *outVal = rx[1]; // rx[0] corresponding to address phase (dummy)/undefined value
+    *outVal = _rx[1]; // rx[0] corresponding to address phase (dummy)/undefined value
 
     return ICM42688_OK;
 }
@@ -153,34 +154,39 @@ ICM42688_Status_t
 ICM42688_ReadRegs(ICM42688_Handle_t *handle, ICM42688_Reg_t startEncodedReg, uint8_t *buf,
                   uint16_t bufLength)
 {
-    if ((!handle) || (!buf) || (bufLength == 0) || (!handle->spi_config.hspi) ||
-        (!handle->spi_config.cs_port))
+    if ((!handle) || (!buf) || (bufLength == 0))
         return ICM42688_ERROR;
 
-    HAL_StatusTypeDef status = ICM42688_WriteBankAuto(handle, startEncodedReg);
-    if (status != HAL_OK)
+    if (!handle->spi_config.hspi || !handle->spi_config.cs_port)
         return ICM42688_ERROR;
+
+    HAL_StatusTypeDef _status = ICM42688_WriteBankAuto(handle, startEncodedReg);
+    if (_status != HAL_OK)
+        return ICM42688_ERROR;
+
+    // Maximum FIFO byte is 2KB, so rejecting the total length > 0x80 is wrong for FIFO stream
+    bool _is_fifo_stream = (startEncodedReg == ICM42688_UB0_FIFO_DATA);
 
     // Extract register address information and start reading to desired register
     /* 1st sent is write command + register address
      * 2nd sent is data byte */
-    uint8_t reg_addr = ICM42688_REG_ADDR(startEncodedReg);
-    if (((uint16_t)reg_addr + bufLength) > 0x80U)
+    uint8_t _reg_addr = ICM42688_REG_ADDR(startEncodedReg);
+    if (!_is_fifo_stream && (((uint16_t)_reg_addr + bufLength) > 0x80U))
         return ICM42688_ERROR;
 
     /* Send read command + start addr, then burst receive */
-    uint8_t addr = (uint8_t)((reg_addr & ICM42688_SPI_ADDR_MASK) | ICM42688_SPI_READ_BIT);
+    uint8_t _addr = (uint8_t)((_reg_addr & ICM42688_SPI_ADDR_MASK) | ICM42688_SPI_READ_BIT);
 
     ICM42688_CS_Low(handle);
 
-    status = HAL_SPI_Transmit(handle->spi_config.hspi, &addr, 1, ICM42688_SPI_TIMEOUT_MS);
-    if (status == HAL_OK) {
-        status = HAL_SPI_Receive(handle->spi_config.hspi, buf, bufLength, ICM42688_SPI_TIMEOUT_MS);
+    _status = HAL_SPI_Transmit(handle->spi_config.hspi, &_addr, 1, ICM42688_SPI_TIMEOUT_MS);
+    if (_status == HAL_OK) {
+        _status = HAL_SPI_Receive(handle->spi_config.hspi, buf, bufLength, ICM42688_SPI_TIMEOUT_MS);
     }
 
     ICM42688_CS_High(handle);
 
-    if (status != HAL_OK)
+    if (_status != HAL_OK)
         return ICM42688_ERROR;
 
     return ICM42688_OK;
@@ -205,14 +211,14 @@ ICM42688_Update_Reg_Bits(ICM42688_Handle_t *handle, ICM42688_Reg_t encodedReg, u
     if ((valueMasked & (uint8_t)~mask) != 0U)
         return ICM42688_ERROR;
 
-    uint8_t           current_reg = 0U;
-    HAL_StatusTypeDef status      = ICM42688_ReadReg(handle, encodedReg, &current_reg);
-    if (status != HAL_OK)
+    uint8_t           _current_reg = 0U;
+    HAL_StatusTypeDef _status      = ICM42688_ReadReg(handle, encodedReg, &_current_reg);
+    if (_status != HAL_OK)
         return ICM42688_ERROR;
 
-    current_reg = (uint8_t)((current_reg & (uint8_t)~mask) | valueMasked);
-    status      = ICM42688_WriteReg(handle, encodedReg, current_reg);
-    if (status != HAL_OK)
+    _current_reg = (uint8_t)((_current_reg & (uint8_t)~mask) | valueMasked);
+    _status      = ICM42688_WriteReg(handle, encodedReg, _current_reg);
+    if (_status != HAL_OK)
         return ICM42688_ERROR;
 
     return ICM42688_OK;

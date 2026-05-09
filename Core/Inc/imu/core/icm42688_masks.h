@@ -10,15 +10,17 @@
 
 #include <stdint.h>
 
-/* ===================================================================================
- *	ICM42688 MASKS
- * =================================================================================== */
-
-// Generic Helpers
+/**
+ * @brief   Generic Helpers
+ */
 #define ICM42688_BIT(pos)                 (1U << (pos))
 #define ICM42688_FIELD_MSK(pos, width)    (((1U << (width)) - 1U) << (pos))
 #define ICM42688_FIELD_VAL(val, pos, msk) ((uint8_t)(((val) << (pos)) & (msk)))
 
+
+/**
+ * @brief   Device config and interface fields
+ */
 // DEVICE_CONFIG Fields
 #define ICM42688_DEVICE_CONFIG_SOFT_RESET_Pos 0U
 #define ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk ICM42688_BIT(ICM42688_DEVICE_CONFIG_SOFT_RESET_Pos)
@@ -29,7 +31,6 @@
     ICM42688_FIELD_VAL((val), ICM42688_DEVICE_CONFIG_SPI_MODE_Pos,                                 \
                        ICM42688_DEVICE_CONFIG_SPI_MODE_Msk)
 
-// DRIVE_CONFIG Fields
 #define ICM42688_DRIVE_CONFIG_SPI_SR_Pos 0U
 #define ICM42688_DRIVE_CONFIG_SPI_SR_Msk ICM42688_FIELD_MSK(ICM42688_DRIVE_CONFIG_SPI_SR_Pos, 3U)
 #define ICM42688_DRIVE_CONFIG_SPI_SR_Val(val)                                                      \
@@ -40,7 +41,10 @@
 #define ICM42688_DRIVE_CONFIG_I2C_SR_Val(val)                                                      \
     ICM42688_FIELD_VAL(val, ICM42688_DRIVE_CONFIG_I2C_SR_Pos, ICM42688_DRIVE_CONFIG_I2C_SR_Msk)
 
-// INT_CONFIG Fields
+
+/**
+ * @brief   Interrupt (INT1 & INT2) config fields
+ */
 #define ICM42688_INT1_POL_Pos 0U
 #define ICM42688_INT1_POL_Msk ICM42688_BIT(ICM42688_INT1_POL_Pos)
 #define ICM42688_INT1_POL_Val(val)                                                                 \
@@ -71,7 +75,10 @@
 #define ICM42688_INT2_MODE_Val(val)                                                                \
     ICM42688_FIELD_VAL(val, ICM42688_INT2_MODE_Pos, ICM42688_INT2_MODE_Msk)
 
-// INT_CONFIG0 fields
+
+/**
+ * @brief   INT_CONFIG0 fields
+ */
 #define ICM42688_FIFO_FULL_INT_CLEAR_Pos 0U
 #define ICM42688_FIFO_FULL_INT_CLEAR_Msk ICM42688_FIELD_MSK(ICM42688_FIFO_FULL_INT_CLEAR_Pos, 2)
 #define ICM42688_FIFO_FULL_INT_CLEAR_Val(val)                                                      \
@@ -87,7 +94,10 @@
 #define ICM42688_UI_DRDY_INT_CLEAR_Val(val)                                                        \
     ICM42688_FIELD_VAL(val, ICM42688_UI_DRDY_INT_CLEAR_Pos, ICM42688_UI_DRDY_INT_CLEAR_Msk)
 
-// INT_SOURCE0 fields
+
+/**
+ * @brief   INT_SOURCE0 fields
+ */
 #define ICM42688_UI_AGC_RDY_INT1_EN_Pos 0U
 #define ICM42688_UI_AGC_RDY_INT1_EN_Msk ICM42688_BIT(ICM42688_UI_AGC_RDY_INT1_EN_Pos)
 
@@ -106,7 +116,10 @@
 #define ICM42688_PLL_RDY_INT1_EN_Pos 5U
 #define ICM42688_PLL_RDY_INT1_EN_Msk ICM42688_BIT(ICM42688_PLL_RDY_INT1_EN_Pos)
 
-// GYRO_CONFIG0 fields
+
+/**
+ * @brief   GYRO_CONFIG0 fields
+ */
 #define ICM42688_GYRO_ODR_Pos 0U
 #define ICM42688_GYRO_ODR_Msk ICM42688_FIELD_MSK(ICM42688_GYRO_ODR_Pos, 4U)
 #define ICM42688_GYRO_ODR_Val(val)                                                                 \
@@ -117,7 +130,10 @@
 #define ICM42688_GYRO_FS_SEL_Val(val)                                                              \
     ICM42688_FIELD_VAL(val, ICM42688_GYRO_FS_SEL_Pos, ICM42688_GYRO_FS_SEL_Msk)
 
-// GYRO_CONFIG1 fields
+
+/**
+ * @brief   GYRO_CONFIG1 fields
+ */
 #define ICM42688_GYRO_DEC2_M2_ORD_Pos 0U
 #define ICM42688_GYRO_DEC2_M2_ORD_Msk ICM42688_FIELD_MSK(ICM42688_GYRO_DEC2_M2_ORD_Pos, 2)
 #define ICM42688_GYRO_DEC2_M2_ORD_Val(val)                                                         \
@@ -133,7 +149,10 @@
 #define ICM42688_TEMP_FILT_BW_Val(val)                                                             \
     ICM42688_FIELD_VAL(val, ICM42688_TEMP_FILT_BW_Pos, ICM42688_TEMP_FILT_BW_Msk)
 
-// GYRO_CONFIG_STATIC2
+
+/**
+ * @brief   GYRO_CONFIG_STATIC2 fields
+ */
 #define ICM42688_GYRO_NOTCH_FILT_Pos 0U
 #define ICM42688_GYRO_NOTCH_FILT_Msk ICM42688_BIT(ICM42688_GYRO_NOTCH_FILT_Pos)
 #define ICM42688_GYRO_NOTCH_FILT_Val(val)                                                          \
@@ -144,7 +163,10 @@
 #define ICM42688_GYRO_AAF_DIS_Val(val)                                                             \
     ICM42688_FIELD_VAL(val, ICM42688_GYRO_AAF_DIS_Pos, ICM42688_GYRO_AAF_DIS_Msk)
 
-// GYRO_CONFIG_STATIC6
+
+/**
+ * @brief   GYRO_CONFIG_STATIC6
+ */
 #define ICM42688_GYRO_X_NF_COSWZ_LOW_Pos        0U
 #define ICM42688_GYRO_X_NF_COSWZ_LOW_Msk        ICM42688_FIELD_MSK(ICM42688_GYRO_X_NF_COSWZ_LOW_Pos, 8U)
 #define ICM42688_GYRO_X_NF_COSWZ_LOW_Val(val)   ICM42688_FIELD_VAL(val, ICM42688_GYRO_X_NF_COSWZ_LOW_Pos, ICM42688_GYRO_X_NF_COSWZ_LOW_Msk)

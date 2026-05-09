@@ -26,8 +26,8 @@
 
 #define CHECK_FOR(expr)         \
 do{                             \
-    status = (expr);            \
-    if(status != HAL_OK)        \
+    _status = (expr);            \
+    if(_status != HAL_OK)        \
         return ICM42688_ERROR;  \
 }while(0)
 
