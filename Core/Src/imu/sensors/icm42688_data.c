@@ -335,7 +335,7 @@ static const ICM42688_Remap_Axes_t imu_remap_orientation[IMU_ORIENT_COUNT] = {
 
 
 
-bool
+static bool
 ICM42688_Remap_IMU_To_Body(ICM42688_Orientation_t                   orientation,
                            const ICM42688_Temp_Accel_Gyro_Scaled_t *imu_scaled,
                            ICM42688_Temp_Accel_Gyro_Scaled_t       *body_scaled)
@@ -361,20 +361,26 @@ ICM42688_Remap_IMU_To_Body(ICM42688_Orientation_t                   orientation,
 
 
 HAL_StatusTypeDef
-ICM42688_Get_Est_Angle_Complement(ICM42688_Handle_t                       *handle,
-                                  const ICM42688_Temp_Accel_Gyro_Scaled_t *scaled_data,
+ICM42688_Get_Est_Angle_Complement(ICM42688_Handle_t *handle, ICM42688_Orientation_t orientation,
+                                  const ICM42688_Temp_Accel_Gyro_Scaled_t *input_imu_scaled,
                                   ICM42688_Est_Angle_complement_t *attitude_out, float dt_s)
 {
-    if (!handle || !attitude_out || !scaled_data)
+    if (!handle || !attitude_out || !input_imu_scaled)
         return HAL_ERROR;
 
-    float _accel_x = scaled_data->accel_g[0];
-    float _accel_y = scaled_data->accel_g[1];
-    float _accel_z = scaled_data->accel_g[2];
+    ICM42688_Temp_Accel_Gyro_Scaled_t body_scaled = {0};
 
-    float _gyro_x = scaled_data->gyro_dps[0];
-    float _gyro_y = scaled_data->gyro_dps[1];
-    float _gyro_z = scaled_data->gyro_dps[2];
+    if (!ICM42688_Remap_IMU_To_Body(orientation, input_imu_scaled, &body_scaled))
+        return HAL_ERROR;
+
+    float _accel_x = body_scaled.accel_g[0];
+    float _accel_y = body_scaled.accel_g[1];
+
+    float _accel_z = body_scaled.accel_g[2];
+
+    float _gyro_x = body_scaled.gyro_dps[0];
+    float _gyro_y = body_scaled.gyro_dps[1];
+    float _gyro_z = body_scaled.gyro_dps[2];
 
     // Calculate estimated angle from accelerometer
     float _roll_acc =

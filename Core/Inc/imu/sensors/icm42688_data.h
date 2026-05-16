@@ -112,14 +112,9 @@ ICM42688_Get_Temp_Accel_Gyro_Scaled(ICM42688_Handle_t                 *handle,
                                     const ICM42688_Offset_Raw_t       *offset_raw,
                                     ICM42688_Temp_Accel_Gyro_Scaled_t *sample_out);
 
-bool
-ICM42688_Remap_IMU_To_Body(ICM42688_Orientation_t                   orientation,
-                           const ICM42688_Temp_Accel_Gyro_Scaled_t *imu_scaled,
-                           ICM42688_Temp_Accel_Gyro_Scaled_t       *body_scaled);
-
 HAL_StatusTypeDef
-ICM42688_Get_Est_Angle_Complement(ICM42688_Handle_t                       *handle,
-                                  const ICM42688_Temp_Accel_Gyro_Scaled_t *scaled_data,
+ICM42688_Get_Est_Angle_Complement(ICM42688_Handle_t *handle, ICM42688_Orientation_t orientation,
+                                  const ICM42688_Temp_Accel_Gyro_Scaled_t *input_imu_scaled,
                                   ICM42688_Est_Angle_complement_t *attitude_out, float dt_s);
 
 #endif /* INC_IMU_SENSORS_ICM42688_DATA_H_ */
