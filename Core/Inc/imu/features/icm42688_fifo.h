@@ -65,11 +65,11 @@ ICM42688_Status_t
 ICM42688_Get_FIFO_Frame_In_Record(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *frame);
 
 ICM42688_Status_t
-ICM42688_Get_FIFO_Frame_In_Byte(ICM42688_Handle_t *handle, uint8_t *rawFIFOBuf, uint16_t rawBufSize);
+ICM42688_Get_FIFO_Frame_In_Byte(ICM42688_Handle_t *handle, uint8_t *rawBuf, uint16_t rawSize);
 
 ICM42688_Status_t
-ICM42688_FIFO_Parse_One_Byte_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *FIFO_frame,
-                                   const uint8_t *FIFO_byteBuf, uint16_t FIFOCountInByte,
+ICM42688_FIFO_Parse_One_Byte_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *frame,
+                                   const uint8_t *byteBuf, uint16_t countsInByte,
                                    uint16_t *currentPos);
 
 #endif /* INC_IMU_ICM42688_FIFO_H_ */
