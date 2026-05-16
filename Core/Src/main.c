@@ -70,7 +70,7 @@ HAL_StatusTypeDef _status = HAL_ERROR;
 void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
-HAL_StatusTypeDef ICM42688_main();
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -98,6 +98,7 @@ ICM42688_main()
 
         CHECK_FOR(ICM42688_Get_Est_Angle_Complement(&icm42688_handle, &icm42688_scaled,
                                                     &icm42688_est_angle, dt_s));
+        osDelay(1);
     }
 }
 /* USER CODE END 0 */
@@ -136,7 +137,6 @@ int main(void)
   MX_ADC1_Init();
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
-    ICM42688_main();
     Long_ADC_startADC1Int(&hadc1); // Start reading STM32's temperature using interrupt
 #ifdef LOGGING_DEBUG
     log_init(&huart4, 200);
@@ -159,16 +159,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-#ifdef LOGGING_DEBUG
-        log_status ret = log_write("Hello", 6);
-        HAL_Delay(100);
-        int   a = 5;
-        float d = 7.8;
-        log_write("Value of a: %d", a);
-        HAL_Delay(100);
-        log_write("Value of d: %f", d);
-        HAL_Delay(100);
-#endif
     }
   /* USER CODE END 3 */
 }

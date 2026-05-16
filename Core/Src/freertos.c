@@ -52,7 +52,7 @@ osThreadId defaultTestV02TaskHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
-
+static int task_count_debug = 0;
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTestTask(void const *argument);
@@ -134,9 +134,7 @@ StartDefaultTestTask(void const *argument)
 {
     /* USER CODE BEGIN StartDefaultTestTask */
     /* Infinite loop */
-    for (;;) {
-        osDelay(1);
-    }
+	ICM42688_main();
     /* USER CODE END StartDefaultTestTask */
 }
 
@@ -146,7 +144,11 @@ StartDefaultTestV02Task(void const *argument)
     /* USER CODE BEGIN StartDefaultTestTask */
     /* Infinite loop */
     for (;;) {
-        osDelay(1);
+#ifdef LOGGING_DEBUG
+		log_write("Task %d", 2);
+#endif
+		task_count_debug = !task_count_debug;
+		osDelay(1000);
     }
     /* USER CODE END StartDefaultTestTask */
 }
