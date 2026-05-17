@@ -322,6 +322,7 @@ static const ICM42688_Remap_Axes_t imu_remap_orientation[IMU_ORIENT_COUNT] = {
     // 4 common cases in drone application
     // IMU Z+ same as body's Z+
     {AXIS_X, AXIS_Y, AXIS_Z},
+    {AXIS_Y, AXIS_X, AXIS_Z},
     {AXIS_Y, AXIS_NEG_X, AXIS_Z},
     {AXIS_NEG_X, AXIS_NEG_Y, AXIS_Z},
     {AXIS_NEG_Y, AXIS_X, AXIS_Z},

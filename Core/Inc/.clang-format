@@ -5,8 +5,7 @@ ColumnLimit: 0
 AlignConsecutiveDeclarations: true
 AlignConsecutiveAssignments: true
 AlignConsecutiveMacros: Consecutive
-SkipMacroDefinitionBody: true
-
+SkipMacroDefinitionBody: false
 IndentPPDirectives: None
 
 AlwaysBreakAfterDefinitionReturnType: All

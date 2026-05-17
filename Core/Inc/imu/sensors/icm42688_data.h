@@ -42,6 +42,7 @@ typedef enum
 {
     // IMU Z+ same as Body Z+
     IMU_ORIENT_X_Y_Z,
+    IMU_ORIENT_NEGY_NEGX_Z,
     IMU_ORIENT_Y_NEG_X_Z,
     IMU_ORIENT_NEGX_NEGY_Z,
     IMU_ORIENT_NEGY_X_Z,
