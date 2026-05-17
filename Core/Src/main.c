@@ -96,7 +96,7 @@ ICM42688_main()
         CHECK_FOR(ICM42688_Get_Temp_Accel_Gyro_Scaled(&icm42688_handle, &icm42688_offset_raw,
                                                       &icm42688_scaled));
 
-        CHECK_FOR(ICM42688_Get_Est_Angle_Complement(&icm42688_handle, IMU_ORIENT_Y_NEG_X_Z,
+        CHECK_FOR(ICM42688_Get_Est_Angle_Complement(&icm42688_handle, IMU_ORIENT_NEGY_NEGX_NEGZ,
                                                     &icm42688_scaled, &icm42688_est_angle, dt_s));
         osDelay(1);
     }
