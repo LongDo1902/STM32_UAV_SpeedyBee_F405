@@ -30,7 +30,7 @@
 
 #define LOGGING_DEBUG
 
-#include "imu\icm42688_device.h"
+#include "imu\icm42688_application.h"
 #include "leds.h"
 #include "temperature.h"
 #include <stdbool.h>

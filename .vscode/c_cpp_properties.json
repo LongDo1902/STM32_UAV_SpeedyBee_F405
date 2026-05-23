@@ -8,7 +8,10 @@
                 "${workspaceFolder}/Drivers/STM32F4xx_HAL_Driver/Inc",
                 "${workspaceFolder}/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy",
                 "${workspaceFolder}/Drivers/CMSIS/Device/ST/STM32F4xx/Include",
-                "${workspaceFolder}/Drivers/CMSIS/Include"
+                "${workspaceFolder}/Drivers/CMSIS/Include",
+                "${workspaceFolder}/Middlewares/Third_Party/FreeRTOS/Source/include",
+                "${workspaceFolder}/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F",
+                "${workspaceFolder}/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS"
             ],
             "defines": [
                 "DEBUG",
@@ -23,7 +26,7 @@
             ],
             "cStandard": "gnu11",
             "cppStandard": "gnu++17",
-            "intelliSenseMode": "${default}"
+            "intelliSenseMode": "windows-gcc-arm"
         }
     ],
     "version": 4

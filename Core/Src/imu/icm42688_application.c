@@ -5,7 +5,7 @@
  *      Author: dobao
  */
 
-#include "imu/icm42688_device.h"
+#include "imu/icm42688_application.h"
 
 /*=============================================================================
  *	IDENTITY / RESET /

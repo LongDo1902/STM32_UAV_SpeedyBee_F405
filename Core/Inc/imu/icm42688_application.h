@@ -22,14 +22,19 @@
 #include "imu/sensors/icm42688_gyro.h"
 #include "imu/sensors/icm42688_temp.h"
 
-#define ICM42688_WHO_AM_I_DEFAULT	0x47U
+#include <FreeRTOS.h>
+#include <task.h>
 
-#define CHECK_FOR(expr)         \
-do{                             \
-    _status = (expr);            \
-    if(_status != HAL_OK)        \
-        return ICM42688_ERROR;  \
-}while(0)
+
+
+#define ICM42688_WHO_AM_I_DEFAULT 0x47U
+
+#define CHECK_FOR(expr)            \
+    do {                           \
+        _status = (expr);          \
+        if (_status != HAL_OK)     \
+            return ICM42688_ERROR; \
+    } while (0)
 
 ICM42688_Status_t
 ICM42688_IsAlive(ICM42688_Handle_t *handle);
