@@ -12,6 +12,7 @@
 #define CRSF_MAX_CHANNEL 5 // total 16 channels but only support 5 channels
 #define CRSF_BITS_PER_CHANNEL 11
 #define CRSF_MAX_PAYLOAD_SIZE 60
+#define CRSF_MAX_PAYLOAD_RC_CHANNELS 22
 #define CRSF_MAX_PACKET_SIZE (CRSF_MAX_PAYLOAD_SIZE + 4)
 
 #define CRSF_SYNC_BYTE (0xC8)                    // Address of Flight Controller
@@ -28,25 +29,34 @@ typedef struct
     uint8_t sync_byte;
     uint8_t len;
     uint8_t type;
-    uint8_t payload[CRSF_MAX_PAYLOAD_SIZE];
+    uint8_t payload[CRSF_MAX_PAYLOAD_RC_CHANNELS];
     uint8_t crc;
 } crsf_frame_t;
 
 typedef union {
     crsf_frame_t frame_def;
-    uint8_t      bytes[CRSF_MAX_PACKET_SIZE];
+    uint8_t      bytes[CRSF_MAX_PAYLOAD_RC_CHANNELS + 4];
 } crsf_frame_packed_t;
 
 
 // TODO: Add more channels
 typedef struct
 {
-    uint16_t ch0 : 11;
     uint16_t ch1 : 11;
     uint16_t ch2 : 11;
     uint16_t ch3 : 11;
     uint16_t ch4 : 11;
+    uint16_t ch5 : 11;
 } __attribute__((packed)) crsf_channels_packed_t;
+
+typedef enum
+{
+    CRSF_CHANNEL_ROLL = 1,
+    CRSF_CHANNEL_PITCH,
+    CRSF_CHANNEL_THROTTLE,
+    CRSF_CHANNEL_YAW,
+    CRSF_CHANNEL_AUX1
+} crsf_channel_t;
 
 typedef struct
 {

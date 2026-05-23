@@ -15,12 +15,8 @@ crsf_init(crsf_handle_t *crsf_handle, UART_HandleTypeDef *huart)
     crsf_handle->frame_position = 0;
     crsf_handle->frame_done     = 0;
     crsf_handle->uart           = huart;
-    for (int i = 0; i < CRSF_MAX_PACKET_SIZE; i++) {
-        crsf_handle->crsf_frame[i] = 0;
-    }
-    for (int i = 0; i < CRSF_MAX_CHANNEL; i++) {
-        crsf_handle->channels[i] = 0;
-    }
+    memset(crsf_handle->crsf_frame.bytes, CRSF_VALUE_CHANNEL_MID, CRSF_MAX_PACKET_SIZE);
+    memset(crsf_handle->channels, CRSF_VALUE_CHANNEL_MID, CRSF_MAX_CHANNEL);
 
     HAL_UART_Receive_IT(crsf_handle->uart, &rx_byte, 1);
 }
@@ -39,6 +35,41 @@ crsf_receive_byte(crsf_handle_t *crsf_handle)
     HAL_UART_Receive_IT(crsf_handle->uart, &rx_byte, 1);
 }
 
+
+bool
+crsf_update(crsf_handle_t *crsf_handle)
+{
+    if (crsf_handle->uart == NULL) {
+        return false;
+    }
+
+    if (!crsf_handle->frame_done) {
+        return false;
+    }
+
+    crsf_handle->frame_done = 0;
+
+    // Check crc of packed
+    uint8_t crc = crsf_compute_crc((const uint8_t *)&crsf_handle->crsf_frame.frame_def.type,
+                                   crsf_handle->crsf_frame.frame_def.len - 1);
+    if (crc != crsf_handle->crsf_frame.frame_def.crc) {
+        return false;
+    }
+
+    // Handle packet type
+    const crsf_frame_packed_t const *frame = &rc_channel_frame;
+    switch (frame->frame_def.type) {
+        case CRSF_FRAMETYPE_RC_CHANNELS_PACKED:
+            crsf_handle_rc_channels_packed(frame->frame_def.payload, crsf_handle->channels);
+
+            break;
+        default:
+            break;
+    }
+
+    return true;
+}
+
 void
 crsf_handle_receive_byte(crsf_handle_t *crsf_handle, uint8_t byte)
 {
@@ -46,14 +77,14 @@ crsf_handle_receive_byte(crsf_handle_t *crsf_handle, uint8_t byte)
         return;
     }
 
-    crsf_handle->crsf_frame[crsf_handle->frame_position++] = byte;
+    crsf_handle->crsf_frame.bytes[crsf_handle->frame_position] = byte;
 
     if (crsf_handle->crsf_frame.frame_def.sync_byte == CRSF_SYNC_BYTE) {
-        if (crsf_handle->crsf_frame.frame_def.len + 2 == crsf_handle->frame_position) {
-
+        if (crsf_handle->crsf_frame.frame_def.len < crsf_handle->frame_position) {
 
             switch (crsf_handle->crsf_frame.frame_def.type) {
                 case CRSF_FRAMETYPE_RC_CHANNELS_PACKED:
+                    // Copy to avoid race condition
                     memcpy(&rc_channel_frame, &crsf_handle->crsf_frame,
                            sizeof(crsf_handle->crsf_frame));
                     break;
@@ -65,59 +96,15 @@ crsf_handle_receive_byte(crsf_handle_t *crsf_handle, uint8_t byte)
             crsf_handle->frame_position = 0;
             crsf_handle->frame_done     = 1;
         }
+
+        crsf_handle->frame_position++;
     }
     else {
         crsf_handle->frame_position = 0;
     }
+
+
     // TODO: Check timeout
-}
-
-
-bool
-crsf_update(crsf_handle_t *crsf_handle)
-{
-    if (crsf_handle == NULL) {
-        return false;
-    }
-
-    if (!crsf_handle->frame_done) {
-        return false;
-    }
-
-    crsf_handle->frame_done = 0;
-
-    // Check crc of packed
-    uint8_t crc = crsf_compute_crc();
-    if (crc != frame->frame_def.crc) {
-        return false;
-    }
-
-    // Handle packet type
-    const crsf_frame_packed_t const *frame = &rc_channel_frame;
-    switch (frame->frame_def.type) {
-        case CRSF_FRAMETYPE_RC_CHANNELS_PACKED:
-            crsf_handle_rc_channels_packed(frame->payload, crsf_handle->channels);
-
-            break;
-        default:
-            break;
-    }
-
-    return true;
-}
-
-uint16_t
-crsf_get_channel(crsf_handle_t *handle, uint8_t channel)
-{
-    if (handle == NULL) {
-        return CRSF_VALUE_CHANNEL_MID;
-    }
-
-    if (channel >= CRSF_MAX_CHANNEL || handle->signal_ok == 0) {
-        return CRSF_VALUE_CHANNEL_MID;
-    }
-
-    return handle->channels[channel];
 }
 
 void
@@ -126,11 +113,58 @@ crsf_handle_rc_channels_packed(const uint8_t *payload, uint16_t *channels)
 
     const crsf_channels_packed_t const *packed = (const crsf_channels_packed_t *)payload;
 
-    channels[0] = packed->ch0;
-    channels[1] = packed->ch1;
-    channels[2] = packed->ch2;
-    channels[3] = packed->ch3;
-    channels[4] = packed->ch4;
+    channels[0] = packed->ch1;
+    channels[1] = packed->ch2;
+    channels[2] = packed->ch3;
+    channels[3] = packed->ch4;
+    channels[4] = packed->ch5;
+}
+
+bool
+crsf_get_channel(crsf_handle_t *handle, crsf_channel_t channel, uint16_t *value)
+{
+    if (handle == NULL || value == NULL) {
+        return false;
+    }
+
+    // check bound channel
+    if (channel > CRSF_MAX_CHANNEL || channel < CRSF_CHANNEL_ROLL) {
+        return false;
+    }
+
+    *value = handle->channels[channel - 1];
+
+    return true;
+}
+
+bool
+crsf_get_channel_roll(crsf_handle_t *handle, uint16_t *value)
+{
+    return crsf_get_channel(handle, CRSF_CHANNEL_ROLL, value);
+}
+
+bool
+crsf_get_channel_pitch(crsf_handle_t *handle, uint16_t *value)
+{
+    return crsf_get_channel(handle, CRSF_CHANNEL_PITCH, value);
+}
+
+bool
+crsf_get_channel_throttle(crsf_handle_t *handle, uint16_t *value)
+{
+    return crsf_get_channel(handle, CRSF_CHANNEL_THROTTLE, value);
+}
+
+bool
+crsf_get_channel_yaw(crsf_handle_t *handle, uint16_t *value)
+{
+    return crsf_get_channel(handle, CRSF_CHANNEL_YAW, value);
+}
+
+bool
+crsf_get_channel_aux1(crsf_handle_t *handle, uint16_t *value)
+{
+    return crsf_get_channel(handle, CRSF_CHANNEL_AUX1, value);
 }
 
 uint8_t

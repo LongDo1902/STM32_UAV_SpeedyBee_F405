@@ -20,17 +20,17 @@
 #include "main.h"
 #include "adc.h"
 #include "dma.h"
+#include "gpio.h"
 #include "spi.h"
 #include "usart.h"
-#include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "crsf.h"
 #include "imu\icm42688_device.h"
 #include "leds.h"
 #include "temperature.h"
 #include <stdbool.h>
-#include "crsf.h"
 
 /* USER CODE END Includes */
 
@@ -92,132 +92,281 @@ ICM42688_main()
                                                     &icm42688_est_angle, dt_s));
     }
 }
+
+uint16_t throttle;
+#ifndef DEBUG_CRSF
+crsf_handle_t crsf_handle;
+#endif
+
+
+void
+test_cfsf()
+{
+    crsf_handle_t crsf_handle;
+    crsf_init(&crsf_handle, NULL);
+
+    // =====================================================
+    // TEST CASE 1: ALL CHANNELS CENTER (992)
+    // =====================================================
+    uint8_t raw_data_992[] = {0xC8, 0x18, 0x16, 0xE0, 0x03, 0x1F, 0xF8, 0xC0, 0x07,
+                              0x3E, 0xF0, 0x81, 0x0F, 0x7C, 0xE0, 0x03, 0x1F, 0xF8,
+                              0xC0, 0x07, 0x3E, 0xF0, 0x81, 0x0F, 0x7C, 0xAD};
+
+    // Expected:
+    // CH1-16 = 992
+
+
+
+    // =====================================================
+    // TEST CASE 2: ALL CHANNELS MINIMUM (172)
+    // =====================================================
+    uint8_t raw_data_min[] = {0xC8, 0x18, 0x16, 0xAC, 0x60, 0x05, 0x2B, 0x58, 0xC1,
+                              0x0A, 0x56, 0xB0, 0x82, 0x15, 0xAC, 0x60, 0x05, 0x2B,
+                              0x58, 0xC1, 0x0A, 0x56, 0xB0, 0x82, 0x15, 0x5B};
+
+    // Expected:
+    // CH1-16 = 172
+
+
+
+    // =====================================================
+    // TEST CASE 3: ALL CHANNELS MAXIMUM (1811)
+    // =====================================================
+    uint8_t raw_data_max[] = {0xC8, 0x18, 0x16, 0x13, 0xFF, 0xF8, 0xC7, 0x3F, 0xFE,
+                              0xF1, 0x8F, 0x7F, 0xFC, 0xE3, 0x1F, 0xFF, 0xF8, 0xC7,
+                              0x3F, 0xFE, 0xF1, 0x8F, 0x7F, 0xFC, 0xE3, 0x1F, 0xD4};
+
+    // Expected:
+    // CH1-16 = 1811
+
+
+
+    // =====================================================
+    // TEST CASE 4: THROTTLE LOW, OTHERS CENTER
+    // CH1 = 992
+    // CH2 = 992
+    // CH3 = 172
+    // CH4+ = 992
+    // =====================================================
+    uint8_t raw_data_throttle_low[] = {0xC8, 0x18, 0x16, 0xE0, 0x03, 0x1F, 0xB0, 0x82, 0x15,
+                                       0xAC, 0x60, 0x05, 0x2B, 0x58, 0xC1, 0x0A, 0x56, 0xB0,
+                                       0x82, 0x15, 0xAC, 0x60, 0x05, 0x2B, 0x58, 0xFC};
+
+    // Expected:
+    // CH1 = 992
+    // CH2 = 992
+    // CH3 = 172
+    // CH4-16 = 992
+
+
+
+    // =====================================================
+    // TEST CASE 5: AUX1 HIGH (ARM SWITCH)
+    // CH1-4 = 992
+    // CH5 = 1811
+    // Others = 992
+    // =====================================================
+    uint8_t raw_data_aux1_high[] = {0xC8, 0x18, 0x16, 0xE0, 0x03, 0x1F, 0xF8, 0xC0, 0x07,
+                                    0xFE, 0xF1, 0x8F, 0x7F, 0x7C, 0xE0, 0x03, 0x1F, 0xF8,
+                                    0xC0, 0x07, 0x3E, 0xF0, 0x81, 0x0F, 0x7C, 0xB6};
+
+    // Expected:
+    // CH1-4 = 992
+    // CH5 = 1811
+    // CH6-16 = 992
+
+
+
+    // =====================================================
+    // TEST CASE 6: MIXED VALUES
+    // CH1 = 172
+    // CH2 = 992
+    // CH3 = 1811
+    // CH4 = 1200
+    // CH5 = 1500
+    // =====================================================
+    uint8_t raw_data_mixed[] = {0xC8, 0x18, 0x16, 0xAC, 0x03, 0x9F, 0xFF, 0xF1, 0x25,
+                                0x77, 0xC2, 0x13, 0x9E, 0xF0, 0x84, 0x27, 0x3C, 0xE1,
+                                0x09, 0x4F, 0x78, 0xC2, 0x13, 0x9E, 0xF0, 0x5A};
+
+    // Expected:
+    // CH1 = 172
+    // CH2 = 992
+    // CH3 = 1811
+    // CH4 = 1200
+    // CH5 = 1500
+
+
+
+    // =====================================================
+    // TEST CASE 7: INVALID CRC
+    // =====================================================
+    uint8_t raw_data_bad_crc[] = {0xC8, 0x18, 0x16, 0xE0, 0x03, 0x1F, 0xF8, 0xC0, 0x07,
+                                  0x3E, 0xF0, 0x81, 0x0F, 0x7C, 0xE0, 0x03, 0x1F, 0xF8,
+                                  0xC0, 0x07, 0x3E, 0xF0, 0x81, 0x0F, 0x7C, 0x00};
+
+    // Expected:
+    // CRC FAIL
+    // FRAME DROP
+
+    for (int i = 0; i < sizeof(raw_data_throttle_low); i++) {
+        crsf_handle_receive_byte(&crsf_handle, raw_data_throttle_low[i]);
+    }
+
+    while (1) {
+        if (crsf_update(&crsf_handle)) {
+            crsf_get_channel_throttle(&crsf_handle, &throttle);
+        }
+
+        HAL_Delay(500);
+    }
+}
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
-int main(void)
+ * @brief  The application entry point.
+ * @retval int
+ */
+int
+main(void)
 {
 
-  /* USER CODE BEGIN 1 */
+    /* USER CODE BEGIN 1 */
 
-  /* USER CODE END 1 */
+    /* USER CODE END 1 */
 
-  /* MCU Configuration--------------------------------------------------------*/
+    /* MCU Configuration--------------------------------------------------------*/
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+    /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+    HAL_Init();
 
-  /* USER CODE BEGIN Init */
+    /* USER CODE BEGIN Init */
 
-  /* USER CODE END Init */
+    /* USER CODE END Init */
 
-  /* Configure the system clock */
-  SystemClock_Config();
+    /* Configure the system clock */
+    SystemClock_Config();
 
-  /* USER CODE BEGIN SysInit */
+    /* USER CODE BEGIN SysInit */
 
-  /* USER CODE END SysInit */
+    /* USER CODE END SysInit */
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_DMA_Init();
-  MX_SPI1_Init();
-  MX_ADC1_Init();
-  MX_USART6_UART_Init();
-  /* USER CODE BEGIN 2 */
-//    ICM42688_main();
+    /* Initialize all configured peripherals */
+    MX_GPIO_Init();
+    MX_DMA_Init();
+    MX_SPI1_Init();
+    MX_ADC1_Init();
+    MX_USART6_UART_Init();
+    /* USER CODE BEGIN 2 */
+    //    ICM42688_main();
     Long_ADC_startADC1Int(&hadc1); // Start reading STM32's temperature using interrupt
-  /* USER CODE END 2 */
+#ifdef DEBUG_CRSF
+    test_cfsf();
+#else
+    crsf_init(&crsf_handle, &huart6);
+#endif
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
+
+    /* USER CODE END 2 */
+
+    /* Infinite loop */
+    /* USER CODE BEGIN WHILE */
 
     while (1) {
-    /* USER CODE END WHILE */
+        /* USER CODE END WHILE */
 
-    /* USER CODE BEGIN 3 */
+        /* USER CODE BEGIN 3 */
+        if (crsf_update(&crsf_handle)) {
+            crsf_get_channel_throttle(&crsf_handle, &throttle);
+        }
+
+        HAL_Delay(500);
     }
-  /* USER CODE END 3 */
+    /* USER CODE END 3 */
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
-void SystemClock_Config(void)
+ * @brief System Clock Configuration
+ * @retval None
+ */
+void
+SystemClock_Config(void)
 {
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+    RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+    RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /** Configure the main internal regulator output voltage
-  */
-  __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+    /** Configure the main internal regulator output voltage
+     */
+    __HAL_RCC_PWR_CLK_ENABLE();
+    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
-  /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = 4;
-  RCC_OscInitStruct.PLL.PLLN = 168;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 4;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
+    /** Initializes the RCC Oscillators according to the specified parameters
+     * in the RCC_OscInitTypeDef structure.
+     */
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+    RCC_OscInitStruct.HSEState       = RCC_HSE_ON;
+    RCC_OscInitStruct.PLL.PLLState   = RCC_PLL_ON;
+    RCC_OscInitStruct.PLL.PLLSource  = RCC_PLLSOURCE_HSE;
+    RCC_OscInitStruct.PLL.PLLM       = 4;
+    RCC_OscInitStruct.PLL.PLLN       = 168;
+    RCC_OscInitStruct.PLL.PLLP       = RCC_PLLP_DIV2;
+    RCC_OscInitStruct.PLL.PLLQ       = 4;
+    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+        Error_Handler();
+    }
 
-  /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+    /** Initializes the CPU, AHB and APB buses clocks
+     */
+    RCC_ClkInitStruct.ClockType =
+        RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+    RCC_ClkInitStruct.SYSCLKSource   = RCC_SYSCLKSOURCE_PLLCLK;
+    RCC_ClkInitStruct.AHBCLKDivider  = RCC_SYSCLK_DIV1;
+    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+    RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
-  {
-    Error_Handler();
-  }
+    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK) {
+        Error_Handler();
+    }
 }
 
 /* USER CODE BEGIN 4 */
-
+void
+HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    if (huart->Instance == USART6) {
+        crsf_receive_byte(&crsf_handle);
+    }
+}
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
-void Error_Handler(void)
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
+void
+Error_Handler(void)
 {
-  /* USER CODE BEGIN Error_Handler_Debug */
+    /* USER CODE BEGIN Error_Handler_Debug */
     /* User can add his own implementation to report the HAL error return state */
     __disable_irq();
     while (1) {
     }
-  /* USER CODE END Error_Handler_Debug */
+    /* USER CODE END Error_Handler_Debug */
 }
 #ifdef USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
-void assert_failed(uint8_t *file, uint32_t line)
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
+void
+assert_failed(uint8_t *file, uint32_t line)
 {
-  /* USER CODE BEGIN 6 */
+    /* USER CODE BEGIN 6 */
     /* User can add his own implementation to report the file name and line number,
        ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* USER CODE END 6 */
+    /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
