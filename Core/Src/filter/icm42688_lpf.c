@@ -1,6 +1,7 @@
 #include "filter/icm42688_lpf.h"
 
-#define ICM42688_LPF_MIN_DT_S 0.001f
+#define ICM42688_LPF_MIN_DT_S 0.000001f
+#define ICM42688_LPF_MAX_DT_S 0.1f
 #define ICM42688_LPF_PI 3.14159265358979323846f
 
 
@@ -41,8 +42,11 @@ ICM42688_PT1_Update(ICM42688_PT1_Filter_t *filter, float input, float dt_s)
     if (!filter)
         return input;
 
-    if (dt_s < ICM42688_LPF_MIN_DT_S || dt_s > ICM42688_LPF_MIN_DT_S) {
+    if (dt_s < ICM42688_LPF_MIN_DT_S) {
         dt_s = ICM42688_LPF_MIN_DT_S;
+    }
+    else if (dt_s > ICM42688_LPF_MAX_DT_S) {
+        dt_s = ICM42688_LPF_MAX_DT_S;
     }
 
     if (!filter->is_initialized) {
@@ -99,7 +103,7 @@ ICM42688_IMU_LPF_Init(ICM42688_IMU_LPF_t *filter, float nominal_dt_s, float gyro
 
 
 bool
-ICM42688_LPF_Reset(ICM42688_IMU_LPF_t *filter)
+ICM42688_IMU_LPF_Reset(ICM42688_IMU_LPF_t *filter)
 {
     if (!filter)
         return false;
@@ -134,7 +138,7 @@ ICM42688_IMU_LPF_Update(ICM42688_IMU_LPF_t *filter, const ICM42688_Temp_Accel_Gy
 bool
 ICM42688_IMU_LPF_Update_Dt(ICM42688_IMU_LPF_t                      *filter,
                            const ICM42688_Temp_Accel_Gyro_Scaled_t *input,
-                           ICM42688_Temp_Accel_Gyro_Scaled_t *output, float nominal_dt_s)
+                           ICM42688_Temp_Accel_Gyro_Scaled_t *output, float dt_s)
 {
     if (!filter || !input || !output)
         return false;
@@ -145,11 +149,9 @@ ICM42688_IMU_LPF_Update_Dt(ICM42688_IMU_LPF_t                      *filter,
     output->temp_c = input->temp_c;
 
     for (uint8_t i = 0; i < 3U; i++) {
-        output->gyro_dps[i] =
-            ICM42688_PT1_Update(&filter->gyro_lpf[i], input->gyro_dps[i], nominal_dt_s);
+        output->gyro_dps[i] = ICM42688_PT1_Update(&filter->gyro_lpf[i], input->gyro_dps[i], dt_s);
 
-        output->accel_g[i] =
-            ICM42688_PT1_Update(&filter->accel_lpf[i], input->accel_g[i], nominal_dt_s);
+        output->accel_g[i] = ICM42688_PT1_Update(&filter->accel_lpf[i], input->accel_g[i], dt_s);
     }
 
     return true;
