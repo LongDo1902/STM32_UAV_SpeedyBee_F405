@@ -19,9 +19,9 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "FreeRTOS.h"
-#include "cmsis_os.h"
-#include "main.h"
 #include "task.h"
+#include "main.h"
+#include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -45,81 +45,71 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
+static int task_count_debug = 0;
 
+osThreadId_t defaultTestTaskHandle_02;
+const osThreadAttr_t defaultTestTask_attributes_02 = {
+  .name = "defaultTestTask_02",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityBelowNormal7,
+};
 /* USER CODE END Variables */
-osThreadId defaultTestTaskHandle;
-osThreadId defaultTestV02TaskHandle;
+/* Definitions for defaultTestTask */
+osThreadId_t defaultTestTaskHandle;
+const osThreadAttr_t defaultTestTask_attributes = {
+  .name = "defaultTestTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
-static int task_count_debug = 0;
+void StartDefaultTestTask_02(void *argument);
 /* USER CODE END FunctionPrototypes */
 
-void StartDefaultTestTask(void const *argument);
-void StartDefaultTestV02Task(void const *argument);
+void StartDefaultTestTask(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
-/* GetIdleTaskMemory prototype (linked to static allocation support) */
-void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer,
-                                   StackType_t  **ppxIdleTaskStackBuffer,
-                                   uint32_t      *pulIdleTaskStackSize);
-
-/* USER CODE BEGIN GET_IDLE_TASK_MEMORY */
-static StaticTask_t xIdleTaskTCBBuffer;
-static StackType_t  xIdleStack[configMINIMAL_STACK_SIZE];
-
-void
-vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer,
-                              StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize)
-{
-    *ppxIdleTaskTCBBuffer   = &xIdleTaskTCBBuffer;
-    *ppxIdleTaskStackBuffer = &xIdleStack[0];
-    *pulIdleTaskStackSize   = configMINIMAL_STACK_SIZE;
-    /* place for user code */
-}
-/* USER CODE END GET_IDLE_TASK_MEMORY */
-
 /**
- * @brief  FreeRTOS initialization
- * @param  None
- * @retval None
- */
-void
-MX_FREERTOS_Init(void)
-{
-    /* USER CODE BEGIN Init */
+  * @brief  FreeRTOS initialization
+  * @param  None
+  * @retval None
+  */
+void MX_FREERTOS_Init(void) {
+  /* USER CODE BEGIN Init */
 
-    /* USER CODE END Init */
+  /* USER CODE END Init */
 
-    /* USER CODE BEGIN RTOS_MUTEX */
+  /* USER CODE BEGIN RTOS_MUTEX */
     /* add mutexes, ... */
-    /* USER CODE END RTOS_MUTEX */
+  /* USER CODE END RTOS_MUTEX */
 
-    /* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
     /* add semaphores, ... */
-    /* USER CODE END RTOS_SEMAPHORES */
+  /* USER CODE END RTOS_SEMAPHORES */
 
-    /* USER CODE BEGIN RTOS_TIMERS */
+  /* USER CODE BEGIN RTOS_TIMERS */
     /* start timers, add new ones, ... */
-    /* USER CODE END RTOS_TIMERS */
+  /* USER CODE END RTOS_TIMERS */
 
-    /* USER CODE BEGIN RTOS_QUEUES */
+  /* USER CODE BEGIN RTOS_QUEUES */
     /* add queues, ... */
-    /* USER CODE END RTOS_QUEUES */
+  /* USER CODE END RTOS_QUEUES */
 
-    /* Create the thread(s) */
-    /* definition and creation of defaultTestTask */
-    osThreadDef(defaultTestTask, StartDefaultTestTask, osPriorityNormal, 0, 128);
-    defaultTestTaskHandle = osThreadCreate(osThread(defaultTestTask), NULL);
+  /* Create the thread(s) */
+  /* creation of defaultTestTask */
+  defaultTestTaskHandle = osThreadNew(StartDefaultTestTask, NULL, &defaultTestTask_attributes);
 
-
-    osThreadDef(defaultTestV02Task, StartDefaultTestV02Task, osPriorityBelowNormal, 0, 128);
-    defaultTestV02TaskHandle = osThreadCreate(osThread(defaultTestV02Task), NULL);
-
-    /* USER CODE BEGIN RTOS_THREADS */
+  /* USER CODE BEGIN RTOS_THREADS */
     /* add threads, ... */
-    /* USER CODE END RTOS_THREADS */
+  defaultTestTaskHandle_02 = osThreadNew(StartDefaultTestTask_02, NULL, &defaultTestTask_attributes_02);
+  /* USER CODE END RTOS_THREADS */
+
+  /* USER CODE BEGIN RTOS_EVENTS */
+  /* add events, ... */
+  /* USER CODE END RTOS_EVENTS */
+
 }
 
 /* USER CODE BEGIN Header_StartDefaultTestTask */
@@ -128,32 +118,29 @@ MX_FREERTOS_Init(void)
  * @param  argument: Not used
  * @retval None
  */
-/* USER CODE END Header_StartDefaultTestTask */
-void
-StartDefaultTestTask(void const *argument)
+
+void StartDefaultTestTask_02(void *argument)
 {
-    /* USER CODE BEGIN StartDefaultTestTask */
+  /* USER CODE BEGIN StartDefaultTestTask */
     /* Infinite loop */
-	ICM42688_main();
-    /* USER CODE END StartDefaultTestTask */
+	while(1) {
+		 task_count_debug = !task_count_debug;
+		 osDelay(1000);
+	}
+  /* USER CODE END StartDefaultTestTask */
 }
 
-void
-StartDefaultTestV02Task(void const *argument)
+/* USER CODE END Header_StartDefaultTestTask */
+void StartDefaultTestTask(void *argument)
 {
-    /* USER CODE BEGIN StartDefaultTestTask */
+  /* USER CODE BEGIN StartDefaultTestTask */
     /* Infinite loop */
-    for (;;) {
-#ifdef LOGGING_DEBUG
-		log_write("Task %d", 2);
-#endif
-		task_count_debug = !task_count_debug;
-		osDelay(1000);
-    }
-    /* USER CODE END StartDefaultTestTask */
+	ICM42688_main();
+  /* USER CODE END StartDefaultTestTask */
 }
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
 
 /* USER CODE END Application */
+
