@@ -32,17 +32,17 @@
 #define CHECK_FOR(expr)            \
     do {                           \
         _status = (expr);          \
-        if (_status != HAL_OK)     \
-            return ICM42688_ERROR; \
+        if (!_status)     \
+            return false; \
     } while (0)
 
-ICM42688_Status_t
+bool
 ICM42688_IsAlive(ICM42688_Handle_t *handle);
 
-ICM42688_Status_t
+bool
 ICM42688_SoftReset(ICM42688_Handle_t *handle);
 
-ICM42688_Status_t
+bool
 ICM42688_Init(ICM42688_Handle_t *handle);
 
 #endif /* INC_IMU_ICM42688_DEVICE_H_ */

@@ -10,52 +10,52 @@
 /*=============================================================================
  *	IDENTITY / RESET /
  *============================================================================ */
-static inline HAL_StatusTypeDef
+static inline bool
 ICM42688_Get_WhoAmI(ICM42688_Handle_t *handle, uint8_t *who_val)
 {
     if (!handle || !who_val)
-        return HAL_ERROR;
+        return false;
     return ICM42688_ReadReg(handle, ICM42688_UB0_WHO_AM_I, who_val);
 }
 
 
 
-ICM42688_Status_t
+bool
 ICM42688_IsAlive(ICM42688_Handle_t *handle)
 {
     if (!handle)
-        return ICM42688_ERROR;
+        return false;
 
     uint8_t           _who    = 0U;
-    HAL_StatusTypeDef _status = ICM42688_Get_WhoAmI(handle, &_who);
+    bool _status = ICM42688_Get_WhoAmI(handle, &_who);
 
-    if (_status != HAL_OK) {
+    if (!_status) {
         handle->is_icm42688_alive = false;
-        return ICM42688_ERROR;
+        return false;
     }
 
     if (_who == ICM42688_WHO_AM_I_DEFAULT) {
         handle->is_icm42688_alive = true;
-        return ICM42688_OK;
+        return true;
     }
 
     handle->is_icm42688_alive = false;
-    return ICM42688_ERROR;
+    return false;
 }
 
 
 
-ICM42688_Status_t
+bool
 ICM42688_SoftReset(ICM42688_Handle_t *handle)
 {
     if (!handle)
-        return ICM42688_ERROR;
+        return false;
 
-    HAL_StatusTypeDef _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_DEVICE_CONF,
+    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_DEVICE_CONF,
                                                          ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk,
                                                          ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk);
-    if (_status != HAL_OK)
-        return ICM42688_ERROR;
+    if (!_status)
+        return false;
 
     HAL_Delay(5);
 
@@ -113,65 +113,65 @@ ICM42688_SoftReset(ICM42688_Handle_t *handle)
 
 
 
-static ICM42688_Status_t
+static bool
 _ICM42688_Interface_Config(ICM42688_Handle_t *handle)
 {
-    ICM42688_Status_t _status = ICM42688_ERROR;
+    bool _status = false;
 
     CHECK_FOR(ICM42688_Set_SPI_Mode(handle, SPI_MODE_0_3));
     CHECK_FOR(ICM42688_Set_SPI_SlewRate(handle, SPI_SR_2NS));
     CHECK_FOR(ICM42688_Set_UI_SIFS_Conf(handle, UI_SIFS_DISABLE_I2C));
     CHECK_FOR(ICM42688_Set_Sensor_Data_Endian(handle, SENSOR_DATA_BIG_ENDIAN));
 
-    return ICM42688_OK;
+    return true;
 }
 
 
 
-static ICM42688_Status_t
+static bool
 _ICM42688_Accel_Config(ICM42688_Handle_t *handle)
 {
-    ICM42688_Status_t _status = ICM42688_ERROR;
+    bool _status = false;
 
     CHECK_FOR(ICM42688_Set_AccelConfig(handle, ACCEL_LOW_NOISE, ACCEL_ODR_8KHz, ACCEL_FSR_4g));
     CHECK_FOR(ICM42688_Set_Accel_UIFilt_BW(handle, BW_ODR_DIV_2));
     CHECK_FOR(ICM42688_Set_Accel_UIFilt_Order(handle, ACCEL_FIRST_ORDER));
     CHECK_FOR(ICM42688_Set_Accel_Anti_Alias_Filt(handle, ENABLE_AAF));
 
-    return ICM42688_OK;
+    return true;
 }
 
 
 
-static ICM42688_Status_t
+static bool
 _ICM42688_Gyro_Config(ICM42688_Handle_t *handle)
 {
-    ICM42688_Status_t _status = ICM42688_ERROR;
+    bool _status = false;
 
     CHECK_FOR(ICM42688_Set_GyroConfig(handle, GYRO_LOW_NOISE, GYRO_ODR_8KHz, GYRO_FSR_1000dps));
     CHECK_FOR(ICM42688_Set_Gyro_UIFilt_BW(handle, BW_ODR_DIV_2));
     CHECK_FOR(ICM42688_Set_Gyro_UIFilt_Order(handle, GYRO_FIRST_ORDER));
     CHECK_FOR(ICM42688_Set_Gyro_Anti_Alias_Filt(handle, ENABLE_AAF));
 
-    return ICM42688_OK;
+    return true;
 }
 
 
 
-static ICM42688_Status_t
+static bool
 _ICM42688_Temperature_Config(ICM42688_Handle_t *handle)
 {
-    ICM42688_Status_t _status = ICM42688_ERROR;
+    bool _status = false;
     CHECK_FOR(ICM42688_Set_Temperature_Enable(handle, TEMP_ENABLE));
-    return ICM42688_OK;
+    return true;
 }
 
 
 
-static ICM42688_Status_t
+static bool
 _ICM42688_FIFO_Config(ICM42688_Handle_t *handle)
 {
-    ICM42688_Status_t _status = ICM42688_ERROR;
+    bool _status = false;
 
     CHECK_FOR(ICM42688_Set_FIFO_Count_Endian(handle, FIFO_COUNT_BIG_ENDIAN));
     CHECK_FOR(ICM42688_Set_FIFO_Count_Rec(handle, FIFO_COUNT_IN_BYTE));
@@ -181,18 +181,18 @@ _ICM42688_FIFO_Config(ICM42688_Handle_t *handle)
     CHECK_FOR(ICM42688_Set_FIFO_Temp_Enable(handle, FIFO_GAT_ENABLE));
     CHECK_FOR(ICM42688_Set_FIFO_HIRES_Enable(handle, FIFO_HIRES_DISABLE));
 
-    return ICM42688_OK;
+    return true;
 }
 
 
 
-ICM42688_Status_t
+bool
 ICM42688_Init(ICM42688_Handle_t *handle)
 {
     if (!handle)
-        return ICM42688_ERROR;
+        return false;
 
-    ICM42688_Status_t _status = ICM42688_ERROR;
+    bool _status = false;
 
     // Discover if the sensor is active
     CHECK_FOR(ICM42688_IsAlive(handle));
@@ -229,5 +229,5 @@ ICM42688_Init(ICM42688_Handle_t *handle)
     handle->is_initialized    = true;
     handle->is_icm42688_alive = true;
 
-    return ICM42688_OK;
+    return true;
 }

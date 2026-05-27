@@ -524,7 +524,6 @@ typedef struct
     ICM42688_Intf_Config0_t intf_config;
     ICM42688_Temp_Config_t  temp_config;
     ICM42688_FIFO_Config_t  fifo_config;
-    ICM42688_Cached_Val_t   cached;
 
     bool is_initialized;
     bool is_reset;
