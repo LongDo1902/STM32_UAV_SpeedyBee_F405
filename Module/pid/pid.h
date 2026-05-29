@@ -49,6 +49,7 @@ uint16_t pid_compute(pid_controller_t *pid, const float setpoint_angle, const fl
                      const float rate);
 
 uint8_t pid_get_gains(pid_controller_t *pid, pid_loop_t loop, pid_gains_t *gains);
+uint8_t pid_set_gains(pid_controller_t *pid, const pid_loop_t loop, pid_gains_t gains);
 
 void clamp(float *value, const float *max, const float *min);
 

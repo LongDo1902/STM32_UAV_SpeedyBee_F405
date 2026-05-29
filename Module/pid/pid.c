@@ -66,6 +66,32 @@ pid_get_gains(pid_controller_t *pid, pid_loop_t loop, pid_gains_t *gains)
     return true;
 }
 
+uint8_t
+pid_set_gains(pid_controller_t *pid, const pid_loop_t loop, pid_gains_t gains)
+{
+    if (!pid) {
+        return false;
+    }
+
+    if (gains.kp < 0 || gains.ki < 0 || gains.kd < 0) {
+        return false;
+    }
+
+    switch (loop) {
+        case PID_LOOP_OUTER:
+            pid->outer_loop.gains = gains;
+            break;
+        case PID_LOOP_INNER:
+            pid->inner_loop.gains = gains;
+            break;
+        default:
+            return false;
+    }
+
+    return true;
+}
+
+
 void
 clamp(float *value, const float *max, const float *min)
 {
