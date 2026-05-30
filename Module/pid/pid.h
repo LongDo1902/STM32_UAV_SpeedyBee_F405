@@ -59,8 +59,8 @@ uint8_t pid_init(pid_controller_t *pid, const pid_config_t *outer_config,
                  const pid_config_t *inner_config);
 uint8_t pid_config_init(pid_def_t *loop, const pid_config_t *config);
 
-uint16_t pid_compute(pid_controller_t *pid, const float setpoint_angle, const float angle,
-                     const float rate);
+uint8_t pid_compute(pid_controller_t *pid, const float setpoint_angle, const float angle,
+                    const float rate);
 
 uint8_t pid_get_gains(pid_controller_t *pid, pid_loop_t loop, pid_gains_t *gains);
 uint8_t pid_set_gains(pid_controller_t *pid, const pid_loop_t loop, pid_gains_t gains);

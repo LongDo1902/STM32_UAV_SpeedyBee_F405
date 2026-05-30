@@ -66,11 +66,11 @@ pid_reset(pid_def_t *loop)
     return true;
 }
 
-uint16_t
+uint8_t
 pid_compute(pid_controller_t *pid, const float setpoint_angle, const float angle, const float rate)
 {
     if (!pid) {
-        return 0;
+        return false;
     }
 
     /* OUTER CONTROLLER FOR ANGLE */
@@ -112,7 +112,7 @@ pid_compute(pid_controller_t *pid, const float setpoint_angle, const float angle
                              pid->inner_loop.gains.ki * pid->inner_loop.error_sum +
                              pid->inner_loop.gains.kd * pid->inner_loop.error_deriv;
 
-    return pid->inner_loop.output;
+    return true;
 }
 
 uint8_t
