@@ -52,6 +52,20 @@ pid_config_init(pid_def_t *loop, const pid_config_t *config)
     return true;
 }
 
+uint8_t
+pid_reset(pid_def_t *loop)
+{
+    if (!loop) {
+        return false;
+    }
+
+    loop->error_sum  = 0;
+    loop->input_prev = 0;
+    loop->output     = 0;
+
+    return true;
+}
+
 uint16_t
 pid_compute(pid_controller_t *pid, const float setpoint_angle, const float angle, const float rate)
 {
