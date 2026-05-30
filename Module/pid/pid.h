@@ -26,7 +26,7 @@ typedef struct
     float error_sum;
     float error_deriv;
 
-    uint32_t sample_time;
+    float sample_time;
 
     float error_sum_max;
     float error_sum_min;
@@ -39,13 +39,25 @@ typedef struct
     pid_def_t inner_loop; // rate
 } pid_controller_t;
 
+typedef struct
+{
+    pid_gains_t gains;
+
+    float sample_time;
+
+    float error_sum_max;
+    float error_sum_min;
+} pid_config_t;
+
 typedef enum
 {
     PID_LOOP_OUTER,
     PID_LOOP_INNER
 } pid_loop_t;
 
-void pid_init();
+uint8_t pid_init(pid_controller_t *pid, const pid_config_t *outer_config,
+                 const pid_config_t *inner_config);
+uint8_t pid_config_init(pid_def_t *loop, const pid_config_t *config);
 
 uint16_t pid_compute(pid_controller_t *pid, const float setpoint_angle, const float angle,
                      const float rate);

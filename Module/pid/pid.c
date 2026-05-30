@@ -1,5 +1,57 @@
 #include "pid.h"
 
+uint8_t
+pid_init(pid_controller_t *pid, const pid_config_t *outer_config, const pid_config_t *inner_config)
+{
+    if (!pid) {
+        return false;
+    }
+
+    // Initialize configuration for outer controller
+    if (!pid_config_init(&pid->outer_loop, outer_config)) {
+        return false;
+    }
+
+    // Initialize configuration for inner controller
+    if (pid_config_init(&pid->inner_loop, inner_config)) {
+        return false;
+    }
+
+    return true;
+}
+
+uint8_t
+pid_config_init(pid_def_t *loop, const pid_config_t *config)
+{
+    if (!loop || !config) {
+        return false;
+    }
+
+    if (config->error_sum_min >= config->error_sum_max) {
+        return false;
+    }
+
+    if (config->sample_time <= 0) {
+        return false;
+    }
+
+    loop->gains         = config->gains;
+    loop->error_sum_min = config->error_sum_min;
+    loop->error_sum_max = config->error_sum_max;
+    loop->sample_time   = config->sample_time;
+
+    loop->setpoint   = 0;
+    loop->input      = 0;
+    loop->input_prev = 0;
+    loop->output     = 0;
+
+    loop->error       = 0;
+    loop->error_sum   = 0;
+    loop->error_deriv = 0;
+
+    return true;
+}
+
 uint16_t
 pid_compute(pid_controller_t *pid, const float setpoint_angle, const float angle, const float rate)
 {
