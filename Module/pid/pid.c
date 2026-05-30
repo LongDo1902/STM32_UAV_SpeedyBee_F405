@@ -3,6 +3,10 @@
 uint16_t
 pid_compute(pid_controller_t *pid, const float setpoint_angle, const float angle, const float rate)
 {
+    if (!pid) {
+        return 0;
+    }
+
     /* OUTER CONTROLLER FOR ANGLE */
     pid->outer_loop.setpoint = setpoint_angle;
     pid->outer_loop.input    = angle;
@@ -90,7 +94,6 @@ pid_set_gains(pid_controller_t *pid, const pid_loop_t loop, pid_gains_t gains)
 
     return true;
 }
-
 
 void
 clamp(float *value, const float *max, const float *min)

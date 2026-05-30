@@ -1,6 +1,9 @@
 #ifndef _PID_H_
 #define _PID_H_
 
+#include <stdbool.h>
+#include <stdint.h>
+
 // PID Gains
 typedef struct
 {
@@ -27,7 +30,6 @@ typedef struct
 
     float error_sum_max;
     float error_sum_min;
-
 } pid_def_t;
 
 // Cascaded PID controller
