@@ -105,6 +105,7 @@ MX_FREERTOS_Init(void)
     /* USER CODE END RTOS_QUEUES */
 
     /* Create the thread(s) */
+    /* creation of IMUTask */
     /* USER CODE BEGIN RTOS_THREADS */
     /* add threads, ... */
     IMUTask     = osThreadNew(StartIMUTask, NULL, &IMUTaskAttributes);
