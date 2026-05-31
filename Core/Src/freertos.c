@@ -48,10 +48,10 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-ICM42688_Handle_t                 icm42688_handle     = {0};
-ICM42688_Offset_Raw_t             icm42688_offset_raw = {0};
-ICM42688_Temp_Accel_Gyro_Scaled_t icm42688_scaled     = {0};
-ICM42688_Est_Angle_complement_t   icm42688_est_angle  = {0};
+static ICM42688_Handle_t                 icm42688_handle     = {0};
+static ICM42688_Offset_Raw_t             icm42688_offset_raw = {0};
+static ICM42688_Temp_Accel_Gyro_Scaled_t icm42688_scaled     = {0};
+static ICM42688_Est_Angle_complement_t   icm42688_est_angle  = {0};
 
 osThreadId_t         IMUTask;
 const osThreadAttr_t IMUTaskAttributes = {
@@ -119,6 +119,15 @@ MX_FREERTOS_Init(void)
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
+/**
+ * @todo
+ * ICM42688_ODR:        4 kHz or 8 kHz
+ * IMU_FIFO:            enabled
+ * IMU interrupt:       data ready / FIFO watermark
+ * FreeRTOS IMU task:   wakes from notification
+ * SPI read:            burst-read FIFO
+ * Attitude/control:    1 kHz or 2 kHz
+ */
 void
 StartIMUTask(void *argument)
 {
@@ -126,22 +135,34 @@ StartIMUTask(void *argument)
     icm42688_handle.spi_config.cs_port = GPIOA;
     icm42688_handle.spi_config.cs_pin  = GPIO_PIN_4;
 
-    if (!ICM42688_Init(&icm42688_handle))
-        return;
-    osDelay(5);
+    if (!ICM42688_Init(&icm42688_handle)) {
+        for (;;) {
+            // Add a logging error here
+            osDelay(1000);
+        }
+    }
 
-    if (!ICM42688_Get_Calibrate_Raw(&icm42688_handle, &icm42688_offset_raw, 200))
-        return;
-    osDelay(5);
+    if (!ICM42688_Get_Calibrate_Raw(&icm42688_handle, &icm42688_offset_raw, 200)) {
+        for (;;) {
+            // Add a logging error here
+            osDelay(1000);
+        }
+    }
+
+    osDelay(10);
+
+    const uint32_t period_tick = 1;                                        // 1 RTOS Tick
+    const float    dt = (float)period_tick / (float)osKernelGetTickFreq(); // e.g. 1/1000(Hz)=0.001s
+    uint32_t       wake_tick = osKernelGetTickCount();
 
     for (;;) {
-        if (!ICM42688_Get_Temp_Accel_Gyro_Scaled(&icm42688_handle, &icm42688_offset_raw,
-                                                 &icm42688_scaled))
-            return;
+        (void)ICM42688_Get_Temp_Accel_Gyro_Scaled(&icm42688_handle, &icm42688_offset_raw,
+                                                  &icm42688_scaled);
 
-        if (!ICM42688_Get_Est_Angle_Complement(&icm42688_handle, IMU_ORIENT_NEGY_NEGX_NEGZ,
-                                               &icm42688_scaled, &icm42688_est_angle, ))
-            return;
+        (void)ICM42688_Get_Est_Angle_Complement(&icm42688_handle, IMU_ORIENT_NEGY_NEGX_NEGZ,
+                                                &icm42688_scaled, &icm42688_est_angle, dt);
+        wake_tick += period_tick;
+        osDelayUntil(wake_tick);
     }
 }
 
