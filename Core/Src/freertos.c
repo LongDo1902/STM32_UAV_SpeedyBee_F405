@@ -38,6 +38,12 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define IMU_ODR             8000U
+#define FREERTOS_CTRL_FREQ  1000U
+
+#define FIFO_PACKET_BYTE        packet_size_
+#define FIFO_SAMPLES_PER_BATCH  (IMU_ODR / FREERTOS_CTRL_FREQ)
+#define FIFO_WTM_BYTE           (FIFO_SAMPLES_PER_BATCH * FIFO_PACKET_BYTE)
 
 /* USER CODE END PD */
 
@@ -56,7 +62,7 @@ static ICM42688_Est_Angle_complement_t   icm42688_est_angle  = {0};
 osThreadId_t         IMUTask;
 const osThreadAttr_t IMUTaskAttributes = {
     .name       = "IMUTask",
-    .stack_size = 128 * 4,
+    .stack_size = 128 * 6,
     .priority   = osPriorityHigh7,
 };
 
@@ -108,9 +114,15 @@ MX_FREERTOS_Init(void)
     /* creation of IMUTask */
     /* USER CODE BEGIN RTOS_THREADS */
     /* add threads, ... */
-    IMUTask     = osThreadNew(StartIMUTask, NULL, &IMUTaskAttributes);
-    LoggingTask = osThreadNew(StartLoggingTask, NULL, &LoggingTaskAttributes);
+    IMUTask = osThreadNew(StartIMUTask, NULL, &IMUTaskAttributes);
+    if (IMUTask == NULL) {
+        Error_Handler();
+    }
 
+    LoggingTask = osThreadNew(StartLoggingTask, NULL, &LoggingTaskAttributes);
+    if (LoggingTask == NULL) {
+        Error_Handler();
+    }
     /* USER CODE END RTOS_THREADS */
 
     /* USER CODE BEGIN RTOS_EVENTS */
@@ -157,11 +169,12 @@ StartIMUTask(void *argument)
     uint32_t       wake_tick = osKernelGetTickCount();
 
     for (;;) {
-        (void)ICM42688_Get_Temp_Accel_Gyro_Scaled(&icm42688_handle, &icm42688_offset_raw,
-                                                  &icm42688_scaled);
+        if (ICM42688_Get_Temp_Accel_Gyro_Scaled(&icm42688_handle, &icm42688_offset_raw,
+                                                &icm42688_scaled)) {
+            ICM42688_Get_Est_Angle_Complement(&icm42688_handle, IMU_ORIENT_NEGY_NEGX_NEGZ,
+                                              &icm42688_scaled, &icm42688_est_angle, dt);
+        }
 
-        (void)ICM42688_Get_Est_Angle_Complement(&icm42688_handle, IMU_ORIENT_NEGY_NEGX_NEGZ,
-                                                &icm42688_scaled, &icm42688_est_angle, dt);
         wake_tick += period_tick;
         osDelayUntil(wake_tick);
     }
@@ -171,6 +184,7 @@ void
 StartLoggingTask(void *argument)
 {
     for (;;) {
+        osDelay(1000);
     }
 }
 /* USER CODE END Application */

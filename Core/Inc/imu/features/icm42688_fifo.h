@@ -13,6 +13,11 @@
 #include "imu/core/icm42688_rw.h"
 #include "imu/core/icm42688_types.h"
 
+/**
+ * @brief   Extern variables
+ */
+extern uint8_t packet_size_;
+
 bool
 ICM42688_Set_FIFO_Count_Endian(ICM42688_Handle_t *handle, ICM42688_FIFO_Count_Endian_t countEndian);
 

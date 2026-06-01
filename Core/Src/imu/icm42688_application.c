@@ -26,8 +26,8 @@ ICM42688_IsAlive(ICM42688_Handle_t *handle)
     if (!handle)
         return false;
 
-    uint8_t           _who    = 0U;
-    bool _status = ICM42688_Get_WhoAmI(handle, &_who);
+    uint8_t _who    = 0U;
+    bool    _status = ICM42688_Get_WhoAmI(handle, &_who);
 
     if (!_status) {
         handle->is_icm42688_alive = false;
@@ -52,8 +52,8 @@ ICM42688_SoftReset(ICM42688_Handle_t *handle)
         return false;
 
     bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_DEVICE_CONF,
-                                                         ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk,
-                                                         ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk);
+                                            ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk,
+                                            ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk);
     if (!_status)
         return false;
 
@@ -172,14 +172,20 @@ static bool
 _ICM42688_FIFO_Config(ICM42688_Handle_t *handle)
 {
     bool _status = false;
-
+    /**
+     * @note    You might consider to add ICM42688_Set_FIFO_Watermark() in other files because it
+     * requires other aspects
+     */
     CHECK_FOR(ICM42688_Set_FIFO_Count_Endian(handle, FIFO_COUNT_BIG_ENDIAN));
     CHECK_FOR(ICM42688_Set_FIFO_Count_Rec(handle, FIFO_COUNT_IN_BYTE));
     CHECK_FOR(ICM42688_Set_FIFO_Mode(handle, STREAM_TO_FIFO));
     CHECK_FOR(ICM42688_Set_FIFO_Gyro_Enable(handle, FIFO_GAT_ENABLE));
     CHECK_FOR(ICM42688_Set_FIFO_Accel_Enable(handle, FIFO_GAT_ENABLE));
+
     CHECK_FOR(ICM42688_Set_FIFO_Temp_Enable(handle, FIFO_GAT_ENABLE));
     CHECK_FOR(ICM42688_Set_FIFO_HIRES_Enable(handle, FIFO_HIRES_DISABLE));
+    CHECK_FOR(ICM42688_Set_FIFO_WM_GT_THS(handle, FIFO_WM_GREATER_THS_REPEAT));
+    CHECK_FOR(ICM42688_Set_FIFO_Resume_Partial_Read(handle, FIFO_PARTIAL_READ_DISABLE));
 
     return true;
 }
