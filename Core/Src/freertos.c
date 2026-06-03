@@ -44,6 +44,9 @@
 #define FIFO_PACKET_BYTE        packet_size_
 #define FIFO_SAMPLES_PER_BATCH  (IMU_ODR / FREERTOS_CTRL_FREQ)
 #define FIFO_WTM_BYTE           (FIFO_SAMPLES_PER_BATCH * FIFO_PACKET_BYTE)
+#define FIFO_BUFFER_SIZE        256U
+
+#define IMU_FLAG_FIFO_READY     (1U << 0U)
 
 /* USER CODE END PD */
 
@@ -54,15 +57,19 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-static ICM42688_Handle_t                 icm42688_handle     = {0};
-static ICM42688_Offset_Raw_t             icm42688_offset_raw = {0};
-static ICM42688_Temp_Accel_Gyro_Scaled_t icm42688_scaled     = {0};
-static ICM42688_Est_Angle_complement_t   icm42688_est_angle  = {0};
+static ICM42688_Handle_t                 icm42688_handle_     = {0};
+static ICM42688_Offset_Raw_t             icm42688_offset_raw_ = {0};
+static ICM42688_Temp_Accel_Gyro_Scaled_t icm42688_scaled_     = {0};
+static ICM42688_Est_Angle_complement_t   icm42688_est_angle_  = {0};
+
+static uint8_t                           fifo_raw_buf_[FIFO_BUFFER_SIZE] = {0};
+static ICM42688_FIFO_Frame_t             icm42688_frame_                 = {0};
+static ICM42688_Temp_Accel_Gyro_Scaled_t icm42688_fifo_scaled_           = {0};
 
 osThreadId_t         IMUTask;
 const osThreadAttr_t IMUTaskAttributes = {
     .name       = "IMUTask",
-    .stack_size = 128 * 6,
+    .stack_size = 1024 * 2,
     .priority   = osPriorityHigh7,
 };
 
@@ -111,7 +118,7 @@ MX_FREERTOS_Init(void)
     /* USER CODE END RTOS_QUEUES */
 
     /* Create the thread(s) */
-    /* creation of IMUTask */
+
     /* USER CODE BEGIN RTOS_THREADS */
     /* add threads, ... */
     IMUTask = osThreadNew(StartIMUTask, NULL, &IMUTaskAttributes);
@@ -142,20 +149,62 @@ MX_FREERTOS_Init(void)
  * Attitude/control:    1 kHz or 2 kHz
  */
 void
+HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if (GPIO_Pin == IMU_INT_Pin) {
+        osThreadFlagsSet(IMUTask, IMU_FLAG_FIFO_READY);
+    }
+}
+
+void
 StartIMUTask(void *argument)
 {
-    icm42688_handle.spi_config.hspi    = &hspi1;
-    icm42688_handle.spi_config.cs_port = GPIOA;
-    icm42688_handle.spi_config.cs_pin  = GPIO_PIN_4;
+    icm42688_handle_.spi_config.hspi    = &hspi1;
+    icm42688_handle_.spi_config.cs_port = GPIOA;
+    icm42688_handle_.spi_config.cs_pin  = GPIO_PIN_4;
 
-    if (!ICM42688_Init(&icm42688_handle)) {
+    // Initialize some essential ICM42688 configurations
+    if (!ICM42688_Init(&icm42688_handle_)) {
         for (;;) {
             // Add a logging error here
             osDelay(1000);
         }
     }
 
-    if (!ICM42688_Get_Calibrate_Raw(&icm42688_handle, &icm42688_offset_raw, 200)) {
+    // Configure the interrupt 1
+    if (ICM42688_Set_Int1_Config(&icm42688_handle_, INT_ACTIVE_HIGH, INT_PUSH_PULL, INT_PULSED)) {
+        for (;;) {
+            // Add a logging error here
+            osDelay(1000);
+        }
+    }
+
+    // Enable FIFO watermark interrupt on interrupt 1
+    if (ICM42688_Set_Int1_FIFO_Threshold_Enable(&icm42688_handle_, true)) {
+        for (;;) {
+            osDelay(1000);
+        }
+    }
+
+    // Configure FIFO watermark
+    if (!ICM42688_Set_FIFO_Watermark(&icm42688_handle_, FIFO_WTM_BYTE)) {
+        for (;;) {
+            // Add a logging error here
+            osDelay(1000);
+        }
+    }
+
+    // Configure FIFO watermark interrupt to be repeated mode, so that the interrupt will be
+    // triggered again if the FIFO is still above the wtm after the first trigger
+    if (ICM42688_Set_FIFO_WM_GT_THS(&icm42688_handle_, FIFO_WM_GREATER_THS_REPEAT)) {
+        for (;;) {
+            // Add a logging error here
+            osDelay(1000);
+        }
+    }
+
+    // Get the offset raw data for later calibration
+    if (!ICM42688_Get_Calibrate_Raw(&icm42688_handle_, &icm42688_offset_raw_, 200)) {
         for (;;) {
             // Add a logging error here
             osDelay(1000);
@@ -169,10 +218,19 @@ StartIMUTask(void *argument)
     uint32_t       wake_tick = osKernelGetTickCount();
 
     for (;;) {
-        if (ICM42688_Get_Temp_Accel_Gyro_Scaled(&icm42688_handle, &icm42688_offset_raw,
-                                                &icm42688_scaled)) {
-            ICM42688_Get_Est_Angle_Complement(&icm42688_handle, IMU_ORIENT_NEGY_NEGX_NEGZ,
-                                              &icm42688_scaled, &icm42688_est_angle, dt);
+        uint32_t flags = osThreadFlagWait(IMU_FLAG_FIFO_READY, osFlagsWaitAny, osWaitForever);
+        if ((flags & osFlagsError)) {
+            continue; // Jump back to the nearest osThreadFlagWait if there is an error
+        }
+
+        if (!ICM42688_Get_FIFO_Frame_In_Byte(&icm42688_handle_, fifo_raw_buf_, FIFO_BUFFER_SIZE)) {
+            continue; // Jump back to the nearest osThreadFlagWait if there is an error
+        }
+
+        if (ICM42688_Get_Temp_Accel_Gyro_Scaled(&icm42688_handle_, &icm42688_offset_raw_,
+                                                &icm42688_scaled_)) {
+            ICM42688_Get_Est_Angle_Complement(&icm42688_handle_, IMU_ORIENT_NEGY_NEGX_NEGZ,
+                                              &icm42688_scaled_, &icm42688_est_angle_, dt);
         }
 
         wake_tick += period_tick;

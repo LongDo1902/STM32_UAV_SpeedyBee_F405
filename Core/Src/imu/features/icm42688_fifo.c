@@ -486,7 +486,6 @@ ICM42688_Get_FIFO_Packet_Info_From_Header(uint8_t inputHeader, ICM42688_FIFO_Pac
  * @param   packetType  Pointer to an input variable that stores FIFO packet type
  * @param   packetSize  Pointer to an input variable that stores FIFO packet size
  */
-// Maybe this name ICM42688_FIFO_Decode_Frame is better
 bool
 ICM42688_FIFO_Parse_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *frame,
                           const uint8_t *data, uint8_t packetSize,
@@ -864,6 +863,48 @@ ICM42688_FIFO_Parse_One_Byte_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Fram
 
     // Move to the next/different FIFO packet
     *currentPos += (uint16_t)_fifo_packet_size;
+
+    return true;
+}
+
+
+
+/**
+ * @brief   Calibrate FIFO raw data in frame with corresponding offset and scale,
+ *          and fill the calibrated data into output buffer.
+ * @param   handle          Pointer to an ICM42688 Handle struct
+ * @param   frame           Pointer to an ICM42688 FIFO frame struct that carries raw data to be
+ *                          calibrated
+ * @param   offset          Pointer to an ICM42688 Offset struct that carries the raw offset data to
+ *                          be used for calibration
+ * @param   outCalibratedData   Pointer to ICM42688 Scaled struct that carries the calibrated output
+ *                              data
+ */
+bool
+ICM42688_Calibrate_FIFO_Frame(const ICM42688_Handle_t *handle, const ICM42688_FIFO_Frame_t *frame,
+                              const ICM42688_Offset_Raw_t            *offset,
+                              ICM42688_Temp_Accel_Gyro_FIFO_Scaled_t *outCalibratedData)
+{
+    if (!handle || !frame || !offset || !outCalibratedData) {
+        return false;
+    }
+
+    if (!frame->accel_valid && !frame->gyro_valid) {
+        return false;
+    }
+
+    const float _accel_g_per_lsb  = handle->accel_g_per_lsb;
+    const float _gyro_dps_per_lsb = handle->gyro_dps_per_lsb;
+
+    for (uint8_t i = 0; i < 3; i++) {
+        outCalibratedData->accel_g[i] =
+            frame->gat_scaled.accel_g[i] - (offset->offset_raw_accel[i] * _accel_g_per_lsb);
+    }
+
+    for (uint8_t i = 0; i < 3; i++) {
+        outCalibratedData->gyro_dps[i] =
+            frame->gat_scaled.gyro_dps[i] - (offset->offset_raw_gyro[i] * _gyro_dps_per_lsb);
+    }
 
     return true;
 }

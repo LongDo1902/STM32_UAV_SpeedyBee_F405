@@ -114,7 +114,7 @@ ICM42688_SoftReset(ICM42688_Handle_t *handle)
 
 
 static bool
-_ICM42688_Interface_Config(ICM42688_Handle_t *handle)
+ICM42688_Interface_Config(ICM42688_Handle_t *handle)
 {
     bool _status = false;
 
@@ -129,7 +129,7 @@ _ICM42688_Interface_Config(ICM42688_Handle_t *handle)
 
 
 static bool
-_ICM42688_Accel_Config(ICM42688_Handle_t *handle)
+ICM42688_Accel_Config(ICM42688_Handle_t *handle)
 {
     bool _status = false;
 
@@ -144,7 +144,7 @@ _ICM42688_Accel_Config(ICM42688_Handle_t *handle)
 
 
 static bool
-_ICM42688_Gyro_Config(ICM42688_Handle_t *handle)
+ICM42688_Gyro_Config(ICM42688_Handle_t *handle)
 {
     bool _status = false;
 
@@ -159,7 +159,7 @@ _ICM42688_Gyro_Config(ICM42688_Handle_t *handle)
 
 
 static bool
-_ICM42688_Temperature_Config(ICM42688_Handle_t *handle)
+ICM42688_Temperature_Config(ICM42688_Handle_t *handle)
 {
     bool _status = false;
     CHECK_FOR(ICM42688_Set_Temperature_Enable(handle, TEMP_ENABLE));
@@ -169,7 +169,7 @@ _ICM42688_Temperature_Config(ICM42688_Handle_t *handle)
 
 
 static bool
-_ICM42688_FIFO_Config(ICM42688_Handle_t *handle)
+ICM42688_FIFO_Config(ICM42688_Handle_t *handle)
 {
     bool _status = false;
     /**
@@ -184,13 +184,21 @@ _ICM42688_FIFO_Config(ICM42688_Handle_t *handle)
 
     CHECK_FOR(ICM42688_Set_FIFO_Temp_Enable(handle, FIFO_GAT_ENABLE));
     CHECK_FOR(ICM42688_Set_FIFO_HIRES_Enable(handle, FIFO_HIRES_DISABLE));
-    CHECK_FOR(ICM42688_Set_FIFO_WM_GT_THS(handle, FIFO_WM_GREATER_THS_REPEAT));
     CHECK_FOR(ICM42688_Set_FIFO_Resume_Partial_Read(handle, FIFO_PARTIAL_READ_DISABLE));
 
     return true;
 }
 
+static bool
+ICM42688_INT1_CONFIG(ICM42688_Handle_t *handle)
+{
+    bool _status = false;
 
+    CHECK_FOR(ICM42688_Set_Int1_Config(handle, INT_ACTIVE_HIGH, INT_PUSH_PULL, INT_PULSED));
+    CHECK_FOR(ICM42688_Set_Int1_FIFO_Threshold_Enable(handle, true));
+
+    return true;
+}
 
 bool
 ICM42688_Init(ICM42688_Handle_t *handle)
@@ -216,19 +224,19 @@ ICM42688_Init(ICM42688_Handle_t *handle)
     CHECK_FOR(ICM42688_IsAlive(handle));
 
     // Interface configuration
-    CHECK_FOR(_ICM42688_Interface_Config(handle));
+    CHECK_FOR(ICM42688_Interface_Config(handle));
 
     // Accel configuration
-    CHECK_FOR(_ICM42688_Accel_Config(handle));
+    CHECK_FOR(ICM42688_Accel_Config(handle));
 
     // Gyro configuration
-    CHECK_FOR(_ICM42688_Gyro_Config(handle));
+    CHECK_FOR(ICM42688_Gyro_Config(handle));
 
     // Temperature configuration
-    CHECK_FOR(_ICM42688_Temperature_Config(handle));
+    CHECK_FOR(ICM42688_Temperature_Config(handle));
 
     // FIFO configuration
-    CHECK_FOR(_ICM42688_FIFO_Config(handle));
+    CHECK_FOR(ICM42688_FIFO_Config(handle));
 
     HAL_Delay(50);
 

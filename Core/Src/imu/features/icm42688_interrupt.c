@@ -79,8 +79,8 @@ ICM42688_Get_Int_Status(ICM42688_Handle_t *handle, uint8_t *outStatus)
     if (!handle || !outStatus)
         return false;
 
-    uint8_t           _reg    = 0U;
-    bool _status = ICM42688_ReadReg(handle, ICM42688_UB0_INT_STATUS, &_reg);
+    uint8_t _reg    = 0U;
+    bool    _status = ICM42688_ReadReg(handle, ICM42688_UB0_INT_STATUS, &_reg);
     if (!_status)
         return _status;
 
@@ -140,8 +140,8 @@ ICM42688_Set_Int1_FIFO_Full_Enable(ICM42688_Handle_t *handle, bool enable)
 
     uint8_t _value_masked = enable ? ICM42688_FIFO_FULL_INT1_EN_Msk : 0U;
 
-    bool _status = ICM42688_Update_Reg_Bits(
-        handle, ICM42688_UB0_INT_SRC0, ICM42688_FIFO_FULL_INT1_EN_Msk, _value_masked);
+    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_SRC0,
+                                            ICM42688_FIFO_FULL_INT1_EN_Msk, _value_masked);
     if (!_status)
         return _status;
 
@@ -158,8 +158,8 @@ ICM42688_Set_Int1_FIFO_Threshold_Enable(ICM42688_Handle_t *handle, bool enable)
 
     uint8_t _value_masked = enable ? ICM42688_FIFO_THS_INT1_EN_Msk : 0U;
 
-    bool _status = ICM42688_Update_Reg_Bits(
-        handle, ICM42688_UB0_INT_SRC0, ICM42688_FIFO_THS_INT1_EN_Msk, _value_masked);
+    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_SRC0,
+                                            ICM42688_FIFO_THS_INT1_EN_Msk, _value_masked);
     if (!_status)
         return _status;
 
@@ -176,8 +176,8 @@ ICM42688_Set_Int1_DataReady_Enable(ICM42688_Handle_t *handle, bool enable)
 
     uint8_t _value_masked = enable ? ICM42688_UI_DRDY_INT1_EN_Msk : 0U;
 
-    bool _status = ICM42688_Update_Reg_Bits(
-        handle, ICM42688_UB0_INT_SRC0, ICM42688_UI_DRDY_INT1_EN_Msk, _value_masked);
+    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_SRC0,
+                                            ICM42688_UI_DRDY_INT1_EN_Msk, _value_masked);
     if (!_status)
         return _status;
 
@@ -191,9 +191,9 @@ ICM42688_Set_Int1_ResetDone_Enable(ICM42688_Handle_t *handle, bool enable)
 {
     if (!handle)
         return false;
-    uint8_t           _valueMasked = enable ? ICM42688_RESET_DONE_INT1_EN_Msk : 0U;
-    bool _status = ICM42688_Update_Reg_Bits(
-        handle, ICM42688_UB0_INT_SRC0, ICM42688_RESET_DONE_INT1_EN_Msk, _valueMasked);
+    uint8_t _valueMasked = enable ? ICM42688_RESET_DONE_INT1_EN_Msk : 0U;
+    bool    _status      = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_SRC0,
+                                                    ICM42688_RESET_DONE_INT1_EN_Msk, _valueMasked);
     if (!_status)
         return _status;
 

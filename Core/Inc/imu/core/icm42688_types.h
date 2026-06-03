@@ -479,6 +479,7 @@ typedef struct
 } ICM42688_FIFO_Frame_t;
 
 
+
 typedef struct
 {
     ICM42688_FIFO_Mode_t fifo_mode;
