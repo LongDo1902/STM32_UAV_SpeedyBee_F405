@@ -882,8 +882,8 @@ ICM42688_FIFO_Parse_One_Byte_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Fram
  */
 bool
 ICM42688_Calibrate_FIFO_Frame(const ICM42688_Handle_t *handle, const ICM42688_FIFO_Frame_t *frame,
-                              const ICM42688_Offset_Raw_t            *offset,
-                              ICM42688_Temp_Accel_Gyro_FIFO_Scaled_t *outCalibratedData)
+                              const ICM42688_Offset_Raw_t       *offset,
+                              ICM42688_Temp_Accel_Gyro_Scaled_t *outCalibratedData)
 {
     if (!handle || !frame || !offset || !outCalibratedData) {
         return false;

@@ -395,7 +395,7 @@ typedef struct
     float accel_g[3];
     float gyro_dps[3];
     float temp_c;
-} ICM42688_Temp_Accel_Gyro_FIFO_Scaled_t;
+} ICM42688_Temp_Accel_Gyro_Scaled_t;
 
 
 typedef struct
@@ -471,8 +471,8 @@ typedef struct
     int16_t temp_raw16;
 
     // Converted outputs
-    ICM42688_Temp_Accel_Gyro_FIFO_Scaled_t gat_scaled;
-    uint16_t                               timestamp;
+    ICM42688_Temp_Accel_Gyro_Scaled_t gat_scaled;
+    uint16_t                          timestamp;
 
     // Raw packet bytes for debugging only
     uint8_t raw[20];

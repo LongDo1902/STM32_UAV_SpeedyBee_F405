@@ -44,7 +44,7 @@
 #define FIFO_PACKET_BYTE        packet_size_
 #define FIFO_SAMPLES_PER_BATCH  (IMU_ODR / FREERTOS_CTRL_FREQ)
 #define FIFO_WTM_BYTE           (FIFO_SAMPLES_PER_BATCH * FIFO_PACKET_BYTE)
-#define FIFO_BUFFER_SIZE        256U
+#define FIFO_BUFFER_SIZE        256U // Twice FIFO watermark level, just in case the FIFO is still above watermark after the first trigger
 
 #define IMU_FLAG_FIFO_READY     (1U << 0U)
 
@@ -57,26 +57,25 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-static ICM42688_Handle_t                 icm42688_handle_     = {0};
-static ICM42688_Offset_Raw_t             icm42688_offset_raw_ = {0};
-static ICM42688_Temp_Accel_Gyro_Scaled_t icm42688_scaled_     = {0};
-static ICM42688_Est_Angle_complement_t   icm42688_est_angle_  = {0};
+static ICM42688_Handle_t               icm42688_handle_     = {0};
+static ICM42688_Offset_Raw_t           icm42688_offset_raw_ = {0};
+static ICM42688_Est_Angle_complement_t icm42688_est_angle_  = {0};
 
-static uint8_t                           fifo_raw_buf_[FIFO_BUFFER_SIZE] = {0};
-static ICM42688_FIFO_Frame_t             icm42688_frame_                 = {0};
-static ICM42688_Temp_Accel_Gyro_Scaled_t icm42688_fifo_scaled_           = {0};
+static uint8_t                           icm42688_fifo_raw_buf_[FIFO_BUFFER_SIZE] = {0};
+static ICM42688_FIFO_Frame_t             icm42688_frame_                          = {0};
+static ICM42688_Temp_Accel_Gyro_Scaled_t icm42688_fifo_scaled_                    = {0};
 
 osThreadId_t         IMUTask;
 const osThreadAttr_t IMUTaskAttributes = {
     .name       = "IMUTask",
-    .stack_size = 1024 * 2,
+    .stack_size = 1024 * 5,
     .priority   = osPriorityHigh7,
 };
 
 osThreadId_t         LoggingTask;
 const osThreadAttr_t LoggingTaskAttributes = {
     .name       = "LoggingTask",
-    .stack_size = 128 * 1,
+    .stack_size = 1024 * 2,
     .priority   = osPriorityNormal,
 };
 /* USER CODE END Variables */
@@ -141,9 +140,9 @@ MX_FREERTOS_Init(void)
 /* USER CODE BEGIN Application */
 /**
  * @todo
- * ICM42688_ODR:        4 kHz or 8 kHz
- * IMU_FIFO:            enabled
- * IMU interrupt:       data ready / FIFO watermark
+ * ICM42688_ODR:        4 kHz or 8 kHz(done)
+ * IMU_FIFO:            enabled (done)
+ * IMU interrupt:       data ready / FIFO watermark (done)
  * FreeRTOS IMU task:   wakes from notification
  * SPI read:            burst-read FIFO
  * Attitude/control:    1 kHz or 2 kHz
@@ -152,7 +151,9 @@ void
 HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
     if (GPIO_Pin == IMU_INT_Pin) {
-        osThreadFlagsSet(IMUTask, IMU_FLAG_FIFO_READY);
+        if (IMUTask != NULL) {
+            osThreadFlagsSet(IMUTask, IMU_FLAG_FIFO_READY);
+        }
     }
 }
 
@@ -171,17 +172,10 @@ StartIMUTask(void *argument)
         }
     }
 
-    // Configure the interrupt 1
-    if (ICM42688_Set_Int1_Config(&icm42688_handle_, INT_ACTIVE_HIGH, INT_PUSH_PULL, INT_PULSED)) {
+    // Get the offset raw data for later calibration
+    if (!ICM42688_Get_Calibrate_Raw(&icm42688_handle_, &icm42688_offset_raw_, 200)) {
         for (;;) {
             // Add a logging error here
-            osDelay(1000);
-        }
-    }
-
-    // Enable FIFO watermark interrupt on interrupt 1
-    if (ICM42688_Set_Int1_FIFO_Threshold_Enable(&icm42688_handle_, true)) {
-        for (;;) {
             osDelay(1000);
         }
     }
@@ -203,8 +197,16 @@ StartIMUTask(void *argument)
         }
     }
 
-    // Get the offset raw data for later calibration
-    if (!ICM42688_Get_Calibrate_Raw(&icm42688_handle_, &icm42688_offset_raw_, 200)) {
+    // Configure the interrupt 1
+    if (!ICM42688_Set_Int1_Config(&icm42688_handle_, INT_ACTIVE_HIGH, INT_PUSH_PULL, INT_PULSED)) {
+        for (;;) {
+            // Add a logging error here
+            osDelay(1000);
+        }
+    }
+
+    // Enable FIFO watermark interrupt on interrupt 1
+    if (ICM42688_Set_Int1_FIFO_Threshold_Enable(&icm42688_handle_, true)) {
         for (;;) {
             // Add a logging error here
             osDelay(1000);
@@ -213,28 +215,47 @@ StartIMUTask(void *argument)
 
     osDelay(10);
 
-    const uint32_t period_tick = 1;                                        // 1 RTOS Tick
-    const float    dt = (float)period_tick / (float)osKernelGetTickFreq(); // e.g. 1/1000(Hz)=0.001s
-    uint32_t       wake_tick = osKernelGetTickCount();
+    const float _dt = 1U / (float)IMU_ODR;
 
     for (;;) {
-        uint32_t flags = osThreadFlagWait(IMU_FLAG_FIFO_READY, osFlagsWaitAny, osWaitForever);
-        if ((flags & osFlagsError)) {
+        uint32_t _flags = osThreadFlagsWait(IMU_FLAG_FIFO_READY, osFlagsWaitAny, osWaitForever);
+        if ((_flags & osFlagsError)) {
             continue; // Jump back to the nearest osThreadFlagWait if there is an error
         }
 
-        if (!ICM42688_Get_FIFO_Frame_In_Byte(&icm42688_handle_, fifo_raw_buf_, FIFO_BUFFER_SIZE)) {
-            continue; // Jump back to the nearest osThreadFlagWait if there is an error
+        /**
+         * @brief   1. Read all raw FIFO data into a buffer by burst read
+         *          2. Parse the raw FIFO data in the buffer and extract each FIFO frame
+         *          3. Calibrate each FIFO frame and get the scaled data in physical unit
+         *          4. Compute estimated angle with complementary filter
+         */
+        if (!ICM42688_Get_FIFO_Frame_In_Byte(&icm42688_handle_, icm42688_fifo_raw_buf_,
+                                             FIFO_BUFFER_SIZE)) {
+            // Add a logging error here
+            continue;
         }
 
-        if (ICM42688_Get_Temp_Accel_Gyro_Scaled(&icm42688_handle_, &icm42688_offset_raw_,
-                                                &icm42688_scaled_)) {
-            ICM42688_Get_Est_Angle_Complement(&icm42688_handle_, IMU_ORIENT_NEGY_NEGX_NEGZ,
-                                              &icm42688_scaled_, &icm42688_est_angle_, dt);
-        }
+        uint16_t _fifo_count_bytes =
+            icm42688_handle_.fifo_config
+                .fifo_count; // Actual number of FIFO byte that is available and waiting to read
+        uint16_t _current_pos =
+            0U; // Current point/index in the raw FIFO buffer that is being parsed
 
-        wake_tick += period_tick;
-        osDelayUntil(wake_tick);
+        while (_current_pos < _fifo_count_bytes) {
+            if (!ICM42688_FIFO_Parse_One_Byte_Frame(&icm42688_handle_, &icm42688_frame_,
+                                                    icm42688_fifo_raw_buf_, _fifo_count_bytes,
+                                                    &_current_pos)) {
+                // Add a logging error here
+                break;
+            }
+
+            if (ICM42688_Calibrate_FIFO_Frame(&icm42688_handle_, &icm42688_frame_,
+                                              &icm42688_offset_raw_, &icm42688_fifo_scaled_)) {
+                (void)ICM42688_Get_Est_Angle_Complement(
+                    &icm42688_handle_, IMU_ORIENT_NEGY_NEGX_NEGZ, &icm42688_fifo_scaled_,
+                    &icm42688_est_angle_, _dt);
+            }
+        }
     }
 }
 
