@@ -189,16 +189,7 @@ ICM42688_FIFO_Config(ICM42688_Handle_t *handle)
     return true;
 }
 
-static bool
-ICM42688_INT1_CONFIG(ICM42688_Handle_t *handle)
-{
-    bool _status = false;
 
-    CHECK_FOR(ICM42688_Set_Int1_Config(handle, INT_ACTIVE_HIGH, INT_PUSH_PULL, INT_PULSED));
-    CHECK_FOR(ICM42688_Set_Int1_FIFO_Threshold_Enable(handle, true));
-
-    return true;
-}
 
 bool
 ICM42688_Init(ICM42688_Handle_t *handle)

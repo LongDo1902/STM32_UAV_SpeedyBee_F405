@@ -5,6 +5,11 @@
             "compilerPath": "${env:STM32_GCC_EXE}",
             "includePath": [
                 "${workspaceFolder}/Core/Inc",
+                "${workspaceFolder}/Module",
+                "${workspaceFolder}/Module/leds",
+                "${workspaceFolder}/Module/logging",
+                "${workspaceFolder}/Module/temperature",
+                "${workspaceFolder}/Module/pid",
                 "${workspaceFolder}/Drivers/STM32F4xx_HAL_Driver/Inc",
                 "${workspaceFolder}/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy",
                 "${workspaceFolder}/Drivers/CMSIS/Device/ST/STM32F4xx/Include",

@@ -2,28 +2,33 @@
 /**
  ******************************************************************************
  * File Name          : freertos.c
- * Description        : Code for freertos applications
+ * Description        : Code for freertos
+ * applications
  ******************************************************************************
  * @attention
  *
  * Copyright (c) 2026 STMicroelectronics.
  * All rights reserved.
  *
- * This software is licensed under terms that can be found in the LICENSE file
- * in the root directory of this software component.
- * If no LICENSE file comes with this software, it is provided AS-IS.
+ * This software is licensed under terms that can
+ * be found in the LICENSE file in the root
+ * directory of this software component. If no
+ * LICENSE file comes with this software, it is
+ * provided AS-IS.
  *
  ******************************************************************************
  */
 /* USER CODE END Header */
 
-/* Includes ------------------------------------------------------------------*/
+/* Includes
+ * ------------------------------------------------------------------*/
 #include "FreeRTOS.h"
 #include "cmsis_os.h"
 #include "main.h"
 #include "task.h"
 
-/* Private includes ----------------------------------------------------------*/
+/* Private includes
+ * ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "imu/icm42688_application.h"
 #include "logging.h"
@@ -31,12 +36,14 @@
 
 /* USER CODE END Includes */
 
-/* Private typedef -----------------------------------------------------------*/
+/* Private typedef
+ * -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
 
-/* Private define ------------------------------------------------------------*/
+/* Private define
+ * ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define IMU_ODR             8000U
 #define FREERTOS_CTRL_FREQ  1000U
@@ -50,12 +57,14 @@
 
 /* USER CODE END PD */
 
-/* Private macro -------------------------------------------------------------*/
+/* Private macro
+ * -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 
 /* USER CODE END PM */
 
-/* Private variables ---------------------------------------------------------*/
+/* Private variables
+ * ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 static ICM42688_Handle_t               icm42688_handle_     = {0};
 static ICM42688_Offset_Raw_t           icm42688_offset_raw_ = {0};
@@ -80,7 +89,8 @@ const osThreadAttr_t LoggingTaskAttributes = {
 };
 /* USER CODE END Variables */
 
-/* Private function prototypes -----------------------------------------------*/
+/* Private function prototypes
+ * -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 void StartIMUTask(void *argument);
 void StartLoggingTask(void *argument);
@@ -136,15 +146,16 @@ MX_FREERTOS_Init(void)
     /* USER CODE END RTOS_EVENTS */
 }
 
-/* Private application code --------------------------------------------------*/
+/* Private application code
+ * --------------------------------------------------*/
 /* USER CODE BEGIN Application */
 /**
  * @todo
  * ICM42688_ODR:        4 kHz or 8 kHz(done)
  * IMU_FIFO:            enabled (done)
- * IMU interrupt:       data ready / FIFO watermark (done)
- * FreeRTOS IMU task:   wakes from notification
- * SPI read:            burst-read FIFO
+ * IMU interrupt:       data ready / FIFO
+ * watermark (done) FreeRTOS IMU task:   wakes
+ * from notification SPI read: burst-read FIFO
  * Attitude/control:    1 kHz or 2 kHz
  */
 void
@@ -164,7 +175,8 @@ StartIMUTask(void *argument)
     icm42688_handle_.spi_config.cs_port = GPIOA;
     icm42688_handle_.spi_config.cs_pin  = GPIO_PIN_4;
 
-    // Initialize some essential ICM42688 configurations
+    // Initialize some essential ICM42688
+    // configurations
     if (!ICM42688_Init(&icm42688_handle_)) {
         for (;;) {
             // Add a logging error here
@@ -172,7 +184,8 @@ StartIMUTask(void *argument)
         }
     }
 
-    // Get the offset raw data for later calibration
+    // Get the offset raw data for later
+    // calibration
     if (!ICM42688_Get_Calibrate_Raw(&icm42688_handle_, &icm42688_offset_raw_, 200)) {
         for (;;) {
             // Add a logging error here
@@ -188,8 +201,10 @@ StartIMUTask(void *argument)
         }
     }
 
-    // Configure FIFO watermark interrupt to be repeated mode, so that the interrupt will be
-    // triggered again if the FIFO is still above the wtm after the first trigger
+    // Configure FIFO watermark interrupt to be
+    // repeated mode, so that the interrupt will
+    // be triggered again if the FIFO is still
+    // above the wtm after the first trigger
     if (ICM42688_Set_FIFO_WM_GT_THS(&icm42688_handle_, FIFO_WM_GREATER_THS_REPEAT)) {
         for (;;) {
             // Add a logging error here
@@ -205,7 +220,8 @@ StartIMUTask(void *argument)
         }
     }
 
-    // Enable FIFO watermark interrupt on interrupt 1
+    // Enable FIFO watermark interrupt on
+    // interrupt 1
     if (ICM42688_Set_Int1_FIFO_Threshold_Enable(&icm42688_handle_, true)) {
         for (;;) {
             // Add a logging error here
@@ -220,40 +236,46 @@ StartIMUTask(void *argument)
     for (;;) {
         uint32_t _flags = osThreadFlagsWait(IMU_FLAG_FIFO_READY, osFlagsWaitAny, osWaitForever);
         if ((_flags & osFlagsError)) {
-            continue; // Jump back to the nearest osThreadFlagWait if there is an error
+            continue; // Jump back to the nearest
+                      // osThreadFlagWait if there
+                      // is an error
         }
 
         /**
-         * @brief   1. Read all raw FIFO data into a buffer by burst read
-         *          2. Parse the raw FIFO data in the buffer and extract each FIFO frame
-         *          3. Calibrate each FIFO frame and get the scaled data in physical unit
-         *          4. Compute estimated angle with complementary filter
+         * @brief   1. Read all raw FIFO data into
+         * a buffer by burst read
+         *          2. Parse the raw FIFO data in
+         * the buffer and extract each FIFO frame
+         *          3. Calibrate each FIFO frame
+         * and get the scaled data in physical
+         * unit
+         *          4. Compute estimated angle
+         * with complementary filter
          */
-        if (!ICM42688_Get_FIFO_Frame_In_Byte(&icm42688_handle_, icm42688_fifo_raw_buf_,
-                                             FIFO_BUFFER_SIZE)) {
+        if (!ICM42688_Get_FIFO_Frame_In_Byte(&icm42688_handle_, icm42688_fifo_raw_buf_, FIFO_BUFFER_SIZE)) {
             // Add a logging error here
             continue;
         }
 
-        uint16_t _fifo_count_bytes =
-            icm42688_handle_.fifo_config
-                .fifo_count; // Actual number of FIFO byte that is available and waiting to read
-        uint16_t _current_pos =
-            0U; // Current point/index in the raw FIFO buffer that is being parsed
+        uint16_t _fifo_count_bytes = icm42688_handle_.fifo_config.fifo_count; // Actual number of
+                                                                              // FIFO byte that is
+                                                                              // available and
+                                                                              // waiting to read
+        uint16_t _current_pos = 0U;                                           // Current point/index in the raw
+                                                                              // FIFO buffer that is being
+                                                                              // parsed
 
         while (_current_pos < _fifo_count_bytes) {
-            if (!ICM42688_FIFO_Parse_One_Byte_Frame(&icm42688_handle_, &icm42688_frame_,
-                                                    icm42688_fifo_raw_buf_, _fifo_count_bytes,
-                                                    &_current_pos)) {
+            if (!ICM42688_FIFO_Parse_One_Byte_Frame(&icm42688_handle_, &icm42688_frame_, icm42688_fifo_raw_buf_,
+                                                    _fifo_count_bytes, &_current_pos)) {
                 // Add a logging error here
                 break;
             }
 
-            if (ICM42688_Calibrate_FIFO_Frame(&icm42688_handle_, &icm42688_frame_,
-                                              &icm42688_offset_raw_, &icm42688_fifo_scaled_)) {
-                (void)ICM42688_Get_Est_Angle_Complement(
-                    &icm42688_handle_, IMU_ORIENT_NEGY_NEGX_NEGZ, &icm42688_fifo_scaled_,
-                    &icm42688_est_angle_, _dt);
+            if (ICM42688_Calibrate_FIFO_Frame(&icm42688_handle_, &icm42688_frame_, &icm42688_offset_raw_,
+                                              &icm42688_fifo_scaled_)) {
+                (void)ICM42688_Get_Est_Angle_Complement(&icm42688_handle_, IMU_ORIENT_NEGY_NEGX_NEGZ,
+                                                        &icm42688_fifo_scaled_, &icm42688_est_angle_, _dt);
             }
         }
     }

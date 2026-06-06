@@ -330,7 +330,8 @@ typedef enum
 typedef enum
 {
     FIFO_HIRES_DISABLE = 0x00, // FIFO stores normal (16bits) accel/gyro + temp
-    FIFO_HIRES_ENABLE  = 0x01, // FIFO stores extended: +3 bytes for an extended 20-bit accel/gyro + 1 byte temp
+    FIFO_HIRES_ENABLE =
+        0x01, // FIFO stores extended: +3 bytes for an extended 20-bit accel/gyro + 1 byte temp
 } ICM42688_FIFO_Hires_En_t;
 
 

@@ -30,14 +30,6 @@ typedef struct
 } ICM42688_Offset_Raw_t;
 
 
-typedef struct
-{
-    float temp_c;
-    float accel_g[3];
-    float gyro_dps[3];
-} ICM42688_Temp_Accel_Gyro_Scaled_t;
-
-
 typedef enum
 {
     // IMU Z+ same as Body Z+
