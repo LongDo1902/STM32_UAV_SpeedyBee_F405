@@ -23,6 +23,7 @@
 #include "dma.h"
 #include "gpio.h"
 #include "spi.h"
+#include "tim.h"
 #include "usart.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -139,6 +140,7 @@ main(void)
     MX_SPI1_Init();
     MX_ADC1_Init();
     MX_UART4_Init();
+    MX_TIM8_Init();
     /* USER CODE BEGIN 2 */
     Long_ADC_startADC1Int(&hadc1); // Start reading STM32's temperature using interrupt
 #ifdef LOGGING_DEBUG
