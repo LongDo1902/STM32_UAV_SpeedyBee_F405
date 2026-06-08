@@ -26,9 +26,8 @@ ICM42688_Set_FIFO_Count_Endian(ICM42688_Handle_t *handle, ICM42688_FIFO_Count_En
     if (((uint8_t)countEndian != 0U && (uint8_t)countEndian != 1U))
         return false;
 
-    bool _status =
-        ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INTF_CONF0, ICM42688_FIFO_COUNT_ENDIAN_Msk,
-                                 ICM42688_FIFO_COUNT_ENDIAN_Val(countEndian));
+    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INTF_CONF0, ICM42688_FIFO_COUNT_ENDIAN_Msk,
+                                            ICM42688_FIFO_COUNT_ENDIAN_Val(countEndian));
     if (!_status)
         return false;
 
@@ -50,9 +49,8 @@ ICM42688_Set_FIFO_Count_Rec(ICM42688_Handle_t *handle, ICM42688_FIFO_Count_Rec_t
     if (!handle)
         return false;
 
-    bool _status =
-        ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INTF_CONF0, ICM42688_FIFO_COUNT_REC_Msk,
-                                 ICM42688_FIFO_COUNT_REC_Val(countRecord));
+    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INTF_CONF0, ICM42688_FIFO_COUNT_REC_Msk,
+                                            ICM42688_FIFO_COUNT_REC_Val(countRecord));
     if (!_status)
         return false;
 
@@ -77,8 +75,8 @@ ICM42688_Set_FIFO_Mode(ICM42688_Handle_t *handle, ICM42688_FIFO_Mode_t mode)
     if ((uint8_t)mode > (uint8_t)STOP_ON_FULL)
         return false;
 
-    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_FIFO_CONF, ICM42688_FIFO_MODE_Msk,
-                                            ICM42688_FIFO_MODE_Val(mode));
+    bool _status =
+        ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_FIFO_CONF, ICM42688_FIFO_MODE_Msk, ICM42688_FIFO_MODE_Val(mode));
 
     if (!_status)
         return false;
@@ -106,7 +104,7 @@ ICM42688_Get_FIFO_Mode(ICM42688_Handle_t *handle, ICM42688_FIFO_Mode_t *mode)
     if (!_status)
         return false;
 
-    uint8_t _raw_mode = (uint8_t)((_reg & ICM42688_FIFO_MODE_Msk) >> ICM42688_FIFO_MODE_Pos);
+    uint8_t _raw_mode             = (uint8_t)((_reg & ICM42688_FIFO_MODE_Msk) >> ICM42688_FIFO_MODE_Pos);
     bool    _is_mode_stop_on_full = (_raw_mode == 2U) || (_raw_mode == 3U);
 
     *mode = (_is_mode_stop_on_full) ? STOP_ON_FULL : (ICM42688_FIFO_Mode_t)_raw_mode;
@@ -129,9 +127,8 @@ ICM42688_Set_FIFO_Gyro_Enable(ICM42688_Handle_t *handle, ICM42688_FIFO_GAT_En_t 
     if (!handle)
         return false;
 
-    bool _status =
-        ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_FIFO_CONF1, ICM42688_FIFO_GYRO_EN_Msk,
-                                 ICM42688_FIFO_GYRO_EN_Val(state));
+    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_FIFO_CONF1, ICM42688_FIFO_GYRO_EN_Msk,
+                                            ICM42688_FIFO_GYRO_EN_Val(state));
     if (!_status)
         return false;
 
@@ -153,9 +150,8 @@ ICM42688_Set_FIFO_Accel_Enable(ICM42688_Handle_t *handle, ICM42688_FIFO_GAT_En_t
     if (!handle)
         return false;
 
-    bool _status =
-        ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_FIFO_CONF1, ICM42688_FIFO_ACCEL_EN_Msk,
-                                 ICM42688_FIFO_ACCEL_EN_Val(state));
+    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_FIFO_CONF1, ICM42688_FIFO_ACCEL_EN_Msk,
+                                            ICM42688_FIFO_ACCEL_EN_Val(state));
     if (!_status)
         return false;
 
@@ -177,9 +173,8 @@ ICM42688_Set_FIFO_Temp_Enable(ICM42688_Handle_t *handle, ICM42688_FIFO_GAT_En_t 
     if (!handle)
         return false;
 
-    bool _status =
-        ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_FIFO_CONF1, ICM42688_FIFO_TEMP_EN_Msk,
-                                 ICM42688_FIFO_TEMP_EN_Val(state));
+    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_FIFO_CONF1, ICM42688_FIFO_TEMP_EN_Msk,
+                                            ICM42688_FIFO_TEMP_EN_Val(state));
     if (!_status)
         return false;
 
@@ -201,9 +196,8 @@ ICM42688_Set_FIFO_HIRES_Enable(ICM42688_Handle_t *handle, ICM42688_FIFO_Hires_En
     if (!handle)
         return false;
 
-    bool _status =
-        ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_FIFO_CONF1, ICM42688_FIFO_HIRES_EN_Msk,
-                                 ICM42688_FIFO_HIRES_EN_Val(state));
+    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_FIFO_CONF1, ICM42688_FIFO_HIRES_EN_Msk,
+                                            ICM42688_FIFO_HIRES_EN_Val(state));
     if (!_status)
         return false;
 
@@ -225,9 +219,8 @@ ICM42688_Set_FIFO_WM_GT_THS(ICM42688_Handle_t *handle, ICM42688_FIFO_WM_Mode_t s
     if (!handle)
         return false;
 
-    bool _status =
-        ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_FIFO_CONF1, ICM42688_FIFO_WM_GT_TH_Msk,
-                                 ICM42688_FIFO_WM_GT_TH_Val(state));
+    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_FIFO_CONF1, ICM42688_FIFO_WM_GT_TH_Msk,
+                                            ICM42688_FIFO_WM_GT_TH_Val(state));
     if (!_status)
         return false;
 
@@ -248,8 +241,7 @@ ICM42688_Set_FIFO_Resume_Partial_Read(ICM42688_Handle_t *handle, ICM42688_FIFO_R
 {
     if (!handle)
         return false;
-    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_FIFO_CONF1,
-                                            ICM42688_FIFO_RESUME_PARTIAL_RD_Msk,
+    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_FIFO_CONF1, ICM42688_FIFO_RESUME_PARTIAL_RD_Msk,
                                             ICM42688_FIFO_RESUME_PARTIAL_RD_Val(state));
     if (!_status)
         return false;
@@ -278,9 +270,8 @@ ICM42688_Set_FIFO_Watermark(ICM42688_Handle_t *handle, uint16_t fifoWatermark)
     uint8_t _fifo_lower_wm = (uint8_t)(fifoWatermark & 0x00FFU);
     uint8_t _fifo_upper_wm = (uint8_t)((fifoWatermark >> 8) & 0x0FU);
 
-    bool _status =
-        ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_FIFO_CONF2, ICM42688_FIFO_WM_LOWER_Msk,
-                                 ICM42688_FIFO_WM_LOWER_Val(_fifo_lower_wm));
+    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_FIFO_CONF2, ICM42688_FIFO_WM_LOWER_Msk,
+                                            ICM42688_FIFO_WM_LOWER_Val(_fifo_lower_wm));
     if (!_status)
         return false;
 
@@ -339,12 +330,12 @@ ICM42688_Get_FIFO_Count(ICM42688_Handle_t *handle, uint16_t *fifoCount)
         return false;
 
     if (handle->fifo_config.fifo_count_endian == FIFO_COUNT_BIG_ENDIAN) { // Big endian format
-        *fifoCount = (uint16_t)(((uint16_t)(_fifo_count_buf[0] & 0xFFU) << 8) |
-                                ((uint16_t)(_fifo_count_buf[1] & 0xFFU)));
+        *fifoCount =
+            (uint16_t)(((uint16_t)(_fifo_count_buf[0] & 0xFFU) << 8) | ((uint16_t)(_fifo_count_buf[1] & 0xFFU)));
     }
     else {
-        *fifoCount = (uint16_t)(((uint16_t)(_fifo_count_buf[1] & 0xFFU) << 8) |
-                                ((uint16_t)(_fifo_count_buf[0] & 0xFFU)));
+        *fifoCount =
+            (uint16_t)(((uint16_t)(_fifo_count_buf[1] & 0xFFU) << 8) | ((uint16_t)(_fifo_count_buf[0] & 0xFFU)));
     }
 
     handle->fifo_config.fifo_count = (uint16_t)*fifoCount;
@@ -365,8 +356,7 @@ ICM42688_FIFO_Header_Has(uint8_t header, uint8_t mask)
 static inline uint8_t
 ICM42688_Get_FIFO_TimestampFsync_Mode(uint8_t header)
 {
-    return (uint8_t)((header & ICM42688_FIFO_HEADER_TIMESTAMP_FSYNC_Msk) >>
-                     ICM42688_FIFO_HEADER_TIMESTAMP_FSYNC_Pos);
+    return (uint8_t)((header & ICM42688_FIFO_HEADER_TIMESTAMP_FSYNC_Msk) >> ICM42688_FIFO_HEADER_TIMESTAMP_FSYNC_Pos);
 }
 
 
@@ -406,11 +396,8 @@ ICM42688_SignExtend20(uint32_t value)
  * @param   packetSize      Pointer to an output variable that stores the FIFO packet size based on
  *                          FIFO packet type
  */
-uint8_t packet_size_ = 0U;
-
 bool
-ICM42688_Get_FIFO_Packet_Info_From_Header(uint8_t inputHeader, ICM42688_FIFO_Packet_t *packetType,
-                                          uint8_t *packetSize)
+ICM42688_Get_FIFO_Packet_Info_From_Header(uint8_t inputHeader, ICM42688_FIFO_Packet_t *packetType, uint8_t *packetSize)
 {
     if (!packetType || !packetSize)
         return false;
@@ -421,56 +408,49 @@ ICM42688_Get_FIFO_Packet_Info_From_Header(uint8_t inputHeader, ICM42688_FIFO_Pac
     const bool _has_20bit = ICM42688_FIFO_Header_Has(inputHeader, ICM42688_FIFO_HEADER_20_Msk);
 
     if (_has_msg) {
-        *packetType  = FIFO_PACKET_INVALID;
-        *packetSize  = 0U;
-        packet_size_ = *packetSize;
+        *packetType = FIFO_PACKET_INVALID;
+        *packetSize = 0U;
         return false;
     }
 
     // At lease HEADER_ACCEL and HEADER GYRO must be set to be valid
     if (!_has_accel && !_has_gyro) {
-        *packetType  = FIFO_PACKET_INVALID;
-        *packetSize  = 0U;
-        packet_size_ = *packetSize;
+        *packetType = FIFO_PACKET_INVALID;
+        *packetSize = 0U;
         return false;
     }
 
     // Packet 1: Accel only, 8 bytes
     if (_has_accel && !_has_gyro && !_has_20bit) {
-        *packetType  = FIFO_PACKET_1;
-        *packetSize  = 8U;
-        packet_size_ = *packetSize;
+        *packetType = FIFO_PACKET_1;
+        *packetSize = 8U;
         return true;
     }
 
     // Packet 2: Gyro only, 8 bytes
     if (_has_gyro && !_has_accel && !_has_20bit) {
-        *packetType  = FIFO_PACKET_2;
-        *packetSize  = 8U;
-        packet_size_ = *packetSize;
+        *packetType = FIFO_PACKET_2;
+        *packetSize = 8U;
         return true;
     }
 
     // Packet 3: Accel + Gyro 16 bytes
     if (_has_accel && _has_gyro && !_has_20bit) {
-        *packetType  = FIFO_PACKET_3;
-        *packetSize  = 16U;
-        packet_size_ = *packetSize;
+        *packetType = FIFO_PACKET_3;
+        *packetSize = 16U;
         return true;
     }
 
     // Packet 4: Accel + Gyro + 20 bytes
     if (_has_accel && _has_gyro && _has_20bit) {
-        *packetType  = FIFO_PACKET_4;
-        *packetSize  = 20U;
-        packet_size_ = *packetSize;
+        *packetType = FIFO_PACKET_4;
+        *packetSize = 20U;
         return true;
     }
 
     // No valid info from FIFO header
-    *packetType  = FIFO_PACKET_INVALID;
-    *packetSize  = 0U;
-    packet_size_ = 0U;
+    *packetType = FIFO_PACKET_INVALID;
+    *packetSize = 0U;
 
     return false;
 }
@@ -487,9 +467,8 @@ ICM42688_Get_FIFO_Packet_Info_From_Header(uint8_t inputHeader, ICM42688_FIFO_Pac
  * @param   packetSize  Pointer to an input variable that stores FIFO packet size
  */
 bool
-ICM42688_FIFO_Parse_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *frame,
-                          const uint8_t *data, uint8_t packetSize,
-                          ICM42688_FIFO_Packet_t packetType)
+ICM42688_FIFO_Parse_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *frame, const uint8_t *data,
+                          uint8_t packetSize, ICM42688_FIFO_Packet_t packetType)
 {
     if (!handle || !data || !frame)
         return false;
@@ -527,11 +506,9 @@ ICM42688_FIFO_Parse_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *fram
 
     frame->timestamp_fsync_mode = ICM42688_Get_FIFO_TimestampFsync_Mode(frame->header);
 
-    frame->odr_accel_changed =
-        ICM42688_FIFO_Header_Has(frame->header, ICM42688_FIFO_HEADER_ODR_ACCEL_Msk);
+    frame->odr_accel_changed = ICM42688_FIFO_Header_Has(frame->header, ICM42688_FIFO_HEADER_ODR_ACCEL_Msk);
 
-    frame->odr_gyro_changed =
-        ICM42688_FIFO_Header_Has(frame->header, ICM42688_FIFO_HEADER_ODR_GYRO_Msk);
+    frame->odr_gyro_changed = ICM42688_FIFO_Header_Has(frame->header, ICM42688_FIFO_HEADER_ODR_GYRO_Msk);
 
     // Copy every valid byte into another buffer in frame
     for (uint16_t i = 0U; i < packetSize; i++) {
@@ -547,8 +524,7 @@ ICM42688_FIFO_Parse_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *fram
         return false;
     }
 
-    frame->timestamp_valid =
-        (frame->timestamp_fsync_mode == 2U) || (frame->timestamp_fsync_mode == 3U);
+    frame->timestamp_valid = (frame->timestamp_fsync_mode == 2U) || (frame->timestamp_fsync_mode == 3U);
 
     frame->timestamp_fsync_valid = (frame->timestamp_fsync_mode == 3U);
 
@@ -645,23 +621,20 @@ ICM42688_FIFO_Parse_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *fram
             frame->temp_valid  = true;
             frame->hires_valid = true;
 
-            uint32_t _accel_x_raw = (uint32_t)(data[1] << 12) | (uint32_t)(data[2] << 4) |
-                                    (uint32_t)((data[17] >> 4) & 0x0F);
+            uint32_t _accel_x_raw =
+                (uint32_t)(data[1] << 12) | (uint32_t)(data[2] << 4) | (uint32_t)((data[17] >> 4) & 0x0F);
 
-            uint32_t _accel_y_raw = (uint32_t)(data[3] << 12) | (uint32_t)(data[4] << 4) |
-                                    (uint32_t)((data[18] >> 4) & 0x0F);
+            uint32_t _accel_y_raw =
+                (uint32_t)(data[3] << 12) | (uint32_t)(data[4] << 4) | (uint32_t)((data[18] >> 4) & 0x0F);
 
-            uint32_t _accel_z_raw = (uint32_t)(data[5] << 12) | (uint32_t)(data[6] << 4) |
-                                    (uint32_t)((data[19] >> 4) & 0x0F);
+            uint32_t _accel_z_raw =
+                (uint32_t)(data[5] << 12) | (uint32_t)(data[6] << 4) | (uint32_t)((data[19] >> 4) & 0x0F);
 
-            uint32_t _gyro_x_raw =
-                (uint32_t)(data[7] << 12) | (uint32_t)(data[8] << 4) | (uint32_t)(data[17] & 0x0F);
+            uint32_t _gyro_x_raw = (uint32_t)(data[7] << 12) | (uint32_t)(data[8] << 4) | (uint32_t)(data[17] & 0x0F);
 
-            uint32_t _gyro_y_raw =
-                (uint32_t)(data[9] << 12) | (uint32_t)(data[10] << 4) | (uint32_t)(data[18] & 0x0F);
+            uint32_t _gyro_y_raw = (uint32_t)(data[9] << 12) | (uint32_t)(data[10] << 4) | (uint32_t)(data[18] & 0x0F);
 
-            uint32_t _gyro_z_raw = (uint32_t)(data[11] << 12) | (uint32_t)(data[12] << 4) |
-                                   (uint32_t)(data[19] & 0x0F);
+            uint32_t _gyro_z_raw = (uint32_t)(data[11] << 12) | (uint32_t)(data[12] << 4) | (uint32_t)(data[19] & 0x0F);
 
             frame->accel_raw20[0] = ICM42688_SignExtend20(_accel_x_raw);
             frame->accel_raw20[1] = ICM42688_SignExtend20(_accel_y_raw);
@@ -743,8 +716,7 @@ ICM42688_Get_FIFO_Frame_In_Record(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame
     if (!_status)
         return false;
 
-    _status =
-        ICM42688_Get_FIFO_Packet_Info_From_Header(_header, &_fifo_packet_type, &_fifo_packet_size);
+    _status = ICM42688_Get_FIFO_Packet_Info_From_Header(_header, &_fifo_packet_type, &_fifo_packet_size);
     if (!_status)
         return false;
 
@@ -754,14 +726,12 @@ ICM42688_Get_FIFO_Frame_In_Record(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame
     // Resume reading the remaining bytes in that packet
     uint8_t _fifo_data[20] = {0};
     _fifo_data[0]          = _header;
-    _status                = ICM42688_ReadRegs(handle, ICM42688_UB0_FIFO_DATA, &_fifo_data[1],
-                                               (uint16_t)(_fifo_packet_size - 1U));
+    _status = ICM42688_ReadRegs(handle, ICM42688_UB0_FIFO_DATA, &_fifo_data[1], (uint16_t)(_fifo_packet_size - 1U));
     if (!_status)
         return false;
 
     // Start parsing frame
-    _status =
-        ICM42688_FIFO_Parse_Frame(handle, frame, _fifo_data, _fifo_packet_size, _fifo_packet_type);
+    _status = ICM42688_FIFO_Parse_Frame(handle, frame, _fifo_data, _fifo_packet_size, _fifo_packet_type);
     if (!_status)
         return false;
 
@@ -829,9 +799,8 @@ ICM42688_Get_FIFO_Frame_In_Byte(ICM42688_Handle_t *handle, uint8_t *rawBuf, uint
  *                          function!
  */
 bool
-ICM42688_FIFO_Parse_One_Byte_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *frame,
-                                   const uint8_t *byteBuf, uint16_t countsInByte,
-                                   uint16_t *currentPos)
+ICM42688_FIFO_Parse_One_Byte_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Frame_t *frame, const uint8_t *byteBuf,
+                                   uint16_t countsInByte, uint16_t *currentPos)
 {
     if (!handle || !frame || !byteBuf || !currentPos)
         return false;
@@ -844,8 +813,7 @@ ICM42688_FIFO_Parse_One_Byte_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Fram
     uint8_t                _fifo_packet_size = 0U;
     const uint8_t         *_packet           = &byteBuf[*currentPos];
 
-    bool _status =
-        ICM42688_Get_FIFO_Packet_Info_From_Header(_header, &_fifo_packet_type, &_fifo_packet_size);
+    bool _status = ICM42688_Get_FIFO_Packet_Info_From_Header(_header, &_fifo_packet_type, &_fifo_packet_size);
     if (!_status)
         return false;
 
@@ -856,8 +824,7 @@ ICM42688_FIFO_Parse_One_Byte_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Fram
     if ((uint32_t)*currentPos + (uint32_t)_fifo_packet_size > (uint32_t)countsInByte)
         return false;
 
-    _status =
-        ICM42688_FIFO_Parse_Frame(handle, frame, _packet, _fifo_packet_size, _fifo_packet_type);
+    _status = ICM42688_FIFO_Parse_Frame(handle, frame, _packet, _fifo_packet_size, _fifo_packet_type);
     if (!_status)
         return false;
 
@@ -882,8 +849,7 @@ ICM42688_FIFO_Parse_One_Byte_Frame(ICM42688_Handle_t *handle, ICM42688_FIFO_Fram
  */
 bool
 ICM42688_Calibrate_FIFO_Frame(const ICM42688_Handle_t *handle, const ICM42688_FIFO_Frame_t *frame,
-                              const ICM42688_Offset_Raw_t       *offset,
-                              ICM42688_Temp_Accel_Gyro_Scaled_t *outCalibratedData)
+                              const ICM42688_Offset_Raw_t *offset, ICM42688_Temp_Accel_Gyro_Scaled_t *outCalibratedData)
 {
     if (!handle || !frame || !offset || !outCalibratedData) {
         return false;
@@ -897,8 +863,7 @@ ICM42688_Calibrate_FIFO_Frame(const ICM42688_Handle_t *handle, const ICM42688_FI
     const float _gyro_dps_per_lsb = handle->gyro_dps_per_lsb;
 
     for (uint8_t i = 0; i < 3; i++) {
-        outCalibratedData->accel_g[i] =
-            frame->gat_scaled.accel_g[i] - (offset->offset_raw_accel[i] * _accel_g_per_lsb);
+        outCalibratedData->accel_g[i] = frame->gat_scaled.accel_g[i] - (offset->offset_raw_accel[i] * _accel_g_per_lsb);
     }
 
     for (uint8_t i = 0; i < 3; i++) {

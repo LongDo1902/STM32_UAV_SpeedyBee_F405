@@ -6,6 +6,7 @@
             "includePath": [
                 "${workspaceFolder}/Core/Inc",
                 "${workspaceFolder}/Module",
+                "${workspaceFolder}/Module/imu",
                 "${workspaceFolder}/Module/leds",
                 "${workspaceFolder}/Module/logging",
                 "${workspaceFolder}/Module/temperature",

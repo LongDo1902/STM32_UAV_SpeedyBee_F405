@@ -57,17 +57,17 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define IMU_CS_PIN_SOFT_Pin       GPIO_PIN_4
+#define IMU_CS_PIN_SOFT_Pin GPIO_PIN_4
 #define IMU_CS_PIN_SOFT_GPIO_Port GPIOA
-#define IMU_SPI1_SCK_Pin          GPIO_PIN_5
-#define IMU_SPI1_SCK_GPIO_Port    GPIOA
-#define IMU_SPI1_MISO_Pin         GPIO_PIN_6
-#define IMU_SPI1_MISO_GPIO_Port   GPIOA
-#define IMU_SPI1_MOSI_Pin         GPIO_PIN_7
-#define IMU_SPI1_MOSI_GPIO_Port   GPIOA
-#define IMU_INT_Pin               GPIO_PIN_4
-#define IMU_INT_GPIO_Port         GPIOC
-#define IMU_INT_EXTI_IRQn         EXTI4_IRQn
+#define IMU_SPI1_SCK_Pin GPIO_PIN_5
+#define IMU_SPI1_SCK_GPIO_Port GPIOA
+#define IMU_SPI1_MISO_Pin GPIO_PIN_6
+#define IMU_SPI1_MISO_GPIO_Port GPIOA
+#define IMU_SPI1_MOSI_Pin GPIO_PIN_7
+#define IMU_SPI1_MOSI_GPIO_Port GPIOA
+#define IMU_INT_Pin GPIO_PIN_4
+#define IMU_INT_GPIO_Port GPIOC
+#define IMU_INT_EXTI_IRQn EXTI4_IRQn
 
 /* USER CODE BEGIN Private defines */
 
