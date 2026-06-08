@@ -26,6 +26,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+#include "dshot_task.h" // DshotMotorControlTask(void *argument);
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,14 +47,14 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-static int task_count_debug = 0;
 
-osThreadId_t defaultTestTaskHandle_02;
-const osThreadAttr_t defaultTestTask_attributes_02 = {
-  .name = "defaultTestTask_02",
+osThreadId_t dshotMotorTaskHandle;
+const osThreadAttr_t dshotMotorTask_attributes = {
+  .name = "DshotMotorTask",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityBelowNormal7,
+  .priority = (osPriority_t) osPriorityHigh,
 };
+
 /* USER CODE END Variables */
 /* Definitions for defaultTestTask */
 osThreadId_t defaultTestTaskHandle;
@@ -64,7 +66,7 @@ const osThreadAttr_t defaultTestTask_attributes = {
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
-void StartDefaultTestTask_02(void *argument);
+
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTestTask(void *argument);
@@ -103,7 +105,7 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
     /* add threads, ... */
-  defaultTestTaskHandle_02 = osThreadNew(StartDefaultTestTask_02, NULL, &defaultTestTask_attributes_02);
+  dshotMotorTaskHandle = osThreadNew(DshotMotorControlTask, NULL, &dshotMotorTask_attributes);
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
@@ -114,27 +116,15 @@ void MX_FREERTOS_Init(void) {
 
 /* USER CODE BEGIN Header_StartDefaultTestTask */
 /**
- * @brief  Function implementing the defaultTestTask thread.
- * @param  argument: Not used
- * @retval None
- */
-
-void StartDefaultTestTask_02(void *argument)
-{
-  /* USER CODE BEGIN StartDefaultTestTask */
-    /* Infinite loop */
-	while(1) {
-		 task_count_debug = !task_count_debug;
-		 osDelay(1000);
-	}
-  /* USER CODE END StartDefaultTestTask */
-}
-
+  * @brief  Function implementing the defaultTestTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
 /* USER CODE END Header_StartDefaultTestTask */
 void StartDefaultTestTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTestTask */
-    /* Infinite loop */
+  /* Infinite loop */
 	ICM42688_main();
   /* USER CODE END StartDefaultTestTask */
 }
