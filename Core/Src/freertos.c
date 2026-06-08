@@ -10,6 +10,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "imu/icm42688_task.h"
+
+#include "dshot_task.h" // DshotMotorControlTask(void *argument);
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -26,6 +29,14 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
+
+osThreadId_t         dshotMotorTaskHandle;
+const osThreadAttr_t dshotMotorTask_attributes = {
+    .name       = "DshotMotorTask",
+    .stack_size = 128 * 4,
+    .priority   = (osPriority_t)osPriorityHigh,
+};
+
 /* USER CODE END Variables */
 /* Definitions for ICM42688Task */
 osThreadId_t         ICM42688TaskHandle;
@@ -44,6 +55,7 @@ const osThreadAttr_t ICM42688LogTask_attributes = {
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
+
 /* USER CODE END FunctionPrototypes */
 
 void Start_ICM42688Task(void *argument);
@@ -82,7 +94,13 @@ MX_FREERTOS_Init(void)
     ICM42688LogTaskHandle = osThreadNew(Start_ICM42688LogTask, NULL, &ICM42688LogTask_attributes);
 
     /* USER CODE BEGIN RTOS_THREADS */
+    /* add threads, ... */
+    dshotMotorTaskHandle = osThreadNew(DshotMotorControlTask, NULL, &dshotMotorTask_attributes);
     /* USER CODE END RTOS_THREADS */
+
+    /* USER CODE BEGIN RTOS_EVENTS */
+    /* add events, ... */
+    /* USER CODE END RTOS_EVENTS */
 
     /* USER CODE BEGIN RTOS_EVENTS */
     /* USER CODE END RTOS_EVENTS */
