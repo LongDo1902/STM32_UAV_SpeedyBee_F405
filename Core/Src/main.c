@@ -29,19 +29,6 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
-#define LOGGING_DEBUG
-
-#include "imu\icm42688_device.h"
-#include "leds.h"
-#include "temperature.h"
-#include <stdbool.h>
-
-#ifdef LOGGING_DEBUG
-#include "logging.h"
-#endif
-
-#include "pid.h"
-
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -61,12 +48,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-ICM42688_Handle_t                 icm42688_handle     = {0};
-ICM42688_Offset_Raw_t             icm42688_offset_raw = {0};
-ICM42688_Temp_Accel_Gyro_Scaled_t icm42688_scaled     = {0};
-ICM42688_Est_Angle_complement_t   icm42688_est_angle  = {0};
 
-HAL_StatusTypeDef _status = HAL_ERROR;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -78,32 +60,7 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-HAL_StatusTypeDef
-ICM42688_main()
-{
-    icm42688_handle.spi_config.hspi    = &hspi1;
-    icm42688_handle.spi_config.cs_port = GPIOA;
-    icm42688_handle.spi_config.cs_pin  = GPIO_PIN_4;
 
-    CHECK_FOR(ICM42688_Init(&icm42688_handle));
-
-    (void)ICM42688_Get_Calibrate_Raw(&icm42688_handle, &icm42688_offset_raw, 200);
-
-    uint32_t prevTick = HAL_GetTick();
-
-    while (1) {
-        uint32_t now  = HAL_GetTick();
-        float    dt_s = (now - prevTick) / 1000.0f;
-        prevTick      = now;
-
-        CHECK_FOR(ICM42688_Get_Temp_Accel_Gyro_Scaled(&icm42688_handle, &icm42688_offset_raw,
-                                                      &icm42688_scaled));
-
-        CHECK_FOR(ICM42688_Get_Est_Angle_Complement(&icm42688_handle, IMU_ORIENT_NEGY_NEGX_NEGZ,
-                                                    &icm42688_scaled, &icm42688_est_angle, dt_s));
-        osDelay(1);
-    }
-}
 /* USER CODE END 0 */
 
 /**
@@ -140,12 +97,7 @@ main(void)
     MX_SPI1_Init();
     MX_ADC1_Init();
     MX_UART4_Init();
-    MX_TIM8_Init();
     /* USER CODE BEGIN 2 */
-    Long_ADC_startADC1Int(&hadc1); // Start reading STM32's temperature using interrupt
-#ifdef LOGGING_DEBUG
-    log_init(&huart4, 200);
-#endif
 
     /* USER CODE END 2 */
 
@@ -201,8 +153,7 @@ SystemClock_Config(void)
 
     /** Initializes the CPU, AHB and APB buses clocks
      */
-    RCC_ClkInitStruct.ClockType =
-        RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
     RCC_ClkInitStruct.SYSCLKSource   = RCC_SYSCLKSOURCE_PLLCLK;
     RCC_ClkInitStruct.AHBCLKDivider  = RCC_SYSCLK_DIV1;
     RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;

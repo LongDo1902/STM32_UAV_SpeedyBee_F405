@@ -330,7 +330,8 @@ typedef enum
 typedef enum
 {
     FIFO_HIRES_DISABLE = 0x00, // FIFO stores normal (16bits) accel/gyro + temp
-    FIFO_HIRES_ENABLE  = 0x01, // FIFO stores extended: +3 bytes for an extended 20-bit accel/gyro + 1 byte temp
+    FIFO_HIRES_ENABLE =
+        0x01, // FIFO stores extended: +3 bytes for an extended 20-bit accel/gyro + 1 byte temp
 } ICM42688_FIFO_Hires_En_t;
 
 
@@ -395,7 +396,7 @@ typedef struct
     float accel_g[3];
     float gyro_dps[3];
     float temp_c;
-} ICM42688_Temp_Accel_Gyro_FIFO_Scaled_t;
+} ICM42688_Temp_Accel_Gyro_Scaled_t;
 
 
 typedef struct
@@ -471,12 +472,13 @@ typedef struct
     int16_t temp_raw16;
 
     // Converted outputs
-    ICM42688_Temp_Accel_Gyro_FIFO_Scaled_t gat_scaled;
-    uint16_t                               timestamp;
+    ICM42688_Temp_Accel_Gyro_Scaled_t gat_scaled;
+    uint16_t                          timestamp;
 
     // Raw packet bytes for debugging only
     uint8_t raw[20];
 } ICM42688_FIFO_Frame_t;
+
 
 
 typedef struct
@@ -524,7 +526,6 @@ typedef struct
     ICM42688_Intf_Config0_t intf_config;
     ICM42688_Temp_Config_t  temp_config;
     ICM42688_FIFO_Config_t  fifo_config;
-    ICM42688_Cached_Val_t   cached;
 
     bool is_initialized;
     bool is_reset;

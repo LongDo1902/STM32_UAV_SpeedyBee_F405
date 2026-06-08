@@ -30,14 +30,6 @@ typedef struct
 } ICM42688_Offset_Raw_t;
 
 
-typedef struct
-{
-    float temp_c;
-    float accel_g[3];
-    float gyro_dps[3];
-} ICM42688_Temp_Accel_Gyro_Scaled_t;
-
-
 typedef enum
 {
     // IMU Z+ same as Body Z+
@@ -86,34 +78,34 @@ typedef struct
 } ICM42688_Est_Angle_complement_t;
 
 
-ICM42688_Status_t
+bool
 ICM42688_Get_Temperature_C(ICM42688_Handle_t *handle, float *out_temp_c);
 
-ICM42688_Status_t
+bool
 ICM42688_Get_Accel_XYZ(ICM42688_Handle_t *handle, int16_t *buf);
 
-ICM42688_Status_t
+bool
 ICM42688_Get_Accel_G(ICM42688_Handle_t *handle, float g[3]);
 
-ICM42688_Status_t
+bool
 ICM42688_Get_Gyro_XYZ(ICM42688_Handle_t *handle, int16_t *buf);
 
-ICM42688_Status_t
+bool
 ICM42688_Get_Gyro_DPS(ICM42688_Handle_t *handle, float dps[3]);
 
-ICM42688_Status_t
+bool
 ICM42688_Get_Temp_Accel_Gyro_Raw(ICM42688_Handle_t *handle, ICM42688_Raw_t *out_raw);
 
-HAL_StatusTypeDef
+bool
 ICM42688_Get_Calibrate_Raw(ICM42688_Handle_t *handle, ICM42688_Offset_Raw_t *offset_calibrated_raw,
                            uint32_t samples);
 
-ICM42688_Status_t
+bool
 ICM42688_Get_Temp_Accel_Gyro_Scaled(ICM42688_Handle_t                 *handle,
                                     const ICM42688_Offset_Raw_t       *offset_raw,
                                     ICM42688_Temp_Accel_Gyro_Scaled_t *sample_out);
 
-HAL_StatusTypeDef
+bool
 ICM42688_Get_Est_Angle_Complement(ICM42688_Handle_t *handle, ICM42688_Orientation_t orientation,
                                   const ICM42688_Temp_Accel_Gyro_Scaled_t *input_imu_scaled,
                                   ICM42688_Est_Angle_complement_t *attitude_out, float dt_s);

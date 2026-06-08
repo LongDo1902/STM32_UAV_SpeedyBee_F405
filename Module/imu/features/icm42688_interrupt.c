@@ -10,84 +10,82 @@
 /*==================================================================================
  *	INTERRUPT CONFIG
  *================================================================================== */
-ICM42688_Status_t
+bool
 ICM42688_Set_Int1_Config(ICM42688_Handle_t *handle, ICM42688_Int_Polarity_t polarity,
                          ICM42688_Int_Drive_Circuit_t drive, ICM42688_Int_Mode_t mode)
 {
     if ((!handle) || ((uint8_t)polarity >= INT_POL_MAX) || ((uint8_t)drive >= INT_DRIVE_MAX) ||
         ((uint8_t)mode >= INT_MODE_MAX))
-        return HAL_ERROR;
+        return false;
 
     if ((handle->is_initialized) &&
         ((uint8_t)polarity == (uint8_t)(handle->int1_config.int1_polarity)) &&
         ((uint8_t)drive) == ((uint8_t)(handle->int1_config.int1_drive)) &&
         ((uint8_t)mode) == ((uint8_t)(handle->int1_config.int1_mode))) {
-        return HAL_OK;
+        return true;
     }
 
     uint8_t _mask        = ICM42688_INT1_POL_Msk | ICM42688_INT1_DRIVE_Msk | ICM42688_INT1_MODE_Msk;
     uint8_t _valueMasked = ICM42688_INT1_POL_Val(polarity) | ICM42688_INT1_DRIVE_Val(drive) |
                            ICM42688_INT1_MODE_Val(mode);
 
-    HAL_StatusTypeDef _status =
-        ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_CONF, _mask, _valueMasked);
-    if (_status != HAL_OK)
+    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_CONF, _mask, _valueMasked);
+    if (!_status)
         return _status;
 
     handle->int1_config.int1_polarity = polarity;
     handle->int1_config.int1_drive    = drive;
     handle->int1_config.int1_mode     = mode;
 
-    return HAL_OK;
+    return true;
 }
 
 
 
-ICM42688_Status_t
+bool
 ICM42688_Set_Int2_Config(ICM42688_Handle_t *handle, ICM42688_Int_Polarity_t polarity,
                          ICM42688_Int_Drive_Circuit_t drive, ICM42688_Int_Mode_t mode)
 {
     if ((!handle) || ((uint8_t)polarity >= INT_POL_MAX) || ((uint8_t)drive >= INT_DRIVE_MAX) ||
         ((uint8_t)mode >= INT_MODE_MAX))
-        return HAL_ERROR;
+        return false;
 
     if ((handle->is_initialized) &&
         ((uint8_t)polarity == (uint8_t)(handle->int2_config.int2_polarity)) &&
         ((uint8_t)drive) == ((uint8_t)(handle->int2_config.int2_drive)) &&
         ((uint8_t)mode) == ((uint8_t)(handle->int2_config.int2_mode)))
-        return HAL_OK;
+        return true;
 
     uint8_t _mask        = ICM42688_INT2_POL_Msk | ICM42688_INT2_DRIVE_Msk | ICM42688_INT2_MODE_Msk;
     uint8_t _valueMasked = ICM42688_INT2_POL_Val(polarity) | ICM42688_INT2_DRIVE_Val(drive) |
                            ICM42688_INT2_MODE_Val(mode);
 
-    HAL_StatusTypeDef _status =
-        ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_CONF, _mask, _valueMasked);
-    if (_status != HAL_OK)
+    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_CONF, _mask, _valueMasked);
+    if (!_status)
         return _status;
 
     handle->int2_config.int2_polarity = polarity;
     handle->int2_config.int2_drive    = drive;
     handle->int2_config.int2_mode     = mode;
 
-    return HAL_OK;
+    return true;
 }
 
 
 
-ICM42688_Status_t
+bool
 ICM42688_Get_Int_Status(ICM42688_Handle_t *handle, uint8_t *outStatus)
 {
     if (!handle || !outStatus)
-        return HAL_ERROR;
+        return false;
 
-    uint8_t           _reg    = 0U;
-    HAL_StatusTypeDef _status = ICM42688_ReadReg(handle, ICM42688_UB0_INT_STATUS, &_reg);
-    if (_status != HAL_OK)
+    uint8_t _reg    = 0U;
+    bool    _status = ICM42688_ReadReg(handle, ICM42688_UB0_INT_STATUS, &_reg);
+    if (!_status)
         return _status;
 
     *outStatus = _reg;
-    return HAL_OK;
+    return true;
 }
 
 
@@ -134,70 +132,70 @@ ICM42688_Int_Status_Has(uint8_t status, ICM42688_Int_Status_t intState)
 /*==========================================================================================
  * 	INT_SOURCE0
  *==========================================================================================*/
-ICM42688_Status_t
+bool
 ICM42688_Set_Int1_FIFO_Full_Enable(ICM42688_Handle_t *handle, bool enable)
 {
     if (!handle)
-        return HAL_ERROR;
+        return false;
 
     uint8_t _value_masked = enable ? ICM42688_FIFO_FULL_INT1_EN_Msk : 0U;
 
-    HAL_StatusTypeDef _status = ICM42688_Update_Reg_Bits(
-        handle, ICM42688_UB0_INT_SRC0, ICM42688_FIFO_FULL_INT1_EN_Msk, _value_masked);
-    if (_status != HAL_OK)
+    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_SRC0,
+                                            ICM42688_FIFO_FULL_INT1_EN_Msk, _value_masked);
+    if (!_status)
         return _status;
 
-    return HAL_OK;
+    return true;
 }
 
 
 
-ICM42688_Status_t
+bool
 ICM42688_Set_Int1_FIFO_Threshold_Enable(ICM42688_Handle_t *handle, bool enable)
 {
     if (!handle)
-        return HAL_ERROR;
+        return false;
 
     uint8_t _value_masked = enable ? ICM42688_FIFO_THS_INT1_EN_Msk : 0U;
 
-    HAL_StatusTypeDef _status = ICM42688_Update_Reg_Bits(
-        handle, ICM42688_UB0_INT_SRC0, ICM42688_FIFO_THS_INT1_EN_Msk, _value_masked);
-    if (_status != HAL_OK)
+    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_SRC0,
+                                            ICM42688_FIFO_THS_INT1_EN_Msk, _value_masked);
+    if (!_status)
         return _status;
 
-    return HAL_OK;
+    return true;
 }
 
 
 
-ICM42688_Status_t
+bool
 ICM42688_Set_Int1_DataReady_Enable(ICM42688_Handle_t *handle, bool enable)
 {
     if (!handle)
-        return HAL_ERROR;
+        return false;
 
     uint8_t _value_masked = enable ? ICM42688_UI_DRDY_INT1_EN_Msk : 0U;
 
-    HAL_StatusTypeDef _status = ICM42688_Update_Reg_Bits(
-        handle, ICM42688_UB0_INT_SRC0, ICM42688_UI_DRDY_INT1_EN_Msk, _value_masked);
-    if (_status != HAL_OK)
+    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_SRC0,
+                                            ICM42688_UI_DRDY_INT1_EN_Msk, _value_masked);
+    if (!_status)
         return _status;
 
-    return HAL_OK;
+    return true;
 }
 
 
 
-ICM42688_Status_t
+bool
 ICM42688_Set_Int1_ResetDone_Enable(ICM42688_Handle_t *handle, bool enable)
 {
     if (!handle)
-        return HAL_ERROR;
-    uint8_t           _valueMasked = enable ? ICM42688_RESET_DONE_INT1_EN_Msk : 0U;
-    HAL_StatusTypeDef _status      = ICM42688_Update_Reg_Bits(
-        handle, ICM42688_UB0_INT_SRC0, ICM42688_RESET_DONE_INT1_EN_Msk, _valueMasked);
-    if (_status != HAL_OK)
+        return false;
+    uint8_t _valueMasked = enable ? ICM42688_RESET_DONE_INT1_EN_Msk : 0U;
+    bool    _status      = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_SRC0,
+                                                    ICM42688_RESET_DONE_INT1_EN_Msk, _valueMasked);
+    if (!_status)
         return _status;
 
-    return HAL_OK;
+    return true;
 }
