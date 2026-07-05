@@ -41,7 +41,7 @@ ICM42688_Set_AccelConfig(ICM42688_Handle_t *handle, ICM42688_Accel_Mode_t mode,
     if ((uint8_t)fsr > (uint8_t)ACCEL_FSR_2g)
         return false;
 
-    // Validate ODR against accel mode
+    // Validate ODR against accel mode; low-power mode supports only the lower ODR range.
     bool _odr_valid = false;
 
     if (mode == ACCEL_LOW_NOISE) {
@@ -60,7 +60,7 @@ ICM42688_Set_AccelConfig(ICM42688_Handle_t *handle, ICM42688_Accel_Mode_t mode,
 
     bool _status = true;
 
-    // (1) PWR_MGMT0: set Accel Mode (RMW)
+    // (1) PWR_MGMT0: set accel mode first because mode transitions have a required settling delay.
     uint8_t               _curr_raw_mode    = (uint8_t)mode;
     bool                  _curr_mode_is_off = (_curr_raw_mode == 0U) || (_curr_raw_mode == 1U);
     ICM42688_Accel_Mode_t _curr_norm_mode =
@@ -82,12 +82,12 @@ ICM42688_Set_AccelConfig(ICM42688_Handle_t *handle, ICM42688_Accel_Mode_t mode,
             handle->accel_config.accel_mode = _curr_norm_mode;
 
             if (_prev_mode_is_off && !_curr_mode_is_off) {
-                HAL_Delay(1); // Wait at least 200us if mode changes from OFF to any other mode
+                HAL_Delay(1); // 1 ms, safely above the 200 us minimum when waking from OFF
             }
         }
     }
 
-    // (2) ACCEL_CONF0: set ODR and FSR together
+    // (2) ACCEL_CONF0: set ODR and FSR together so cached scale factors match the register state.
     bool _need_write_config =
         (!(handle->is_initialized) || (odr != handle->accel_config.accel_odr) ||
          (fsr != handle->accel_config.accel_fsr));
@@ -147,12 +147,12 @@ ICM42688_Get_Accel_Mode(ICM42688_Handle_t *handle, uint8_t *modeInfo)
 
 
 bool
-ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t *handle, ICM42688_UIFilt_BW_t UI_Filt_BandWidth)
+ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t *handle, ICM42688_UIFilt_BW_t uiFiltBandWidth)
 {
     if (!handle)
         return false;
 
-    uint8_t _v = (uint8_t)UI_Filt_BandWidth;
+    uint8_t _v = (uint8_t)uiFiltBandWidth;
 
     if (((_v >= 8U) && (_v <= 13U)) || (_v > 0x0F))
         return false;
@@ -166,21 +166,21 @@ ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t *handle, ICM42688_UIFilt_BW_t UI_
     _reg &= (uint8_t)~ICM42688_ACCEL_UI_FILT_BW_Msk;
 
     if (handle->accel_config.accel_mode == ACCEL_LOW_NOISE) {
-        if (UI_Filt_BandWidth == BW_1x_AVG_FILT)
-            UI_Filt_BandWidth = BW_400Hz_ODR_DIV_4;
-        else if (UI_Filt_BandWidth == BW_16x_AVG_FILT)
-            UI_Filt_BandWidth = BW_400Hz_ODR_DIV_20;
-        _reg |= ICM42688_ACCEL_UI_FILT_BW_Val(UI_Filt_BandWidth);
+        if (uiFiltBandWidth == BW_1x_AVG_FILT)
+            uiFiltBandWidth = BW_400Hz_ODR_DIV_4;
+        else if (uiFiltBandWidth == BW_16x_AVG_FILT)
+            uiFiltBandWidth = BW_400Hz_ODR_DIV_20;
+        _reg |= ICM42688_ACCEL_UI_FILT_BW_Val(uiFiltBandWidth);
     }
 
     else if (handle->accel_config.accel_mode == ACCEL_LOW_POWER) {
         if (_v == 1U)
-            UI_Filt_BandWidth = BW_1x_AVG_FILT;
+            uiFiltBandWidth = BW_1x_AVG_FILT;
         else if (_v == 6U)
-            UI_Filt_BandWidth = BW_16x_AVG_FILT;
+            uiFiltBandWidth = BW_16x_AVG_FILT;
         else
             return false;
-        _reg |= ICM42688_ACCEL_UI_FILT_BW_Val((uint8_t)UI_Filt_BandWidth);
+        _reg |= ICM42688_ACCEL_UI_FILT_BW_Val((uint8_t)uiFiltBandWidth);
     }
 
     else
@@ -190,7 +190,7 @@ ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t *handle, ICM42688_UIFilt_BW_t UI_
     if (!_status)
         return false;
 
-    handle->accel_config.accel_uifilt_bw = (ICM42688_UIFilt_BW_t)UI_Filt_BandWidth;
+    handle->accel_config.accel_uifilt_bw = (ICM42688_UIFilt_BW_t)uiFiltBandWidth;
 
     return true;
 }
@@ -199,24 +199,27 @@ ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t *handle, ICM42688_UIFilt_BW_t UI_
 
 bool
 ICM42688_Set_Accel_UIFilt_Order(ICM42688_Handle_t            *handle,
-                                ICM42688_Accel_UIFilt_Order_t UI_Filt_Order)
+                                ICM42688_Accel_UIFilt_Order_t uiFiltOrder)
 {
     if (!handle)
         return false;
 
-    uint8_t           reg    = 0U;
-    bool status = ICM42688_ReadReg(handle, ICM42688_UB0_ACCEL_CONF1, &reg);
-    if (!status)
+    if ((uint8_t)uiFiltOrder > (uint8_t)ACCEL_THIRD_ORDER)
         return false;
 
-    reg &= (uint8_t)~ICM42688_ACCEL_UI_FILT_ORD_Msk;
-    reg |= (uint8_t)ICM42688_ACCEL_UI_FILT_ORD_Val(UI_Filt_Order);
-    status = ICM42688_WriteReg(handle, ICM42688_UB0_ACCEL_CONF1, reg);
-
-    if (!status)
+    uint8_t _reg    = 0U;
+    bool    _status = ICM42688_ReadReg(handle, ICM42688_UB0_ACCEL_CONF1, &_reg);
+    if (!_status)
         return false;
 
-    handle->accel_config.accel_filt_order = UI_Filt_Order;
+    _reg &= (uint8_t)~ICM42688_ACCEL_UI_FILT_ORD_Msk;
+    _reg |= (uint8_t)ICM42688_ACCEL_UI_FILT_ORD_Val(uiFiltOrder);
+    _status = ICM42688_WriteReg(handle, ICM42688_UB0_ACCEL_CONF1, _reg);
+
+    if (!_status)
+        return false;
+
+    handle->accel_config.accel_filt_order = uiFiltOrder;
 
     return true;
 }
@@ -229,16 +232,19 @@ ICM42688_Set_Accel_Anti_Alias_Filt(ICM42688_Handle_t *handle, ICM42688_AAF_En_t 
     if (!handle)
         return false;
 
-    uint8_t           reg    = 0U;
-    bool status = ICM42688_ReadReg(handle, ICM42688_UB2_ACCEL_CONF_STATIC2, &reg);
-    if (!status)
+    if (((uint8_t)antiAliasState != 0U) && ((uint8_t)antiAliasState != 1U))
         return false;
 
-    reg &= (uint8_t)~ICM42688_ACCEL_AAF_DIS_Msk;
-    reg |= (uint8_t)ICM42688_ACCEL_AAF_DIS_Val(antiAliasState);
-    status = ICM42688_WriteReg(handle, ICM42688_UB2_ACCEL_CONF_STATIC2, reg);
+    uint8_t _reg    = 0U;
+    bool    _status = ICM42688_ReadReg(handle, ICM42688_UB2_ACCEL_CONF_STATIC2, &_reg);
+    if (!_status)
+        return false;
 
-    if (!status)
+    _reg &= (uint8_t)~ICM42688_ACCEL_AAF_DIS_Msk;
+    _reg |= (uint8_t)ICM42688_ACCEL_AAF_DIS_Val(antiAliasState);
+    _status = ICM42688_WriteReg(handle, ICM42688_UB2_ACCEL_CONF_STATIC2, _reg);
+
+    if (!_status)
         return false;
 
     handle->accel_config.accel_aaf_state = antiAliasState;

@@ -24,10 +24,10 @@ ICM42688_Set_SPI_Mode(ICM42688_Handle_t *handle, ICM42688_SPI_Mode_t spiMode)
     if (handle->is_initialized && (handle->spi_config.spi_mode == spiMode))
         return true;
 
-    bool status = ICM42688_Update_Reg_Bits(
+    bool _status = ICM42688_Update_Reg_Bits(
         handle, ICM42688_UB0_DEVICE_CONF, ICM42688_DEVICE_CONFIG_SPI_MODE_Msk,
         ICM42688_DEVICE_CONFIG_SPI_MODE_Val(spiMode));
-    if (!status)
+    if (!_status)
         return false;
 
     handle->spi_config.spi_mode = spiMode;
@@ -81,17 +81,21 @@ ICM42688_Set_SPI_SlewRate(ICM42688_Handle_t *handle, ICM42688_SPI_SLEWRATE_t sle
 
 
 bool
-ICM42688_Set_UI_SIFS_Conf(ICM42688_Handle_t *handle, ICM42688_UI_SIFS_Cfg_t UI_SIFS_Config)
+ICM42688_Set_UI_SIFS_Conf(ICM42688_Handle_t *handle, ICM42688_UI_SIFS_Cfg_t uiSifsConfig)
 {
     if (!handle)
         return false;
 
+    if ((uiSifsConfig != UI_SIFS_RESERVED) && (uiSifsConfig != UI_SIFS_DISABLE_SPI) &&
+        (uiSifsConfig != UI_SIFS_DISABLE_I2C))
+        return false;
+
     bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INTF_CONF0, ICM42688_UI_SIFS_CFG_Msk,
-                                 ICM42688_UI_SIFS_CFG_Val(UI_SIFS_Config));
+                                 ICM42688_UI_SIFS_CFG_Val(uiSifsConfig));
     if (!_status)
         return false;
 
-    handle->intf_config.ui_sifs_config = UI_SIFS_Config;
+    handle->intf_config.ui_sifs_config = uiSifsConfig;
 
     return true;
 }
@@ -103,6 +107,9 @@ ICM42688_Set_Sensor_Data_Endian(ICM42688_Handle_t            *handle,
                                 ICM42688_Sensor_Data_Endian_t whichEndian)
 {
     if (!handle)
+        return false;
+
+    if (((uint8_t)whichEndian != 0U) && ((uint8_t)whichEndian != 1U))
         return false;
 
     bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INTF_CONF0, ICM42688_SENSOR_DATA_ENDIAN_Msk,

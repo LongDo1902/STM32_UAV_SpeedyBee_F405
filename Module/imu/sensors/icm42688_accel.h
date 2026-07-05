@@ -21,10 +21,10 @@ bool
 ICM42688_Get_Accel_Mode(ICM42688_Handle_t *handle, uint8_t *modeInfo);
 
 bool
-ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t *handle, ICM42688_UIFilt_BW_t bw);
+ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t *handle, ICM42688_UIFilt_BW_t uiFiltBandWidth);
 
 bool
-ICM42688_Set_Accel_UIFilt_Order(ICM42688_Handle_t *handle, ICM42688_Accel_UIFilt_Order_t filterOrder);
+ICM42688_Set_Accel_UIFilt_Order(ICM42688_Handle_t *handle, ICM42688_Accel_UIFilt_Order_t uiFiltOrder);
 
 bool
 ICM42688_Set_Accel_Anti_Alias_Filt(ICM42688_Handle_t *handle, ICM42688_AAF_En_t antiAliasState);

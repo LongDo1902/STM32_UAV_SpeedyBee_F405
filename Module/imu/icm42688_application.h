@@ -1,5 +1,5 @@
 /*
- * icm42688_device.h
+ * icm42688_application.h
  *
  *  Created on: Mar 12, 2026
  *      Author: dobao
@@ -29,6 +29,7 @@
 
 #define ICM42688_WHO_AM_I_DEFAULT 0x47U
 
+// Helper for init/config sequences: return false immediately when a step fails.
 #define CHECK_FOR(expr)            \
     do {                           \
         _status = (expr);          \
@@ -36,13 +37,10 @@
             return false; \
     } while (0)
 
-bool
-ICM42688_IsAlive(ICM42688_Handle_t *handle);
+bool ICM42688_IsAlive(ICM42688_Handle_t *handle);
 
-bool
-ICM42688_SoftReset(ICM42688_Handle_t *handle);
+bool ICM42688_SoftReset(ICM42688_Handle_t *handle);
 
-bool
-ICM42688_Init(ICM42688_Handle_t *handle);
+bool ICM42688_Init(ICM42688_Handle_t *handle);
 
 #endif /* INC_IMU_ICM42688_DEVICE_H_ */

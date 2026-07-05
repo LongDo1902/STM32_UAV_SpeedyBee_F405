@@ -1,5 +1,5 @@
 /*
- * icm42688_device.c
+ * icm42688_application.c
  *
  *  Created on: Mar 12, 2026
  *      Author: dobao
@@ -8,14 +8,14 @@
 #include "imu/icm42688_application.h"
 
 /*=============================================================================
- *	IDENTITY / RESET /
+ *	IDENTITY / RESET
  *============================================================================ */
 static inline bool
-ICM42688_Get_WhoAmI(ICM42688_Handle_t *handle, uint8_t *who_val)
+ICM42688_Get_WhoAmI(ICM42688_Handle_t *handle, uint8_t *whoVal)
 {
-    if (!handle || !who_val)
+    if (!handle || !whoVal)
         return false;
-    return ICM42688_ReadReg(handle, ICM42688_UB0_WHO_AM_I, who_val);
+    return ICM42688_ReadReg(handle, ICM42688_UB0_WHO_AM_I, whoVal);
 }
 
 
@@ -51,15 +51,14 @@ ICM42688_SoftReset(ICM42688_Handle_t *handle)
     if (!handle)
         return false;
 
-    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_DEVICE_CONF,
-                                            ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk,
+    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_DEVICE_CONF, ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk,
                                             ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk);
     if (!_status)
         return false;
 
     HAL_Delay(5);
 
-    // After reset, set every flag to a default/known state
+    // Mirror the post-reset software state so the next init writes every required register.
     handle->is_reset          = true;
     handle->is_initialized    = false;
     handle->is_icm42688_alive = false;
@@ -173,8 +172,8 @@ ICM42688_FIFO_Config(ICM42688_Handle_t *handle)
 {
     bool _status = false;
     /**
-     * @note    You might consider to add ICM42688_Set_FIFO_Watermark() in other files because it
-     * requires other aspects
+     * @note FIFO watermark is intentionally not configured here; choose it near the consumer
+     *       because it depends on the selected read mode, scheduler period, and buffer size.
      */
     CHECK_FOR(ICM42688_Set_FIFO_Count_Endian(handle, FIFO_COUNT_BIG_ENDIAN));
     CHECK_FOR(ICM42688_Set_FIFO_Count_Rec(handle, FIFO_COUNT_IN_BYTE));
@@ -199,34 +198,48 @@ ICM42688_Init(ICM42688_Handle_t *handle)
 
     bool _status = false;
 
-    // Discover if the sensor is active
+    // Verify SPI communication before changing device configuration.
     CHECK_FOR(ICM42688_IsAlive(handle));
 
-    // Reset and gating
-    CHECK_FOR(ICM42688_Set_Int1_ResetDone_Enable(handle, true));
-    CHECK_FOR(ICM42688_SoftReset(handle));
+    // Request soft reset and poll INT_RESET_DONE for up to 100 ms.
+    {
+        CHECK_FOR(ICM42688_Set_Int1_ResetDone_Enable(handle, true));
+        CHECK_FOR(ICM42688_SoftReset(handle));
 
-    uint8_t intStatus = 0U;
-    do {
-        CHECK_FOR(ICM42688_Get_Int_Status(handle, &intStatus));
-    } while (!ICM42688_Int_Status_Has(intStatus, INT_RESET_DONE));
+        uint8_t  _int_status             = 0U;
+        uint32_t _reset_done_timeout_ms = 100U;
 
-    // Discover if the sensor is active after reseting
+        // Wait until the device reports reset completion.
+        do {
+            CHECK_FOR(ICM42688_Get_Int_Status(handle, &_int_status));
+            if (ICM42688_Int_Status_Has(_int_status, INT_RESET_DONE)) {
+                break; // Reset is done.
+            }
+            HAL_Delay(1U);
+        } while (--_reset_done_timeout_ms > 0U);
+
+        // If INT_RESET_DONE was not observed within 100 ms, treat reset as failed.
+        if (_reset_done_timeout_ms == 0U) {
+            return false;
+        }
+    }
+
+    // Verify the device is reachable again after reset.
     CHECK_FOR(ICM42688_IsAlive(handle));
 
-    // Interface configuration
+    // Interface configuration.
     CHECK_FOR(ICM42688_Interface_Config(handle));
 
-    // Accel configuration
+    // Accel configuration.
     CHECK_FOR(ICM42688_Accel_Config(handle));
 
-    // Gyro configuration
+    // Gyro configuration.
     CHECK_FOR(ICM42688_Gyro_Config(handle));
 
-    // Temperature configuration
+    // Temperature configuration.
     CHECK_FOR(ICM42688_Temperature_Config(handle));
 
-    // FIFO configuration
+    // FIFO configuration.
     CHECK_FOR(ICM42688_FIFO_Config(handle));
 
     HAL_Delay(50);

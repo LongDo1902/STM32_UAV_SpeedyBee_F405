@@ -92,7 +92,7 @@ typedef enum
 
 
 /* ============================================================================
- *	ACCELOROMETER DEFINES
+ *	ACCELEROMETER DEFINES
  * ============================================================================ */
 
 typedef enum
@@ -161,7 +161,7 @@ typedef enum
  *	TEMPERATURE ENUMS
  * ============================================================================ */
 
-// TEMPERATURE Enable/Disable
+// Temperature enable/disable values map directly to PWR_MGMT0.TEMP_DIS.
 typedef enum
 {
     TEMP_ENABLE  = 0x00U,
@@ -169,7 +169,7 @@ typedef enum
 } ICM42688_Temp_t;
 
 
-// Temperature Filter Bandwidth
+// Temperature filter bandwidth values.
 typedef enum
 {
     TEMP_4000Hz_BW_0125ms_DLPF_LATENCY = 0x00U,
@@ -186,7 +186,7 @@ typedef enum
  *	INTERFACE ENUMS
  * ============================================================================ */
 
-// Sensor Selection
+// Sensor selection values used by shared accel/gyro helper code.
 typedef enum
 {
     GYRO  = 0,
@@ -194,7 +194,7 @@ typedef enum
 } ICM42688_SensorSel_t;
 
 
-// DEVICE_CONFIG Defines
+// DEVICE_CONFIG.SPI_MODE values.
 typedef enum
 {
     SPI_MODE_0_3 = 0U,
@@ -202,7 +202,7 @@ typedef enum
 } ICM42688_SPI_Mode_t;
 
 
-// DRIVE_CONFIG Defines
+// DRIVE_CONFIG SPI slew-rate values.
 typedef enum
 {
     SPI_SR_20NS_60NS = 0x00U,
@@ -243,7 +243,7 @@ typedef enum
 /* ============================================================================
  *	INTERRUPT ENUMS
  * ============================================================================ */
-// INT_CONFIG Defines
+// INT_CONFIG values.
 typedef enum
 {
     INT_ACTIVE_LOW  = 0U,
@@ -314,12 +314,12 @@ typedef enum
 
 typedef enum
 {
-    FIFO_GAT_DISABLE = 0x00, // GAT = Gyro Accel Temperature
+    FIFO_GAT_DISABLE = 0x00, // GAT = Gyro, Accel, Temperature
     FIFO_GAT_ENABLE  = 0x01,
 } ICM42688_FIFO_GAT_En_t;
 
 
-// HAVE TO CHECK THIS AGAIN!!!!!!!
+// FIFO watermark interrupt mode: one-shot or repeated threshold notification.
 typedef enum
 {
     FIFO_WM_GREATER_THS_ONESHOT = 0x00,
@@ -329,9 +329,8 @@ typedef enum
 
 typedef enum
 {
-    FIFO_HIRES_DISABLE = 0x00, // FIFO stores normal (16bits) accel/gyro + temp
-    FIFO_HIRES_ENABLE =
-        0x01, // FIFO stores extended: +3 bytes for an extended 20-bit accel/gyro + 1 byte temp
+    FIFO_HIRES_DISABLE = 0x00, // FIFO stores normal 16-bit accel/gyro samples plus temperature
+    FIFO_HIRES_ENABLE  = 0x01, // FIFO stores extended 20-bit accel/gyro samples plus temperature
 } ICM42688_FIFO_Hires_En_t;
 
 
@@ -434,15 +433,16 @@ typedef struct
     uint8_t header;
 
     /* Packet 1 = 8 bytes
-     * 		header(1) + accel(6) + fifo_temp(1)
+     *      header(1) + accel(6) + fifo_temp(1)
      *
      * Packet 2 = 8 bytes
-     * 		header(1) + gyro(6) + fifo_temp(1)
+     *      header(1) + gyro(6) + fifo_temp(1)
      *
      * Packet 3 = 16 bytes
-     * 		header(1) + accel(6) + gyro(6) + fifo_temp(1) + timestamp(2)
+     *      header(1) + accel(6) + gyro(6) + fifo_temp(1) + timestamp(2)
      *
-     * Packet 4 = 20 bytes (not being built for now) */
+     * Packet 4 = 20 bytes
+     *      header(1) + accel(6) + gyro(6) + fifo_temp(2) + timestamp(2) + high-res extension(3) */
     ICM42688_FIFO_Packet_t packet_type;
     uint8_t                packet_size;
     uint8_t                timestamp_fsync_mode;
@@ -471,11 +471,11 @@ typedef struct
     // Packet 4 temperature = 16-bit
     int16_t temp_raw16;
 
-    // Converted outputs
+    // Converted outputs; only fields with matching *_valid flags are meaningful.
     ICM42688_Temp_Accel_Gyro_Scaled_t gat_scaled;
     uint16_t                          timestamp;
 
-    // Raw packet bytes for debugging only
+    // Raw packet bytes retained for debugging only.
     uint8_t raw[20];
 } ICM42688_FIFO_Frame_t;
 
@@ -501,16 +501,12 @@ typedef struct
 } ICM42688_FIFO_Config_t;
 
 
-typedef struct
-{
-} ICM42688_Cached_Val_t;
-
 
 /* ==============================================================================
  *	MAIN HANDLE STRUCT
  * ============================================================================== */
 
-// Struct stores every important thing
+// Runtime handle: cached register state, scale factors, bus configuration, and init flags.
 typedef struct
 {
     float gyro_dps_per_lsb;

@@ -5,18 +5,22 @@
  *      Author: dobao
  */
 #include "imu/sensors/icm42688_gyro.h"
-#include "math.h"
+#include <math.h>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 static const float _lsb_per_dps[] = {16.4f, 32.8f, 65.5f, 131.0f, 262.0f, 524.3f, 1048.6f, 2097.2f};
 
 static inline void
 ICM42688_Update_GyroScaleFactor(ICM42688_Handle_t *handle)
 {
-    uint8_t idx = (uint8_t)handle->gyro_config.gyro_fsr;
-    if (idx > 7U)
-        idx = 0U;
+    uint8_t _idx = (uint8_t)handle->gyro_config.gyro_fsr;
+    if (_idx > 7U)
+        _idx = 0U;
 
-    handle->gyro_lsb_per_dps_dtsheet = _lsb_per_dps[idx];
+    handle->gyro_lsb_per_dps_dtsheet = _lsb_per_dps[_idx];
     handle->gyro_dps_per_lsb         = 1.0f / handle->gyro_lsb_per_dps_dtsheet;
 }
 
@@ -26,8 +30,8 @@ ICM42688_Update_GyroScaleFactor(ICM42688_Handle_t *handle)
  *	GYRO CONFIG / FILTER
  *============================================================================= */
 bool
-ICM42688_Set_GyroConfig(ICM42688_Handle_t *handle, ICM42688_Gyro_Mode_t mode,
-                        ICM42688_Gyro_ODR_t odr, ICM42688_Gyro_FSR_t fsr)
+ICM42688_Set_GyroConfig(ICM42688_Handle_t *handle, ICM42688_Gyro_Mode_t mode, ICM42688_Gyro_ODR_t odr,
+                        ICM42688_Gyro_FSR_t fsr)
 {
     if (!handle)
         return false;
@@ -35,8 +39,8 @@ ICM42688_Set_GyroConfig(ICM42688_Handle_t *handle, ICM42688_Gyro_Mode_t mode,
     if (((uint8_t)mode > 3U) || ((uint8_t)mode == 2U))
         return false;
 
-    if ((((uint8_t)odr > (uint8_t)GYRO_ODR_500Hz)) || ((uint8_t)odr == 0x00U) ||
-        ((uint8_t)odr == 0x0CU) || ((uint8_t)odr == 0x0DU) || ((uint8_t)odr == 0x0EU))
+    if ((((uint8_t)odr > (uint8_t)GYRO_ODR_500Hz)) || ((uint8_t)odr == 0x00U) || ((uint8_t)odr == 0x0CU) ||
+        ((uint8_t)odr == 0x0DU) || ((uint8_t)odr == 0x0EU))
         return false;
 
     if ((uint8_t)fsr > (uint8_t)GYRO_FSR_15dps625)
@@ -44,29 +48,28 @@ ICM42688_Set_GyroConfig(ICM42688_Handle_t *handle, ICM42688_Gyro_Mode_t mode,
 
     bool _status = true;
 
-    // (1) PWR_MGMT0: Set Gyro Mode
-    ICM42688_Gyro_Mode_t _prev_mode = handle->gyro_config.gyro_mode;
-    ICM42688_Gyro_Mode_t _curr_mode = mode;
-    bool _need_write_mode           = (!(handle->is_initialized) || (_curr_mode != _prev_mode));
+    // (1) PWR_MGMT0: set gyro mode first because mode transitions have a required settling delay.
+    ICM42688_Gyro_Mode_t _prev_mode       = handle->gyro_config.gyro_mode;
+    ICM42688_Gyro_Mode_t _curr_mode       = mode;
+    bool                 _need_write_mode = (!(handle->is_initialized) || (_curr_mode != _prev_mode));
     {
-        // Skip if already cached & initialized
+        // Skip the hardware write if the cached initialized state already matches the request.
         if (_need_write_mode == true) {
-            _status =
-                ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_PWR_MGMT0, ICM42688_GYRO_MODE_Msk,
-                                         ICM42688_GYRO_MODE_Val(mode));
+            _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_PWR_MGMT0, ICM42688_GYRO_MODE_Msk,
+                                               ICM42688_GYRO_MODE_Val(mode));
             if (!_status)
                 return false;
 
             handle->gyro_config.gyro_mode = mode;
 
-            // Add delay >= 200us according to datasheet
+            // Add delay >= 200 us when waking the gyro from OFF.
             if ((_prev_mode == GYRO_OFF) && (_curr_mode != GYRO_OFF)) {
-                HAL_Delay(1); // 1000us
+                HAL_Delay(1); // 1 ms, safely above the 200 us minimum
             }
         }
     }
 
-    // (2) GYRO_CONF0: Set ODR + FSR together
+    // (2) GYRO_CONF0: set ODR and FSR together so cached scale factors match the register state.
     bool _need_write_conf = (!(handle->is_initialized) || (odr != (handle->gyro_config.gyro_odr)) ||
                              (fsr != (handle->gyro_config.gyro_fsr)));
     {
@@ -74,12 +77,11 @@ ICM42688_Set_GyroConfig(ICM42688_Handle_t *handle, ICM42688_Gyro_Mode_t mode,
             uint8_t _mask         = ICM42688_GYRO_ODR_Msk | ICM42688_GYRO_FS_SEL_Msk;
             uint8_t _value_masked = ICM42688_GYRO_ODR_Val(odr) | ICM42688_GYRO_FS_SEL_Val(fsr);
 
-            _status =
-                ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_GYRO_CONF0, _mask, _value_masked);
+            _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_GYRO_CONF0, _mask, _value_masked);
             if (!_status)
                 return false;
 
-            // Update cache + scale factor after successful HW write
+            // Update cache and scale factor only after the hardware write succeeds.
             handle->gyro_config.gyro_odr = odr;
             handle->gyro_config.gyro_fsr = fsr;
 
@@ -97,8 +99,8 @@ ICM42688_Get_Gyro_Mode(ICM42688_Handle_t *handle, uint8_t *modeInfo)
     if (!handle || !modeInfo)
         return false;
 
-    uint8_t           _reg    = 0U;
-    bool _status = ICM42688_ReadReg(handle, ICM42688_UB0_PWR_MGMT0, &_reg);
+    uint8_t _reg    = 0U;
+    bool    _status = ICM42688_ReadReg(handle, ICM42688_UB0_PWR_MGMT0, &_reg);
     if (!_status)
         return false;
 
@@ -116,22 +118,21 @@ ICM42688_Get_Gyro_Mode(ICM42688_Handle_t *handle, uint8_t *modeInfo)
 
 
 bool
-ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t *handle, ICM42688_UIFilt_BW_t UI_Filt_BandWidth)
+ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t *handle, ICM42688_UIFilt_BW_t uiFiltBandWidth)
 {
     if (!handle)
         return false;
 
-    if ((((uint8_t)UI_Filt_BandWidth >= 8U) && ((uint8_t)UI_Filt_BandWidth <= 13U)) ||
-        (uint8_t)UI_Filt_BandWidth > 0x0FU)
+    if ((((uint8_t)uiFiltBandWidth >= 8U) && ((uint8_t)uiFiltBandWidth <= 13U)) ||
+        (uint8_t)uiFiltBandWidth > 0x0FU)
         return false;
 
-    bool _status = ICM42688_Update_Reg_Bits(
-        handle, ICM42688_UB0_GYRO_ACCEL_CONF0, ICM42688_GYRO_UI_FILT_BW_Msk,
-        ICM42688_GYRO_UI_FILT_BW_Val((uint8_t)UI_Filt_BandWidth));
+    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_GYRO_ACCEL_CONF0, ICM42688_GYRO_UI_FILT_BW_Msk,
+                                            ICM42688_GYRO_UI_FILT_BW_Val((uint8_t)uiFiltBandWidth));
     if (!_status)
         return false;
 
-    handle->gyro_config.gyro_uifilt_bw = UI_Filt_BandWidth;
+    handle->gyro_config.gyro_uifilt_bw = uiFiltBandWidth;
 
     return true;
 }
@@ -139,25 +140,27 @@ ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t *handle, ICM42688_UIFilt_BW_t UI_F
 
 
 bool
-ICM42688_Set_Gyro_UIFilt_Order(ICM42688_Handle_t           *handle,
-                               ICM42688_Gyro_UIFilt_Order_t UI_Filt_Order)
+ICM42688_Set_Gyro_UIFilt_Order(ICM42688_Handle_t *handle, ICM42688_Gyro_UIFilt_Order_t uiFiltOrder)
 {
     if (!handle)
         return false;
 
-    uint8_t           _reg    = 0U;
-    bool _status = ICM42688_ReadReg(handle, ICM42688_UB0_GYRO_CONF1, &_reg);
+    if ((uint8_t)uiFiltOrder > (uint8_t)GYRO_THIRD_ORDER)
+        return false;
+
+    uint8_t _reg    = 0U;
+    bool    _status = ICM42688_ReadReg(handle, ICM42688_UB0_GYRO_CONF1, &_reg);
     if (!_status)
         return false;
 
     _reg &= (uint8_t)~ICM42688_GYRO_UI_FILT_ORD_Msk;
-    _reg |= (uint8_t)ICM42688_GYRO_UI_FILT_ORD_Val(UI_Filt_Order);
+    _reg |= (uint8_t)ICM42688_GYRO_UI_FILT_ORD_Val(uiFiltOrder);
     _status = ICM42688_WriteReg(handle, ICM42688_UB0_GYRO_CONF1, _reg);
 
     if (!_status)
         return false;
 
-    handle->gyro_config.gyro_filt_order = UI_Filt_Order;
+    handle->gyro_config.gyro_filt_order = uiFiltOrder;
 
     return true;
 }
@@ -170,8 +173,11 @@ ICM42688_Set_Gyro_Anti_Alias_Filt(ICM42688_Handle_t *handle, ICM42688_AAF_En_t a
     if (!handle)
         return false;
 
-    uint8_t           _reg    = 0U;
-    bool _status = ICM42688_ReadReg(handle, ICM42688_UB1_GYRO_CONF_STATIC2, &_reg);
+    if (((uint8_t)antiAliasState != 0U) && ((uint8_t)antiAliasState != 1U))
+        return false;
+
+    uint8_t _reg    = 0U;
+    bool    _status = ICM42688_ReadReg(handle, ICM42688_UB1_GYRO_CONF_STATIC2, &_reg);
     if (!_status)
         return false;
 
@@ -195,8 +201,11 @@ ICM42688_Set_Gyro_Notch_Filt(ICM42688_Handle_t *handle, ICM42688_Notch_Filt_En_t
     if (!handle)
         return false;
 
-    uint8_t           _reg    = 0U;
-    bool _status = ICM42688_ReadReg(handle, ICM42688_UB1_GYRO_CONF_STATIC2, &_reg);
+    if (((uint8_t)notchFiltState != 0U) && ((uint8_t)notchFiltState != 1U))
+        return false;
+
+    uint8_t _reg    = 0U;
+    bool    _status = ICM42688_ReadReg(handle, ICM42688_UB1_GYRO_CONF_STATIC2, &_reg);
     if (!_status)
         return false;
 
@@ -215,30 +224,30 @@ ICM42688_Set_Gyro_Notch_Filt(ICM42688_Handle_t *handle, ICM42688_Notch_Filt_En_t
 
 
 static bool
-ICM42688_Compute_NotchFreq(uint16_t desiredNotchFreq_Hz, uint16_t *nf_coswz, uint8_t *nf_coswz_sel)
+ICM42688_Compute_NotchFreq(uint16_t desiredNotchFreqHz, uint16_t *nfCoswz, uint8_t *nfCoswzSel)
 {
-    if (!nf_coswz || !nf_coswz_sel)
+    if (!nfCoswz || !nfCoswzSel)
         return false;
 
-    if ((desiredNotchFreq_Hz < 1000U) || (desiredNotchFreq_Hz > 3000U))
+    if ((desiredNotchFreqHz < 1000U) || (desiredNotchFreqHz > 3000U))
         return false;
 
-    float _desired_notch_freq_khz = (float)(desiredNotchFreq_Hz / 1000.0f);
+    float _desired_notch_freq_khz = (float)(desiredNotchFreqHz / 1000.0f);
     float _coswz                  = cosf(2.0f * M_PI * _desired_notch_freq_khz / 32.0f);
 
     if (fabsf(_coswz) <= 0.875f) {
-        *nf_coswz     = (uint16_t)lroundf(_coswz * 256.0f);
-        *nf_coswz_sel = 0U;
+        *nfCoswz     = (uint16_t)lroundf(_coswz * 256.0f);
+        *nfCoswzSel = 0U;
         return true;
     }
     else {
-        *nf_coswz_sel = 1U;
+        *nfCoswzSel = 1U;
         if (_coswz > 0.875f) {
-            *nf_coswz = (uint16_t)lroundf(8.0f * (1.0f - _coswz) * 256.0f);
+            *nfCoswz = (uint16_t)lroundf(8.0f * (1.0f - _coswz) * 256.0f);
             return true;
         }
         else if (_coswz < -0.875f) {
-            *nf_coswz = (uint16_t)lroundf(-8.0f * (1.0f + _coswz) * 256.0f);
+            *nfCoswz = (uint16_t)lroundf(-8.0f * (1.0f + _coswz) * 256.0f);
             return true;
         }
     }
@@ -248,27 +257,27 @@ ICM42688_Compute_NotchFreq(uint16_t desiredNotchFreq_Hz, uint16_t *nf_coswz, uin
 
 
 static bool
-ICM42688_Set_NotchFreq_X(ICM42688_Handle_t *handle, uint16_t desiredNotchFreq_Hz)
+ICM42688_Set_NotchFreq_X(ICM42688_Handle_t *handle, uint16_t desiredNotchFreqHz)
 {
     if (!handle)
         return false;
 
-    // Compute desired notch frequency and convert it to integer
-    uint16_t          _nf_coswz_x     = 0U;
-    uint8_t           _nf_coswz_x_sel = 0U;
-    if (!ICM42688_Compute_NotchFreq(desiredNotchFreq_Hz, &_nf_coswz_x, &_nf_coswz_x_sel))
+    // Convert requested notch frequency to the register representation shared by all gyro axes.
+    uint16_t _nf_coswz_x     = 0U;
+    uint8_t  _nf_coswz_x_sel = 0U;
+    if (!ICM42688_Compute_NotchFreq(desiredNotchFreqHz, &_nf_coswz_x, &_nf_coswz_x_sel))
         return false;
 
-    // Write nf_coswz_x[7:0] to GYRO_CONF_STATIC6 register
+    // Write nf_coswz_x[7:0] to the axis-specific low-byte register.
     uint8_t _reg_low  = 0U;
     uint8_t _reg_high = 0U;
 
-    _reg_low = (uint8_t)ICM42688_GYRO_X_NF_COSWZ_LOW_Val(_nf_coswz_x);
+    _reg_low     = (uint8_t)ICM42688_GYRO_X_NF_COSWZ_LOW_Val(_nf_coswz_x);
     bool _status = ICM42688_WriteReg(handle, ICM42688_UB1_GYRO_CONF_STATIC6, _reg_low);
     if (!_status)
         return false;
 
-    // Write nf_coswz_x (bit 8) and and nf_coswz_x_sel to the GYRO_CONF_STATIC9 register
+    // Write nf_coswz_x bit 8 and nf_coswz_x_sel to GYRO_CONF_STATIC9.
     _status = ICM42688_ReadReg(handle, ICM42688_UB1_GYRO_CONF_STATIC9, &_reg_high);
     if (!_status)
         return false;
@@ -287,27 +296,27 @@ ICM42688_Set_NotchFreq_X(ICM42688_Handle_t *handle, uint16_t desiredNotchFreq_Hz
 
 
 static bool
-ICM42688_Set_NotchFreq_Y(ICM42688_Handle_t *handle, uint16_t desiredNotchFreq_Hz)
+ICM42688_Set_NotchFreq_Y(ICM42688_Handle_t *handle, uint16_t desiredNotchFreqHz)
 {
     if (!handle)
         return false;
 
-    // Compute desired notch frequency and convert it to integer
-    uint16_t          _nf_coswz_y     = 0U;
-    uint8_t           _nf_coswz_y_sel = 0U;
-    if (!ICM42688_Compute_NotchFreq(desiredNotchFreq_Hz, &_nf_coswz_y, &_nf_coswz_y_sel))
+    // Convert requested notch frequency to the register representation shared by all gyro axes.
+    uint16_t _nf_coswz_y     = 0U;
+    uint8_t  _nf_coswz_y_sel = 0U;
+    if (!ICM42688_Compute_NotchFreq(desiredNotchFreqHz, &_nf_coswz_y, &_nf_coswz_y_sel))
         return false;
 
-    // Write nf_coswz_y[7:0] to GYRO_CONF_STATIC7 register
+    // Write nf_coswz_y[7:0] to the axis-specific low-byte register.
     uint8_t _reg_low  = 0U;
     uint8_t _reg_high = 0U;
 
-    _reg_low = (uint8_t)ICM42688_GYRO_Y_NF_COSWZ_LOW_Val(_nf_coswz_y);
+    _reg_low     = (uint8_t)ICM42688_GYRO_Y_NF_COSWZ_LOW_Val(_nf_coswz_y);
     bool _status = ICM42688_WriteReg(handle, ICM42688_UB1_GYRO_CONF_STATIC7, _reg_low);
     if (!_status)
         return false;
 
-    // Write nf_coswz_y (bit 8) and and nf_coswz_y_sel to the GYRO_CONF_STATIC9 register
+    // Write nf_coswz_y bit 8 and nf_coswz_y_sel to GYRO_CONF_STATIC9.
     _status = ICM42688_ReadReg(handle, ICM42688_UB1_GYRO_CONF_STATIC9, &_reg_high);
     if (!_status)
         return false;
@@ -325,27 +334,27 @@ ICM42688_Set_NotchFreq_Y(ICM42688_Handle_t *handle, uint16_t desiredNotchFreq_Hz
 
 
 static bool
-ICM42688_Set_NotchFreq_Z(ICM42688_Handle_t *handle, uint16_t desiredNotchFreq_Hz)
+ICM42688_Set_NotchFreq_Z(ICM42688_Handle_t *handle, uint16_t desiredNotchFreqHz)
 {
     if (!handle)
         return false;
 
-    // Compute desired notch frequency and convert it to integer
-    uint16_t          _nf_coswz_z     = 0U;
-    uint8_t           _nf_coswz_z_sel = 0U;
-    if (!ICM42688_Compute_NotchFreq(desiredNotchFreq_Hz, &_nf_coswz_z, &_nf_coswz_z_sel))
+    // Convert requested notch frequency to the register representation shared by all gyro axes.
+    uint16_t _nf_coswz_z     = 0U;
+    uint8_t  _nf_coswz_z_sel = 0U;
+    if (!ICM42688_Compute_NotchFreq(desiredNotchFreqHz, &_nf_coswz_z, &_nf_coswz_z_sel))
         return false;
 
-    // Write nf_coswz_z[7:0] to GYRO_CONF_STATIC8 register
+    // Write nf_coswz_z[7:0] to the axis-specific low-byte register.
     uint8_t _reg_low  = 0U;
     uint8_t _reg_high = 0U;
 
-    _reg_low = (uint8_t)ICM42688_GYRO_Z_NF_COSWZ_LOW_Val(_nf_coswz_z);
+    _reg_low     = (uint8_t)ICM42688_GYRO_Z_NF_COSWZ_LOW_Val(_nf_coswz_z);
     bool _status = ICM42688_WriteReg(handle, ICM42688_UB1_GYRO_CONF_STATIC8, _reg_low);
     if (!_status)
         return false;
 
-    // Write nf_coswz_z (bit 8) and and nf_coswz_z_sel to the GYRO_CONF_STATIC9 register
+    // Write nf_coswz_z bit 8 and nf_coswz_z_sel to GYRO_CONF_STATIC9.
     _status = ICM42688_ReadReg(handle, ICM42688_UB1_GYRO_CONF_STATIC9, &_reg_high);
     if (!_status)
         return false;
@@ -362,19 +371,19 @@ ICM42688_Set_NotchFreq_Z(ICM42688_Handle_t *handle, uint16_t desiredNotchFreq_Hz
 
 
 bool
-ICM42688_Set_NotchFreq_XYZ(ICM42688_Handle_t *handle, uint16_t desired_X_NotchFreq_Hz,
-                           uint16_t desired_Y_NotchFreq_Hz, uint16_t desired_Z_NotchFreq_Hz)
+ICM42688_Set_NotchFreq_XYZ(ICM42688_Handle_t *handle, uint16_t desiredXNotchFreqHz, uint16_t desiredYNotchFreqHz,
+                           uint16_t desiredZNotchFreqHz)
 {
     if (!handle)
         return false;
 
-    if (!ICM42688_Set_NotchFreq_X(handle, desired_X_NotchFreq_Hz))
+    if (!ICM42688_Set_NotchFreq_X(handle, desiredXNotchFreqHz))
         return false;
 
-    if (!ICM42688_Set_NotchFreq_Y(handle, desired_Y_NotchFreq_Hz))
+    if (!ICM42688_Set_NotchFreq_Y(handle, desiredYNotchFreqHz))
         return false;
 
-    if (!ICM42688_Set_NotchFreq_Z(handle, desired_Z_NotchFreq_Hz))
+    if (!ICM42688_Set_NotchFreq_Z(handle, desiredZNotchFreqHz))
         return false;
 
     return true;

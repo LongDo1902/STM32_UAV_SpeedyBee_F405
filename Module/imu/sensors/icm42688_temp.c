@@ -16,6 +16,9 @@ ICM42688_Set_Temperature_Enable(ICM42688_Handle_t *handle, ICM42688_Temp_t state
     if (!handle)
         return false;
 
+    if (((uint8_t)state != 0U) && ((uint8_t)state != 1U))
+        return false;
+
     if (handle->is_initialized && handle->temp_config.temp_state == state)
         return true;
     bool _status = ICM42688_Update_Reg_Bits(

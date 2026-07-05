@@ -23,7 +23,7 @@ bool
 ICM42688_Set_SPI_SlewRate(ICM42688_Handle_t *handle, ICM42688_SPI_SLEWRATE_t slewRate);
 
 bool
-ICM42688_Set_UI_SIFS_Conf(ICM42688_Handle_t *handle, ICM42688_UI_SIFS_Cfg_t config);
+ICM42688_Set_UI_SIFS_Conf(ICM42688_Handle_t *handle, ICM42688_UI_SIFS_Cfg_t uiSifsConfig);
 
 bool
 ICM42688_Set_Sensor_Data_Endian(ICM42688_Handle_t            *handle,

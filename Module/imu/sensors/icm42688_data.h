@@ -32,14 +32,14 @@ typedef struct
 
 typedef enum
 {
-    // IMU Z+ same as Body Z+
+    // IMU Z+ aligned with body Z+.
     IMU_ORIENT_X_Y_Z,
     IMU_ORIENT_NEGY_NEGX_Z,
     IMU_ORIENT_Y_NEG_X_Z,
     IMU_ORIENT_NEGX_NEGY_Z,
     IMU_ORIENT_NEGY_X_Z,
 
-    // IMU is upside down, so Z- is same as Body Z+
+    // IMU upside down: IMU Z- aligned with body Z+.
     IMU_ORIENT_X_NEGY_NEGZ,
     IMU_ORIENT_NEGY_NEGX_NEGZ,
     IMU_ORIENT_NEGX_Y_NEGZ,
@@ -79,7 +79,7 @@ typedef struct
 
 
 bool
-ICM42688_Get_Temperature_C(ICM42688_Handle_t *handle, float *out_temp_c);
+ICM42688_Get_Temperature_C(ICM42688_Handle_t *handle, float *outTempC);
 
 bool
 ICM42688_Get_Accel_XYZ(ICM42688_Handle_t *handle, int16_t *buf);
@@ -94,20 +94,20 @@ bool
 ICM42688_Get_Gyro_DPS(ICM42688_Handle_t *handle, float dps[3]);
 
 bool
-ICM42688_Get_Temp_Accel_Gyro_Raw(ICM42688_Handle_t *handle, ICM42688_Raw_t *out_raw);
+ICM42688_Get_Temp_Accel_Gyro_Raw(ICM42688_Handle_t *handle, ICM42688_Raw_t *outRaw);
 
 bool
-ICM42688_Get_Calibrate_Raw(ICM42688_Handle_t *handle, ICM42688_Offset_Raw_t *offset_calibrated_raw,
+ICM42688_Get_Calibrate_Raw(ICM42688_Handle_t *handle, ICM42688_Offset_Raw_t *offsetCalibratedRaw,
                            uint32_t samples);
 
 bool
 ICM42688_Get_Temp_Accel_Gyro_Scaled(ICM42688_Handle_t                 *handle,
-                                    const ICM42688_Offset_Raw_t       *offset_raw,
-                                    ICM42688_Temp_Accel_Gyro_Scaled_t *sample_out);
+                                    const ICM42688_Offset_Raw_t       *offsetRaw,
+                                    ICM42688_Temp_Accel_Gyro_Scaled_t *sampleOut);
 
 bool
 ICM42688_Get_Est_Angle_Complement(ICM42688_Handle_t *handle, ICM42688_Orientation_t orientation,
-                                  const ICM42688_Temp_Accel_Gyro_Scaled_t *input_imu_scaled,
-                                  ICM42688_Est_Angle_complement_t *attitude_out, float dt_s);
+                                  const ICM42688_Temp_Accel_Gyro_Scaled_t *inputImuScaled,
+                                  ICM42688_Est_Angle_complement_t *attitudeOut, float dtS);
 
 #endif /* INC_IMU_SENSORS_ICM42688_DATA_H_ */
