@@ -2,15 +2,16 @@
     "configurations": [
         {
             "name": "STM32F4",
-            "compilerPath": "${env:STM32_GCC_EXE}",
+            "compilerPath": "C:/ST/STM32CubeIDE_2.1.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.14.3.rel1.win32_1.0.100.202602081740/tools/bin/arm-none-eabi-gcc.exe",
             "includePath": [
                 "${workspaceFolder}/Core/Inc",
                 "${workspaceFolder}/Module",
-                "${workspaceFolder}/Module/imu",
                 "${workspaceFolder}/Module/leds",
                 "${workspaceFolder}/Module/logging",
                 "${workspaceFolder}/Module/temperature",
                 "${workspaceFolder}/Module/pid",
+                "${workspaceFolder}/Module/common",
+                "${workspaceFolder}/Module/dshot",
                 "${workspaceFolder}/Drivers/STM32F4xx_HAL_Driver/Inc",
                 "${workspaceFolder}/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy",
                 "${workspaceFolder}/Drivers/CMSIS/Device/ST/STM32F4xx/Include",
@@ -28,7 +29,8 @@
                 "-mcpu=cortex-m4",
                 "-mthumb",
                 "-mfpu=fpv4-sp-d16",
-                "-mfloat-abi=hard"
+                "-mfloat-abi=hard",
+                "--specs=nano.specs"
             ],
             "cStandard": "gnu11",
             "cppStandard": "gnu++17",
