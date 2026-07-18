@@ -93,11 +93,17 @@ ICM42688_main()
     }
 }
 
-uint16_t throttle;
+volatile uint16_t pitch;
+volatile uint16_t roll;
+volatile uint16_t yaw;
+volatile uint16_t throttle;
+
+volatile uint32_t uart6_error_count;
+volatile uint32_t uart6_last_error;
+
 #ifndef DEBUG_CRSF
 crsf_handle_t crsf_handle;
 #endif
-
 
 void
 test_cfsf()
@@ -277,10 +283,13 @@ main(void)
 
         /* USER CODE BEGIN 3 */
         if (crsf_update(&crsf_handle)) {
+            crsf_get_channel_roll(&crsf_handle, &roll);
+            crsf_get_channel_pitch(&crsf_handle, &pitch);
+            crsf_get_channel_yaw(&crsf_handle, &yaw);
             crsf_get_channel_throttle(&crsf_handle, &throttle);
         }
 
-        HAL_Delay(500);
+        HAL_Delay(1);
     }
     /* USER CODE END 3 */
 }
@@ -337,6 +346,20 @@ HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
         crsf_receive_byte(&crsf_handle);
     }
 }
+
+void
+HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+    if (huart->Instance == USART6) {
+        uart6_last_error = huart->ErrorCode;
+        uart6_error_count++;
+
+        __HAL_UART_CLEAR_OREFLAG(huart);
+        huart->ErrorCode = HAL_UART_ERROR_NONE;
+        (void)crsf_start_receive(&crsf_handle);
+    }
+}
+
 /* USER CODE END 4 */
 
 /**

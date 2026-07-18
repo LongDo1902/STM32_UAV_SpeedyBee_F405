@@ -47,7 +47,7 @@ typedef struct
     uint16_t ch3 : 11;
     uint16_t ch4 : 11;
     uint16_t ch5 : 11;
-} __attribute__((packed)) crsf_channels_packed_t;
+} __attribute__((packed)) crsf_rc_channels_packed_t;
 
 typedef enum
 {
@@ -62,7 +62,7 @@ typedef struct
 {
     crsf_frame_packed_t crsf_frame;
     uint8_t             frame_position;
-    uint8_t             frame_done;
+    volatile uint8_t    crsf_frame_done;
     uint16_t            channels[CRSF_MAX_CHANNEL];
     UART_HandleTypeDef *uart;
 } crsf_handle_t;
