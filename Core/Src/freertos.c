@@ -29,17 +29,30 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 
-osThreadId_t         dshotMotorTaskHandle;
-const osThreadAttr_t dshotMotorTask_attributes = {
-    .name       = "DshotMotorTask",
-    .stack_size = 128 * 4,
+/* USER CODE END Variables */
+/* Definitions for ICM42688Task */
+osThreadId_t         ICM42688TaskHandle;
+const osThreadAttr_t ICM42688Task_attributes = {
+    .name       = "ICM42688Task",
+    .stack_size = 1024 * 4,
     .priority   = (osPriority_t)osPriorityHigh,
+};
+/* Definitions for ICM42688LogTask */
+osThreadId_t         ICM42688LogTaskHandle;
+const osThreadAttr_t ICM42688LogTask_attributes = {
+    .name       = "ICM42688LogTask",
+    .stack_size = 1024 * 4,
+    .priority   = (osPriority_t)osPriorityLow,
 };
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 
 /* USER CODE END FunctionPrototypes */
+
+void Start_ICM42688Task(void *argument);
+void Start_ICM42688LogTask(void *argument);
+
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /**
@@ -66,18 +79,56 @@ MX_FREERTOS_Init(void)
     /* USER CODE END RTOS_QUEUES */
 
     /* Create the thread(s) */
+    /* creation of ICM42688Task */
+    ICM42688TaskHandle = osThreadNew(Start_ICM42688Task, NULL, &ICM42688Task_attributes);
+
+    /* creation of ICM42688LogTask */
+    ICM42688LogTaskHandle = osThreadNew(Start_ICM42688LogTask, NULL, &ICM42688LogTask_attributes);
 
     /* USER CODE BEGIN RTOS_THREADS */
     /* add threads, ... */
-    dshotMotorTaskHandle = osThreadNew(DshotMotorControlTask, NULL, &dshotMotorTask_attributes);
+    // dshotMotorTaskHandle = osThreadNew(DshotMotorControlTask, NULL, &dshotMotorTask_attributes);
     /* USER CODE END RTOS_THREADS */
 
     /* USER CODE BEGIN RTOS_EVENTS */
     /* add events, ... */
     /* USER CODE END RTOS_EVENTS */
+}
 
-    /* USER CODE BEGIN RTOS_EVENTS */
-    /* USER CODE END RTOS_EVENTS */
+/* USER CODE BEGIN Header_Start_ICM42688Task */
+/**
+ * @brief  Function implementing the ICM42688Task thread.
+ * @param  argument: Not used
+ * @retval None
+ */
+/* USER CODE END Header_Start_ICM42688Task */
+void
+Start_ICM42688Task(void *argument)
+{
+    /* USER CODE BEGIN Start_ICM42688Task */
+    /* Infinite loop */
+    for (;;) {
+        osDelay(1);
+    }
+    /* USER CODE END Start_ICM42688Task */
+}
+
+/* USER CODE BEGIN Header_Start_ICM42688LogTask */
+/**
+ * @brief Function implementing the ICM42688LogTask thread.
+ * @param argument: Not used
+ * @retval None
+ */
+/* USER CODE END Header_Start_ICM42688LogTask */
+void
+Start_ICM42688LogTask(void *argument)
+{
+    /* USER CODE BEGIN Start_ICM42688LogTask */
+    /* Infinite loop */
+    for (;;) {
+        osDelay(1);
+    }
+    /* USER CODE END Start_ICM42688LogTask */
 }
 
 /* Private application code --------------------------------------------------*/

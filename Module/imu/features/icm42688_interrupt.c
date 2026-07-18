@@ -18,16 +18,15 @@ ICM42688_Set_Int1_Config(ICM42688_Handle_t *handle, ICM42688_Int_Polarity_t pola
         ((uint8_t)mode >= INT_MODE_MAX))
         return false;
 
-    if ((handle->is_initialized) &&
-        ((uint8_t)polarity == (uint8_t)(handle->int1_config.int1_polarity)) &&
+    if ((handle->is_initialized) && ((uint8_t)polarity == (uint8_t)(handle->int1_config.int1_polarity)) &&
         ((uint8_t)drive) == ((uint8_t)(handle->int1_config.int1_drive)) &&
         ((uint8_t)mode) == ((uint8_t)(handle->int1_config.int1_mode))) {
         return true;
     }
 
-    uint8_t _mask        = ICM42688_INT1_POL_Msk | ICM42688_INT1_DRIVE_Msk | ICM42688_INT1_MODE_Msk;
-    uint8_t _value_masked = ICM42688_INT1_POL_Val(polarity) | ICM42688_INT1_DRIVE_Val(drive) |
-                           ICM42688_INT1_MODE_Val(mode);
+    uint8_t _mask = ICM42688_INT1_POL_Msk | ICM42688_INT1_DRIVE_Msk | ICM42688_INT1_MODE_Msk;
+    uint8_t _value_masked =
+        ICM42688_INT1_POL_Val(polarity) | ICM42688_INT1_DRIVE_Val(drive) | ICM42688_INT1_MODE_Val(mode);
 
     bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_CONF, _mask, _value_masked);
     if (!_status)
@@ -50,15 +49,14 @@ ICM42688_Set_Int2_Config(ICM42688_Handle_t *handle, ICM42688_Int_Polarity_t pola
         ((uint8_t)mode >= INT_MODE_MAX))
         return false;
 
-    if ((handle->is_initialized) &&
-        ((uint8_t)polarity == (uint8_t)(handle->int2_config.int2_polarity)) &&
+    if ((handle->is_initialized) && ((uint8_t)polarity == (uint8_t)(handle->int2_config.int2_polarity)) &&
         ((uint8_t)drive) == ((uint8_t)(handle->int2_config.int2_drive)) &&
         ((uint8_t)mode) == ((uint8_t)(handle->int2_config.int2_mode)))
         return true;
 
-    uint8_t _mask        = ICM42688_INT2_POL_Msk | ICM42688_INT2_DRIVE_Msk | ICM42688_INT2_MODE_Msk;
-    uint8_t _value_masked = ICM42688_INT2_POL_Val(polarity) | ICM42688_INT2_DRIVE_Val(drive) |
-                           ICM42688_INT2_MODE_Val(mode);
+    uint8_t _mask = ICM42688_INT2_POL_Msk | ICM42688_INT2_DRIVE_Msk | ICM42688_INT2_MODE_Msk;
+    uint8_t _value_masked =
+        ICM42688_INT2_POL_Val(polarity) | ICM42688_INT2_DRIVE_Val(drive) | ICM42688_INT2_MODE_Val(mode);
 
     bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_CONF, _mask, _value_masked);
     if (!_status)
@@ -140,8 +138,8 @@ ICM42688_Set_Int1_FIFO_Full_Enable(ICM42688_Handle_t *handle, bool enable)
 
     uint8_t _value_masked = enable ? ICM42688_FIFO_FULL_INT1_EN_Msk : 0U;
 
-    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_SRC0,
-                                            ICM42688_FIFO_FULL_INT1_EN_Msk, _value_masked);
+    bool _status =
+        ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_SRC0, ICM42688_FIFO_FULL_INT1_EN_Msk, _value_masked);
     if (!_status)
         return _status;
 
@@ -158,8 +156,8 @@ ICM42688_Set_Int1_FIFO_Threshold_Enable(ICM42688_Handle_t *handle, bool enable)
 
     uint8_t _value_masked = enable ? ICM42688_FIFO_THS_INT1_EN_Msk : 0U;
 
-    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_SRC0,
-                                            ICM42688_FIFO_THS_INT1_EN_Msk, _value_masked);
+    bool _status =
+        ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_SRC0, ICM42688_FIFO_THS_INT1_EN_Msk, _value_masked);
     if (!_status)
         return _status;
 
@@ -176,8 +174,7 @@ ICM42688_Set_Int1_DataReady_Enable(ICM42688_Handle_t *handle, bool enable)
 
     uint8_t _value_masked = enable ? ICM42688_UI_DRDY_INT1_EN_Msk : 0U;
 
-    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_SRC0,
-                                            ICM42688_UI_DRDY_INT1_EN_Msk, _value_masked);
+    bool _status = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_SRC0, ICM42688_UI_DRDY_INT1_EN_Msk, _value_masked);
     if (!_status)
         return _status;
 
@@ -192,8 +189,33 @@ ICM42688_Set_Int1_ResetDone_Enable(ICM42688_Handle_t *handle, bool enable)
     if (!handle)
         return false;
     uint8_t _value_masked = enable ? ICM42688_RESET_DONE_INT1_EN_Msk : 0U;
-    bool    _status      = ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_SRC0,
-                                                    ICM42688_RESET_DONE_INT1_EN_Msk, _value_masked);
+    bool    _status =
+        ICM42688_Update_Reg_Bits(handle, ICM42688_UB0_INT_SRC0, ICM42688_RESET_DONE_INT1_EN_Msk, _value_masked);
+    if (!_status)
+        return _status;
+
+    return true;
+}
+
+
+
+/*==========================================================================================
+ * 	INT_CONFIG1
+ *==========================================================================================*/
+bool
+ICM42688_Set_INT_CONFIG1(ICM42688_Handle_t *pHandle, bool setAsyncReset, bool setTdeAssertDisable,
+                         bool setTpulseDuration)
+{
+    if (!pHandle)
+        return false;
+
+    uint8_t _mask =
+        ICM42688_INT_ASYNC_RESET_Msk | ICM42688_INT_TDEASSERT_DISABLE_Msk | ICM42688_INT_TPULSE_DURATION_Msk;
+    uint8_t _value_masked = ICM42688_INT_ASYNC_RESET_Val((uint8_t)setAsyncReset) |
+                            ICM42688_INT_TDEASSERT_DISABLE_Val((uint8_t)setTdeAssertDisable) |
+                            ICM42688_INT_TPULSE_DURATION_Val((uint8_t)(setTpulseDuration));
+
+    bool _status = ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_INT_CONF1, _mask, _value_masked);
     if (!_status)
         return _status;
 

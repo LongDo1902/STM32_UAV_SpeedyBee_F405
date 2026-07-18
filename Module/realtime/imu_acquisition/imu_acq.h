@@ -1,41 +1,44 @@
 #ifndef IMU_ACQ_H
 #define IMU_ACQ_H
 
-#include <stdbool.h>
-#include <stdint.h>
+#include "imu/core/icm42688_types.h"
 
-#include "imu_sample.h"
-#include "stm32f4xx_hal.h"
+typedef struct
+{
+    ICM42688_Handle_t *imu_handle;    // Pointer directly to real handle
+    TIM_HandleTypeDef *htim_us;       // Dedicated 32-bit timer counter configured as a 1MHz free-running
+    uint16_t           int1_gpio_pin; // HAL_GPIO pin mask for the ICM42688 INT1 pin
+} IMU_ACQ_Config_t;
 
-/**
- * @brief Initialize the ICM42688 acquisition path.
- * @note The sensor is configured by the ICM42688 driver for 8 kHz accel/gyro FIFO
- *       samples. This module consumes two 16-byte FIFO packets per 4 kHz event.
- */
-bool IMU_ACQ_Init(SPI_HandleTypeDef *hspi, GPIO_TypeDef *cs_port, uint16_t cs_pin);
+typedef struct
+{
+    uint32_t exti_count;                  // How many FIFO WTM interrupts arrived from ICM42688
+    uint32_t exti_while_dma_active_count; // How many IMU interrupts arrived while the previous SPI DMA transfer
+                                          // was still active
+    uint32_t no_free_dma_slo_count;       // How many times an IMU interrupt arrived but neither DMA buffer was free
+    uint32_t dma_start_count;             // How many SPI DMA FIFO reads were successfully started
+    uint32_t dma_complete_count;          // How many succeed full-duplex SPI DMA transaction
 
-/**
- * @brief Start one FIFO DMA read after an IMU interrupt edge.
- * @param gpio_pin EXTI pin reported by HAL; currently accepted for any pin.
- * @param timestamp_us Timestamp associated with the interrupt edge.
- */
-void IMU_ACQ_On_EXTI(uint16_t gpio_pin, uint32_t timestamp_us);
+    uint32_t dma_start_error_count;    // How many times the firmware attempted to start SPI DMA but HAL rejected
+    uint32_t dma_transfer_error_count; // Counts DMA transaction started but later failed during transfer
 
-/**
- * @brief Finish and decode the pending FIFO DMA read for this IMU SPI handle.
- */
-void IMU_ACQ_On_SPI_DMA_Complete(SPI_HandleTypeDef *hspi);
+    uint32_t parse_error_count; // Count completed DMA buffers that could not be decoded correctly into the expected
+                                // FIFO frames
 
-/**
- * @brief Abort the pending FIFO DMA read for this IMU SPI handle.
- */
-void IMU_ACQ_On_SPI_DMA_Error(SPI_HandleTypeDef *hspi);
+    uint32_t published_sample_count; // How many valid 4kHz averaged IMU samples were successfully published
 
-/**
- * @brief Copy the latest decoded IMU sample.
- * @param out_sample Destination sample.
- * @return true when the copied sample is healthy, otherwise false.
- */
-bool IMU_ACQ_GetLatestSample(IMU_Sample_t *out_sample);
+    uint32_t bad_dt_count; // Counts published sample whose measured time is outside acceptable range
 
-#endif
+    uint32_t last_dt_us; // Stores the most recently measured interval between two published IMU samples
+    uint32_t min_dt_us;  // Stores the smallest dt observed since statistics were reset
+    uint32_t max_dt_us;  // Stores the largest dt observed since statistics were reset
+} IMU_ACQ_Status_t;      // Diagnostics structure to track if acquisition path is working correctly
+
+typedef enum
+{
+    IMU_ACQ_PROCESS_NONE = 0,
+    IMU_ACQ_PROCESS_PUBLISHED,
+    IMU_ACQ_PROCESS_DROPPED,
+} IMU_ACQ_ProcessResult_t;
+
+#endif /* IMU_ACQ_H */
