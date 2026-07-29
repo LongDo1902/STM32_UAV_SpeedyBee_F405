@@ -5,9 +5,16 @@
 
 typedef struct
 {
-    ICM42688_Handle_t *imu_handle;    // Pointer directly to real handle
-    TIM_HandleTypeDef *htim_us;       // Dedicated 32-bit timer counter configured as a 1MHz free-running
-    uint16_t           int1_gpio_pin; // HAL_GPIO pin mask for the ICM42688 INT1 pin
+    // SPI configurations
+    SPI_HandleTypeDef *hspi;
+    GPIO_TypeDef      *cs_port;
+    uint16_t           cs_pin;
+
+    // HAL_GPIO pin mask for ICM42688 INT1 pin
+    uint16_t int1_gpio_pin;
+
+    // Dedicated 32-bit timer counter configured as a 1MHz free-running counter
+    TIM_HandleTypeDef *htim_us;
 } IMU_ACQ_Config_t;
 
 typedef struct

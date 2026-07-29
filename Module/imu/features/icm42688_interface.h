@@ -14,19 +14,19 @@
 #include "imu/core/icm42688_types.h"
 
 bool
-ICM42688_Set_SPI_Mode(ICM42688_Handle_t *handle, ICM42688_SPI_Mode_t spiMode);
+ICM42688_Set_SPI_Mode(ICM42688_Handle_t *pHandle, ICM42688_SPI_Mode_t spiMode);
 
 bool
-ICM42688_Get_SPI_SlewRate(ICM42688_Handle_t *handle, ICM42688_SPI_SLEWRATE_t *slewRate);
+ICM42688_Get_SPI_SlewRate(ICM42688_Handle_t *pHandle, ICM42688_SPI_SLEWRATE_t *pSlewRate);
 
 bool
-ICM42688_Set_SPI_SlewRate(ICM42688_Handle_t *handle, ICM42688_SPI_SLEWRATE_t slewRate);
+ICM42688_Set_SPI_SlewRate(ICM42688_Handle_t *pHandle, ICM42688_SPI_SLEWRATE_t slewRate);
 
 bool
-ICM42688_Set_UI_SIFS_Conf(ICM42688_Handle_t *handle, ICM42688_UI_SIFS_Cfg_t uiSifsConfig);
+ICM42688_Set_UI_SIFS_Conf(ICM42688_Handle_t *pHandle, ICM42688_UI_SIFS_Cfg_t uiSifsConfig);
 
 bool
-ICM42688_Set_Sensor_Data_Endian(ICM42688_Handle_t            *handle,
+ICM42688_Set_Sensor_Data_Endian(ICM42688_Handle_t            *pHandle,
                                 ICM42688_Sensor_Data_Endian_t whichEndian);
 
 #endif /* INC_IMU_ICM42688_INTERFACE_H_ */

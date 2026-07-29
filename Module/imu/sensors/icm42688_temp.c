@@ -11,20 +11,20 @@
  * 	TEMPERATURE CONFIG
  *================================================================================== */
 bool
-ICM42688_Set_Temperature_Enable(ICM42688_Handle_t *handle, ICM42688_Temp_t state)
+ICM42688_Set_Temperature_Enable(ICM42688_Handle_t *pHandle, ICM42688_Temp_t state)
 {
-    if (!handle)
+    if (!pHandle)
         return false;
 
     if (((uint8_t)state != 0U) && ((uint8_t)state != 1U))
         return false;
 
-    if (handle->is_initialized && handle->temp_config.temp_state == state)
+    if (pHandle->is_initialized && pHandle->temp_config.temp_state == state)
         return true;
     bool _status = ICM42688_Update_Reg_Bits(
-        handle, ICM42688_UB0_PWR_MGMT0, ICM42688_TEMP_Msk, ICM42688_TEMP_Val(state));
+        pHandle, ICM42688_UB0_PWR_MGMT0, ICM42688_TEMP_Msk, ICM42688_TEMP_Val(state));
     if (!_status)
         return _status;
-    handle->temp_config.temp_state = state;
+    pHandle->temp_config.temp_state = state;
     return true;
 }

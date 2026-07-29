@@ -14,6 +14,6 @@
 #include "imu/core/icm42688_types.h"
 
 bool
-ICM42688_Set_Temperature_Enable(ICM42688_Handle_t *handle, ICM42688_Temp_t state);
+ICM42688_Set_Temperature_Enable(ICM42688_Handle_t *pHandle, ICM42688_Temp_t state);
 
 #endif /* SRC_IMU_SENSORS_ICM42688_TEMP_H_ */

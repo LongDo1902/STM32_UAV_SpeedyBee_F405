@@ -37,10 +37,10 @@
             return false; \
     } while (0)
 
-bool ICM42688_IsAlive(ICM42688_Handle_t *handle);
+bool ICM42688_IsAlive(ICM42688_Handle_t *pHandle);
 
-bool ICM42688_SoftReset(ICM42688_Handle_t *handle);
+bool ICM42688_SoftReset(ICM42688_Handle_t *pHandle);
 
-bool ICM42688_Init(ICM42688_Handle_t *handle);
+bool ICM42688_Init(ICM42688_Handle_t *pHandle);
 
 #endif /* INC_IMU_ICM42688_DEVICE_H_ */

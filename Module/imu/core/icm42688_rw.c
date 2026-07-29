@@ -13,9 +13,9 @@
  * ============================================================================ */
 
 /**
- * @brief Build the command byte for an SPI register read.
- * @param encodedReg Register encoded with bank and address.
- * @return Register address with the ICM42688 SPI read bit set.
+ * @brief   Build the command byte for an SPI register read.
+ * @param   encodedReg Register encoded with bank and address.
+ * @return  Register address with the ICM42688 SPI read bit set.
  */
 static inline uint8_t
 ICM42688_SPI_Read_Command(ICM42688_Reg_t encodedReg)
@@ -26,9 +26,9 @@ ICM42688_SPI_Read_Command(ICM42688_Reg_t encodedReg)
 
 
 /**
- * @brief Build the command byte for an SPI register write.
- * @param encodedReg Register encoded with bank and address.
- * @return Register address with the ICM42688 SPI read bit cleared.
+ * @brief   Build the command byte for an SPI register write.
+ * @param   encodedReg Register encoded with bank and address.
+ * @return  Register address with the ICM42688 SPI read bit cleared.
  */
 static inline uint8_t
 ICM42688_SPI_Write_Command(ICM42688_Reg_t encodedReg)
