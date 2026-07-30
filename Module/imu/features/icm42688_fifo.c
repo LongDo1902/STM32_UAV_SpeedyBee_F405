@@ -895,8 +895,7 @@ ICM42688_FIFO_Parse_One_Byte_Frame(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Fra
  * @param   pFrame              Pointer to an ICM42688 FIFO frame struct that carries raw data to be calibrated
  * @param   pOffset             Pointer to an ICM42688 Offset struct that carries the raw offset data to be used for
  *                              calibration
- * @param   pOutCalibratedData  Pointer to ICM42688 Scaled struct that carries the calibrated output
- *                              data
+ * @param   pOutCalibratedData  Pointer to ICM42688 Scaled struct that carries the calibrated output data
  * @note    Only fields marked valid in @p pFrame are calibrated; absent sensors remain zeroed.
  */
 bool

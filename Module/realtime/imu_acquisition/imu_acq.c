@@ -71,7 +71,8 @@ static volatile IMU_ACQ_Status_t status_;
  */
 static bool initialized_ = false;
 
-static volatile uint8_t  active_dma_slot_  = IMU_DMA_INVALID_SLOT_INDEX;
+static volatile uint8_t active_dma_slot_ =
+    IMU_DMA_INVALID_SLOT_INDEX; // Remember which DMA slot is being filled by SPI DMA
 static volatile uint8_t  completion_order_ = 0U;
 static volatile uint32_t pending_faults_   = IMU_FAULT_NONE;
 
@@ -221,23 +222,23 @@ IMU_ACQ_FindFreeSlotLocked(void)
 static uint8_t
 IMU_ACQ_TakeOldestReadySlot(void)
 {
-    uint8_t  selected_slot  = IMU_DMA_INVALID_SLOT_INDEX;
-    uint32_t selected_order = UINT32_MAX;
-    uint32_t primask        = IMU_ACQ_EnterCritical();
+    uint8_t  _selected_slot  = IMU_DMA_INVALID_SLOT_INDEX;
+    uint32_t _selected_order = UINT32_MAX;
+    uint32_t _primask        = IMU_ACQ_EnterCritical();
 
     for (uint8_t i = 0; i < IMU_ACQ_DMA_SLOT_COUNT; i++) {
-        if ((dma_slot_[i].state == IMU_DMA_SLOT_READY) && (dma_slot_[i].completion_order < selected_order)) {
-            selected_slot  = i;
-            selected_order = dma_slot_[i].completion_order;
+        if ((dma_slot_[i].state == IMU_DMA_SLOT_READY) && (dma_slot_[i].completion_order < _selected_order)) {
+            _selected_slot  = i;
+            _selected_order = dma_slot_[i].completion_order;
         }
     }
 
-    if (selected_slot != IMU_DMA_INVALID_SLOT_INDEX) {
-        dma_slot_[selected_slot].state = IMU_DMA_SLOT_PROCESSING;
+    if (_selected_slot != IMU_DMA_INVALID_SLOT_INDEX) {
+        dma_slot_[_selected_slot].state = IMU_DMA_SLOT_PROCESSING;
     }
 
-    IMU_ACQ_ExitCritical(primask);
-    return selected_slot;
+    IMU_ACQ_ExitCritical(_primask);
+    return _selected_slot;
 }
 
 
@@ -248,9 +249,9 @@ IMU_ACQ_TakeOldestReadySlot(void)
 static void
 IMU_ACQ_ReleaseSlot(uint8_t slotIndex)
 {
-    uint32_t primask           = IMU_ACQ_EnterCritical();
+    uint32_t _primask          = IMU_ACQ_EnterCritical();
     dma_slot_[slotIndex].state = IMU_DMA_SLOT_FREE;
-    IMU_ACQ_ExitCritical(primask);
+    IMU_ACQ_ExitCritical(_primask);
 }
 
 
@@ -268,56 +269,57 @@ IMU_ACQ_DecodeAndAverage(const IMU_DMA_Slot_t *pDmaSlot, IMU_Sample_t *pImuOutSa
         return false;
     }
 
-    const uint8_t *fifo_byte   = &pDmaSlot->rx[IMU_SPI_DMA_CMD_BYTES]; // Pointer to the 1st-index-byte in DMA RX buffer
-    uint16_t       parse_pos   = 0U;
-    uint16_t       frame_count = 0U;
+    const uint8_t *_p_fifo_byte = &pDmaSlot->rx[IMU_SPI_DMA_CMD_BYTES]; // Pointer to the 1st-index-byte DMA RX buffer
+    uint16_t       _parse_pos   = 0U;
+    uint16_t       _frame_count = 0U;
 
-    float accel_sum[3] = {0.0f, 0.0f, 0.0f};
-    float gyro_sum[3]  = {0.0f, 0.0f, 0.0f};
-    float temp_sum     = 0.0f;
+    float _accel_sum[3] = {0.0f, 0.0f, 0.0f};
+    float _gyro_sum[3]  = {0.0f, 0.0f, 0.0f};
+    float _temp_sum     = 0.0f;
 
-    while (parse_pos < IMU_FIFO_WTM_BYTES) {
-        if (frame_count >= IMU_FIFO_BATCH_SAMPLES) {
+    while (_parse_pos < IMU_FIFO_WTM_BYTES) {
+        if (_frame_count >= IMU_FIFO_BATCH_SAMPLES) {
             return false;
         }
         // Reset these objects every new loop
-        ICM42688_FIFO_Frame_t             frame  = {0};
-        ICM42688_Temp_Accel_Gyro_Scaled_t scaled = {0};
+        ICM42688_FIFO_Frame_t             _frame  = {0};
+        ICM42688_Temp_Accel_Gyro_Scaled_t _scaled = {0};
 
-        if (!ICM42688_FIFO_Parse_One_Byte_Frame(&icm42688_handle_, &frame, fifo_byte, IMU_FIFO_WTM_BYTES, &parse_pos)) {
+        if (!ICM42688_FIFO_Parse_One_Byte_Frame(&icm42688_handle_, &_frame, _p_fifo_byte, IMU_FIFO_WTM_BYTES,
+                                                &_parse_pos)) {
             return false;
         }
 
-        if ((frame.packet_size != IMU_FIFO_PACKET_BYTES) || (!frame.accel_valid) || (!frame.gyro_valid) ||
-            (!frame.temp_valid)) {
+        if ((_frame.packet_size != IMU_FIFO_PACKET_BYTES) || (!_frame.accel_valid) || (!_frame.gyro_valid) ||
+            (!_frame.temp_valid)) {
             return false;
         }
 
-        if (!(ICM42688_Calibrate_FIFO_Frame(&icm42688_handle_, &frame, &icm42688_offset_raw_, &scaled))) {
+        if (!(ICM42688_Calibrate_FIFO_Frame(&icm42688_handle_, &_frame, &icm42688_offset_raw_, &_scaled))) {
             return false;
         }
 
         for (uint8_t axis = 0; axis < 3U; axis++) {
-            gyro_sum[axis]  = scaled.gyro_dps[axis];
-            accel_sum[axis] = scaled.accel_g[axis];
+            _gyro_sum[axis]  = _scaled.gyro_dps[axis];
+            _accel_sum[axis] = _scaled.accel_g[axis];
         }
 
-        temp_sum += scaled.temp_c;
-        frame_count++;
+        _temp_sum += _scaled.temp_c;
+        _frame_count++;
     }
 
-    if ((frame_count != IMU_FIFO_BATCH_SAMPLES) || (parse_pos != IMU_FIFO_WTM_BYTES)) {
+    if ((_frame_count != IMU_FIFO_BATCH_SAMPLES) || (_parse_pos != IMU_FIFO_WTM_BYTES)) {
         return false;
     }
 
     memset(pImuOutSample, 0, sizeof(*pImuOutSample));
 
     for (uint8_t axis = 0; axis < 3U; axis++) {
-        pImuOutSample->accel_g[axis]  = accel_sum[axis] / (float)IMU_FIFO_BATCH_SAMPLES;
-        pImuOutSample->gyro_dps[axis] = gyro_sum[axis] / (float)IMU_FIFO_BATCH_SAMPLES;
+        pImuOutSample->accel_g[axis]  = _accel_sum[axis] / (float)IMU_FIFO_BATCH_SAMPLES;
+        pImuOutSample->gyro_dps[axis] = _gyro_sum[axis] / (float)IMU_FIFO_BATCH_SAMPLES;
     }
 
-    pImuOutSample->temp_c = temp_sum / (float)IMU_FIFO_BATCH_SAMPLES;
+    pImuOutSample->temp_c = _temp_sum / (float)IMU_FIFO_BATCH_SAMPLES;
 
     return true;
 }
@@ -361,9 +363,10 @@ IMU_ACQ_Publish(const IMU_Sample_t *pImuSample)
  * @brief
  */
 bool
-IMU_ACQ_Init(const IMU_ACQ_Config_t *acq_config)
+IMU_ACQ_Init(const IMU_ACQ_Config_t *pAcqConfig)
 {
-    if (!config || (!config->hspi) || (!config->cs_port) || (!config->htim_us) || (config->int1_gpio_pin == 0U)) {
+    if (!pAcqConfig || (!pAcqConfig->hspi) || (!pAcqConfig->cs_port) || (!pAcqConfig->htim_us) ||
+        (pAcqConfig->int1_gpio_pin == 0U)) {
         return false;
     }
 
@@ -376,5 +379,132 @@ IMU_ACQ_Init(const IMU_ACQ_Config_t *acq_config)
     memset((void *)&status_, 0, sizeof(status_));
 
     // Reset all global parameters
-    initialized_ = false;
+    initialized_              = false;
+    active_dma_slot_          = IMU_DMA_INVALID_SLOT_INDEX;
+    completion_order_         = 0U;
+    pending_faults_           = IMU_FAULT_NONE;
+    previous_timestamp_valid_ = false;
+    previous_timestamp_us_    = 0U;
+    latest_sample_valid_      = false;
+
+    // Free DMA slot
+    for (uint8_t i = 0U; i < IMU_ACQ_DMA_SLOT_COUNT; i++) {
+        dma_slot_[i].state = IMU_DMA_SLOT_FREE;
+    }
+
+    __HAL_TIM_SET_COUNTER(acq_config_.htim_us, 0U);          // Reset timer counter
+    if (HAL_TIM_Base_Start(acq_config_.htim_us) != HAL_OK) { // Start timer counter
+        return false;
+    }
+
+    icm42688_handle_.spi_config.hspi    = acq_config_.hspi;
+    icm42688_handle_.spi_config.cs_port = acq_config_.cs_port;
+    icm42688_handle_.spi_config.cs_pin  = acq_config_.cs_pin;
+
+    if (!ICM42688_Init(&icm42688_handle_)) {
+        return false;
+    }
+
+    if (!IMU_ACQ_CalibrateGyroBias(IMU_GYRO_CALIBRATION_SAMPLE_COUNT)) {
+        return false;
+    }
+
+    // Configure every INT timing field before routing FIFO threshold to INT1
+    if (!ICM42688_Set_Int1_FIFO_Threshold_Enable(&icm42688_handle_, false) ||
+        !ICM42688_Set_Int1_DataReady_Enable(&icm42688_handle_, false) ||
+        !ICM42688_Set_Int1_FIFO_Full_Enable(&icm42688_handle_, false) ||
+        !ICM42688_Set_Int1_ResetDone_Enable(&icm42688_handle_, false) || !IMU_ACQ_Config_HighOdrInterruptTiming() ||
+        !ICM42688_Set_Int1_Config(&icm42688_handle_, INT_ACTIVE_HIGH, INT_PUSH_PULL, INT_PULSED) ||
+        !ICM42688_Set_FIFO_Watermark(&icm42688_handle_, IMU_FIFO_WTM_BYTES) ||
+        !ICM42688_Set_FIFO_WM_GT_THS(&icm42688_handle_, FIFO_WM_GREATER_THS_REPEAT) ||
+        !ICM42688_FIFO_Flush(&icm42688_handle_, true) ||
+        !ICM42688_Set_Int1_FIFO_Threshold_Enable(&icm42688_handle_, true)) {
+        return false;
+    }
+
+    initialized_ = true;
+    return true;
+}
+
+
+
+/**
+ * @brief   Handle ICM42688 INT1, usually caused by FIFO reaching its watermark
+ */
+bool
+IMU_ACQ_On_EXTI(uint16_t gpio_pin)
+{
+    if (!initialized_ || gpio_pin != acq_config_.int1_gpio_pin) {
+        return false;
+    }
+
+    // Capture time before any bookkeeping to minimize timestamp jitter
+    const uint32_t _irq_timestamp_us = IMU_ACQ_NowUs();
+    status_.exti_count++;
+
+    uint32_t _primask = IMU_ACQ_EnterCritical();
+
+    // Check if prev DMA transfer still using this slot
+    if (active_dma_slot_ != IMU_DMA_INVALID_SLOT_INDEX) {
+        // e.g active_dma_slot = 1, DMA is receiving new data
+        status_.exti_while_dma_active_count++;
+        pending_faults_ |= IMU_FAULT_EXTI_WHILE_DMA;
+        IMU_ACQ_ExitCritical(_primask);
+        return false;
+    }
+
+    // Find free slot
+    const uint8_t _free_slot_index = IMU_ACQ_FindFreeSlotLocked();
+    if (_free_slot_index == IMU_DMA_INVALID_SLOT_INDEX) {
+        status_.no_free_dma_slot_count++;
+        pending_faults_ |= IMU_FAULT_NO_FREE_DMA_SLOT;
+        IMU_ACQ_ExitCritical(_primask);
+        return false;
+    }
+
+    dma_slot_[_free_slot_index].state            = IMU_DMA_SLOT_ACTIVE;
+    dma_slot_[_free_slot_index].irq_timestamp_us = _irq_timestamp_us;
+    active_dma_slot_                             = _free_slot_index;
+
+    IMU_ACQ_ExitCritical(_primask);
+
+    IMU_DMA_Slot_t *slot = &dma_slot_[_free_slot_index];
+
+    /**
+     * @note    @c autoBankSelect is false to avoid a blocking SPI write in EXTI context.
+     *          This module therefore owns the ICM42688 bus after initialization and keeps the device in user bank 0
+     *          during real-time acquisition
+     */
+    if (!ICM42688_ReadRegs_DMA_Start(&icm42688_handle_, ICM42688_UB0_FIFO_DATA, slot->tx, (uint16_t)sizeof(slot->tx),
+                                     slot->rx, (uint16_t)sizeof(slot->rx), IMU_FIFO_WTM_BYTES, false)) {
+
+        _primask         = IMU_ACQ_EnterCritical();
+        slot->state      = IMU_DMA_SLOT_FREE;
+        active_dma_slot_ = IMU_DMA_INVALID_SLOT_INDEX;
+        status_.dma_start_error_count++;
+        pending_faults_ |= IMU_FAULT_DMA_START;
+        IMU_ACQ_ExitCritical(_primask);
+        return false;
+    }
+
+    status_.dma_start_count++;
+    return true;
+}
+
+bool
+IMU_ACQ_On_SPI_DMA_Complete(SPI_HandleTypeDef *hspi)
+{
+    if (!initialized_ || (hspi != acq_config_.hspi)) {
+        return false;
+    }
+
+    uint32_t      _primask         = IMU_ACQ_EnterCritical();
+    const uint8_t _active_dma_slot = active_dma_slot_;
+    IMU_ACQ_ExitCritical(_primask);
+
+    if (_active_dma_slot == IMU_DMA_INVALID_SLOT_INDEX) {
+        return false;
+    }
+
+    return true;
 }

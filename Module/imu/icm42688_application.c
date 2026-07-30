@@ -206,7 +206,7 @@ ICM42688_Init(ICM42688_Handle_t *pHandle)
         CHECK_FOR(ICM42688_Set_Int1_ResetDone_Enable(pHandle, true));
         CHECK_FOR(ICM42688_SoftReset(pHandle));
 
-        uint8_t  _int_status             = 0U;
+        uint8_t  _int_status            = 0U;
         uint32_t _reset_done_timeout_ms = 100U;
 
         // Wait until the device reports reset completion.

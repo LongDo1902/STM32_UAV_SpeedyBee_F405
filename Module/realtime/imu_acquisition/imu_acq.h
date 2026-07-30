@@ -22,7 +22,7 @@ typedef struct
     uint32_t exti_count;                  // How many FIFO WTM interrupts arrived from ICM42688
     uint32_t exti_while_dma_active_count; // How many IMU interrupts arrived while the previous SPI DMA transfer
                                           // was still active
-    uint32_t no_free_dma_slo_count;       // How many times an IMU interrupt arrived but neither DMA buffer was free
+    uint32_t no_free_dma_slot_count;      // How many times an IMU interrupt arrived but neither DMA buffer was free
     uint32_t dma_start_count;             // How many SPI DMA FIFO reads were successfully started
     uint32_t dma_complete_count;          // How many succeed full-duplex SPI DMA transaction
 
