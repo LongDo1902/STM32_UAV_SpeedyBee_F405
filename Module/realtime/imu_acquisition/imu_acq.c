@@ -498,6 +498,7 @@ IMU_ACQ_On_SPI_DMA_Complete(SPI_HandleTypeDef *hspi)
         return false;
     }
 
+    // Remember which DMA slot was being filled
     uint32_t      _primask         = IMU_ACQ_EnterCritical();
     const uint8_t _active_dma_slot = active_dma_slot_;
     IMU_ACQ_ExitCritical(_primask);
@@ -506,5 +507,104 @@ IMU_ACQ_On_SPI_DMA_Complete(SPI_HandleTypeDef *hspi)
         return false;
     }
 
+    (void)ICM42688_DMA_End(&icm42688_handle_);
+
+    _primask                                     = IMU_ACQ_EnterCritical();
+    dma_slot_[_active_dma_slot].completion_order = completion_order_++;
+    dma_slot_[_active_dma_slot].state = IMU_DMA_SLOT_READY; // Mark as ready to signal MCU starts to process it
+    active_dma_slot_                  = IMU_DMA_INVALID_SLOT_INDEX;
+    status_.dma_complete_count++;
+    IMU_ACQ_ExitCritical(_primask);
+
     return true;
+}
+
+
+
+void
+IMU_ACQ_On_SPI_DMA_Error(SPI_HandleTypeDef *hspi)
+{
+    if (!initialized_ || hspi != acq_config_.hspi) {
+        return;
+    }
+
+    (void)ICM42688_DMA_End(&icm42688_handle_);
+
+    uint32_t      _primask         = IMU_ACQ_EnterCritical();
+    const uint8_t _active_dma_slot = active_dma_slot_;
+
+    if (_active_dma_slot != IMU_DMA_INVALID_SLOT_INDEX) {
+        dma_slot_[_active_dma_slot].state = IMU_DMA_SLOT_FREE;
+    }
+
+    active_dma_slot_ = IMU_DMA_INVALID_SLOT_INDEX;
+    status_.dma_transfer_error_count++;
+    pending_faults_ |= IMU_FAULT_DMA_TRANSFER;
+    IMU_ACQ_ExitCritical(_primask);
+}
+
+
+
+bool
+IMU_ACQ_ReadLatestSample(IMU_Sample_t *pOutSample)
+{
+    if (!pOutSample) {
+        return false;
+    }
+
+    uint32_t   _primask = IMU_ACQ_EnterCritical();
+    const bool valid    = latest_sample_valid_;
+
+    if (valid) {
+        *pOutSample = *(IMU_Sample_t *)&latest_sample_;
+    }
+
+    IMU_ACQ_ExitCritical(_primask);
+    return valid;
+}
+
+
+
+bool
+IMU_ACQ_ReadNewSample(IMU_Sample_t *pOutSample, uint32_t *lastSequence)
+{
+    if (!pOutSample || !lastSequence) {
+        return false;
+    }
+
+    IMU_Sample_t _local = {};
+    if (!IMU_ACQ_ReadLatestSample(&_local)) {
+        return false;
+    }
+
+    if (_local.sequence == *lastSequence) {
+        return false;
+    }
+
+    *pOutSample   = *(IMU_Sample_t *)&_local;
+    *lastSequence = _local.sequence;
+
+    return true;
+}
+
+
+
+void
+IMU_ACQ_GetStatus(IMU_ACQ_Status_t *pOutStatus)
+{
+    if (!pOutStatus) {
+        return;
+    }
+
+    uint32_t _primask = IMU_ACQ_EnterCritical();
+    *pOutStatus       = *(const IMU_ACQ_Status_t *)&status_;
+    IMU_ACQ_ExitCritical(_primask);
+}
+
+
+
+bool
+IMU_ACQ_IsInitialize(void)
+{
+    return initialized_;
 }
