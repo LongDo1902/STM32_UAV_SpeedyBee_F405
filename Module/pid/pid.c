@@ -13,7 +13,7 @@ pid_init(pid_controller_t *pid, const pid_config_t *outer_config, const pid_conf
     }
 
     // Initialize configuration for inner controller
-    if (pid_config_init(&pid->inner_loop, inner_config)) {
+    if (!pid_config_init(&pid->inner_loop, inner_config)) {
         return false;
     }
 
@@ -24,6 +24,10 @@ uint8_t
 pid_config_init(pid_def_t *loop, const pid_config_t *config)
 {
     if (!loop || !config) {
+        return false;
+    }
+
+    if (config->gains.kp < 0 || config->gains.ki < 0 || config->gains.kd < 0) {
         return false;
     }
 
@@ -82,8 +86,7 @@ pid_compute(pid_controller_t *pid, const float setpoint_angle, const float angle
     pid->outer_loop.error_deriv = -rate;
 
     // anti wind-up for error outer controller
-    clamp(&pid->outer_loop.error_sum, &pid->outer_loop.error_sum_max,
-          &pid->outer_loop.error_sum_min);
+    clamp(&pid->outer_loop.error_sum, &pid->outer_loop.error_sum_max, &pid->outer_loop.error_sum_min);
 
     // TODO: filer D gains
 
@@ -103,8 +106,7 @@ pid_compute(pid_controller_t *pid, const float setpoint_angle, const float angle
     pid->inner_loop.input_prev  = pid->inner_loop.input;
 
     // anti wind-up for error inner controller
-    clamp(&pid->inner_loop.error_sum, &pid->inner_loop.error_sum_max,
-          &pid->inner_loop.error_sum_min);
+    clamp(&pid->inner_loop.error_sum, &pid->inner_loop.error_sum_max, &pid->inner_loop.error_sum_min);
 
     // TODO: filer D gains
 
