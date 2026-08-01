@@ -81,7 +81,7 @@ typedef struct
 /**
  * @brief   Read the current temperature and convert it to degrees Celsius.
  *          The two register bytes are combined according to the sensor-data endian configuration cached in
- * the handle, then converted with the ICM42688 temperature transfer function.
+ *          the handle, then converted with the ICM42688 temperature transfer function.
  * @param   pHandle   Pointer to the ICM42688 handle struct.
  * @param   pOutTempC Pointer to the returned temperature in degrees Celsius.
  * @return  true when the sensor data is read successfully, otherwise false.
@@ -91,7 +91,7 @@ bool ICM42688_Get_Temperature_C(ICM42688_Handle_t *pHandle, float *pOutTempC);
 /**
  * @brief   Read raw accelerometer samples for the X, Y, and Z axes.
  *          All six data bytes are captured in one burst so the three axes belong to the same register
- * snapshot; byte order follows the configured sensor-data endian mode.
+ *          snapshot; byte order follows the configured sensor-data endian mode.
  * @param   pHandle  Pointer to the ICM42688 handle struct.
  * @param   pBuf     Three-element output buffer for raw axis samples.
  * @return  true when the sensor data is read successfully, otherwise false.
@@ -101,7 +101,7 @@ bool ICM42688_Get_Accel_XYZ(ICM42688_Handle_t *pHandle, int16_t *pBuf);
 /**
  * @brief   Read accelerometer samples and convert them to g.
  *          The function reuses the raw three-axis burst read and applies accel_g_per_lsb from the active
- * full-scale configuration. The scale factor must have been initialized before this call.
+ *          full-scale configuration. The scale factor must have been initialized before this call.
  * @param   pHandle  Pointer to the ICM42688 handle struct.
  * @param   pG       Three-element output buffer for acceleration in g.
  * @return  true when the sensor data is read and scaled successfully, otherwise false.
@@ -111,7 +111,7 @@ bool ICM42688_Get_Accel_G(ICM42688_Handle_t *pHandle, float pG[3]);
 /**
  * @brief   Read raw gyroscope samples for the X, Y, and Z axes.
  *          All six data bytes are captured in one burst so the three axes belong to the same register
- * snapshot; byte order follows the configured sensor-data endian mode.
+ *          snapshot; byte order follows the configured sensor-data endian mode.
  * @param   pHandle  Pointer to the ICM42688 handle struct.
  * @param   pBuf     Three-element output buffer for raw axis samples.
  * @return  true when the sensor data is read successfully, otherwise false.
@@ -121,7 +121,7 @@ bool ICM42688_Get_Gyro_XYZ(ICM42688_Handle_t *pHandle, int16_t *pBuf);
 /**
  * @brief   Read gyroscope samples and convert them to degrees per second.
  *          The function reuses the raw three-axis burst read and applies gyro_dps_per_lsb from the active
- * full-scale configuration. The scale factor must have been initialized before this call.
+ *          full-scale configuration. The scale factor must have been initialized before this call.
  * @param   pHandle  Pointer to the ICM42688 handle struct.
  * @param   pDps     Three-element output buffer for angular rate in degrees per second.
  * @return  true when the sensor data is read and scaled successfully, otherwise false.
@@ -131,7 +131,7 @@ bool ICM42688_Get_Gyro_DPS(ICM42688_Handle_t *pHandle, float pDps[3]);
 /**
  * @brief   Read raw temperature, accelerometer, and gyroscope data in one burst.
  *          One contiguous transaction keeps all seven values temporally aligned and decodes each 16-bit field
- * using the configured sensor-data endian mode.
+ *          using the configured sensor-data endian mode.
  * @param   pHandle  Pointer to the ICM42688 handle struct.
  * @param   pOutRaw  Pointer to the returned raw sensor sample.
  * @return  true when the complete burst is read and decoded successfully, otherwise false.
@@ -141,7 +141,7 @@ bool ICM42688_Get_Temp_Accel_Gyro_Raw(ICM42688_Handle_t *pHandle, ICM42688_Raw_t
 /**
  * @brief   Average stationary raw samples to estimate accelerometer and gyroscope offsets.
  *          The device must remain motionless and level throughout collection because movement is accumulated
- * as bias. The Z-axis gravity contribution is removed from the stored accelerometer offset.
+ *          as bias. The Z-axis gravity contribution is removed from the stored accelerometer offset.
  * @param   pHandle               Pointer to the ICM42688 handle struct.
  * @param   pOffsetCalibratedRaw  Pointer to the returned raw offsets.
  * @param   samples               Number of stationary samples to average.
@@ -154,7 +154,7 @@ bool ICM42688_Get_Calibrate_Raw(ICM42688_Handle_t *pHandle, ICM42688_Offset_Raw_
 /**
  * @brief   Read a complete sensor sample, apply raw offsets, and convert it to physical units.
  *          Temperature is converted directly, while accelerometer and gyroscope offsets are subtracted in raw
- * units before their configured scale factors are applied.
+ *          units before their configured scale factors are applied.
  * @param   pHandle     Pointer to the ICM42688 handle struct.
  * @param   pOffsetRaw  Pointer to the raw accelerometer and gyroscope offsets.
  * @param   pSampleOut  Pointer to the calibrated and scaled output sample.
@@ -166,7 +166,7 @@ bool ICM42688_Get_Temp_Accel_Gyro_Scaled(ICM42688_Handle_t *pHandle, const ICM42
 /**
  * @brief   Estimate body roll and pitch with a complementary filter and integrate gyro yaw.
  *          IMU axes are remapped to the requested body orientation before fusion, and invalid orientations
- * are rejected before the attitude output is changed.
+ *          are rejected before the attitude output is changed.
  * @param   pHandle          Pointer to the ICM42688 handle struct.
  * @param   orientation      Mounting orientation used to remap IMU axes to body axes.
  * @param   pInputImuScaled  Pointer to the calibrated IMU sample.

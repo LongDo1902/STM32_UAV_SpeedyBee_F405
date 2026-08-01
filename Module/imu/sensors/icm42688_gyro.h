@@ -16,7 +16,7 @@
 /**
  * @brief   Configure gyroscope power mode, output data rate, and full-scale range.
  *          Power-mode transitions are applied before ODR/FSR changes and include the device settling delay
- * when required. The angular-rate scale factor is refreshed only after the hardware write succeeds.
+ *          when required. The angular-rate scale factor is refreshed only after the hardware write succeeds.
  * @param   pHandle  Pointer to the ICM42688 handle struct.
  * @param   mode     Desired gyroscope power mode.
  * @param   odr      Desired gyroscope output data rate.
@@ -49,7 +49,7 @@ bool ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t *pHandle, ICM42688_UIFilt_BW_
 /**
  * @brief   Configure the gyroscope UI low-pass filter order.
  *          The chosen order trades response latency for attenuation and is stored in the handle only after
- * the device accepts the register write.
+ *          the device accepts the register write.
  * @param   pHandle      Pointer to the ICM42688 handle struct.
  * @param   uiFiltOrder  Desired UI filter order.
  * @return  true when the register update succeeds, otherwise false.
@@ -59,7 +59,7 @@ bool ICM42688_Set_Gyro_UIFilt_Order(ICM42688_Handle_t *pHandle, ICM42688_Gyro_UI
 /**
  * @brief   Enable or disable the gyroscope anti-alias filter.
  *          Disabling this hardware filter can fold high-frequency motor vibration into the measured band, so
- * it should be done only when the complete sampling and filtering chain has been considered.
+ *          it should be done only when the complete sampling and filtering chain has been considered.
  * @param   pHandle         Pointer to the ICM42688 handle struct.
  * @param   antiAliasState  Desired anti-alias filter state.
  * @return  true when the register update succeeds, otherwise false.
@@ -79,7 +79,7 @@ bool ICM42688_Set_Gyro_Notch_Filt(ICM42688_Handle_t *pHandle, ICM42688_Notch_Fil
 /**
  * @brief   Configure the gyroscope notch-filter center frequency for all three axes.
  *          Each requested frequency is converted to the device coefficient representation and written to
- * bank 1. The operation returns false immediately if any axis conversion or register update fails.
+ *          bank 1. The operation returns false immediately if any axis conversion or register update fails.
  * @param   pHandle                 Pointer to the ICM42688 handle struct.
  * @param   desiredXNotchFreqHz     Desired X-axis notch frequency in hertz.
  * @param   desiredYNotchFreqHz     Desired Y-axis notch frequency in hertz.

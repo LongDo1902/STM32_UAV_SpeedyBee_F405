@@ -46,7 +46,7 @@ bool ICM42688_Set_SPI_SlewRate(ICM42688_Handle_t *pHandle, ICM42688_SPI_SLEWRATE
 /**
  * @brief   Configure which serial interfaces remain enabled for user access.
  *          The UI_SIFS_CFG field can disable I2C or SPI access, so the selected value must preserve the bus
- * used by the application or subsequent register transactions may no longer work.
+ *          used by the application or subsequent register transactions may no longer work.
  * @param   pHandle       Pointer to the ICM42688 handle struct.
  * @param   uiSifsConfig  Desired user-interface serial configuration.
  * @return  true when the register update succeeds, otherwise false.
@@ -56,7 +56,7 @@ bool ICM42688_Set_UI_SIFS_Conf(ICM42688_Handle_t *pHandle, ICM42688_UI_SIFS_Cfg_
 /**
  * @brief   Configure the byte order used by accelerometer, gyroscope, and temperature data.
  *          The choice is cached in the handle and is later used by raw-data decoding; changing it requires
- * all consumers to interpret multi-byte sensor fields with the same ordering.
+ *          all consumers to interpret multi-byte sensor fields with the same ordering.
  * @param   pHandle      Pointer to the ICM42688 handle struct.
  * @param   whichEndian  Desired sensor-data byte order.
  * @return  true when the register update succeeds, otherwise false.

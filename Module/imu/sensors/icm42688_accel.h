@@ -16,7 +16,7 @@
 /**
  * @brief   Configure accelerometer power mode, output data rate, and full-scale range.
  *          Power-mode transitions are applied before ODR/FSR changes and include the device settling delay
- * when required. The acceleration scale factor is refreshed only after the hardware write succeeds.
+ *          when required. The acceleration scale factor is refreshed only after the hardware write succeeds.
  * @param   pHandle  Pointer to the ICM42688 handle struct.
  * @param   mode     Desired accelerometer power mode.
  * @param   odr      Desired accelerometer output data rate.
@@ -39,7 +39,7 @@ bool ICM42688_Get_Accel_Mode(ICM42688_Handle_t *pHandle, uint8_t *pModeInfo);
 /**
  * @brief   Configure the accelerometer UI low-pass filter bandwidth.
  *          The register field accepts only the bandwidth encodings supported by the device; reserved values
- * are rejected before any SPI write is attempted.
+ *          are rejected before any SPI write is attempted.
  * @param   pHandle          Pointer to the ICM42688 handle struct.
  * @param   uiFiltBandWidth  Desired UI filter bandwidth selection.
  * @return  true when the register update succeeds, otherwise false.

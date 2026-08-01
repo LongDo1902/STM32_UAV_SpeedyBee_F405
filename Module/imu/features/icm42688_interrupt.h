@@ -16,7 +16,7 @@
 /**
  * @brief   Configure the polarity, drive circuit, and signaling mode of INT1.
  *          All three INT_CONFIG fields are updated in one read-modify-write operation, then cached together
- * so software state changes only when the complete register transaction succeeds.
+ *          so software state changes only when the complete register transaction succeeds.
  * @param   pHandle   Pointer to the ICM42688 handle struct.
  * @param   polarity  Desired interrupt polarity.
  * @param   drive     Desired push-pull or open-drain drive circuit.
@@ -62,7 +62,7 @@ bool ICM42688_Int_Status_Has(uint8_t status, ICM42688_Int_Status_t intState);
 /**
  * @brief   Enable or disable routing FIFO-full events to INT1.
  *          The function changes only the FIFO_FULL_INT1_EN source bit and preserves the routing state of
- * every other interrupt source in INT_SOURCE0.
+ *          every other interrupt source in INT_SOURCE0.
  * @param   pHandle  Pointer to the ICM42688 handle struct.
  * @param   enable   true to enable the route, false to disable it.
  * @return  true when the register update succeeds, otherwise false.
@@ -72,7 +72,7 @@ bool ICM42688_Set_Int1_FIFO_Full_Enable(ICM42688_Handle_t *pHandle, bool enable)
 /**
  * @brief   Enable or disable routing FIFO-threshold events to INT1.
  *          A threshold route is useful only after the FIFO watermark and interrupt pin behavior are
- * configured; otherwise INT1 may remain inactive or assert with unintended timing.
+ *          configured; otherwise INT1 may remain inactive or assert with unintended timing.
  * @param   pHandle  Pointer to the ICM42688 handle struct.
  * @param   enable   true to enable the route, false to disable it.
  * @return  true when the register update succeeds, otherwise false.
@@ -82,7 +82,7 @@ bool ICM42688_Set_Int1_FIFO_Threshold_Enable(ICM42688_Handle_t *pHandle, bool en
 /**
  * @brief   Enable or disable routing data-ready events to INT1.
  *          This source can assert at the sensor ODR and may be much faster than a FIFO-watermark interrupt,
- * so enable it only when the ISR and downstream processing can tolerate that rate.
+ *          so enable it only when the ISR and downstream processing can tolerate that rate.
  * @param   pHandle  Pointer to the ICM42688 handle struct.
  * @param   enable   true to enable the route, false to disable it.
  * @return  true when the register update succeeds, otherwise false.
@@ -102,7 +102,7 @@ bool ICM42688_Set_Int1_ResetDone_Enable(ICM42688_Handle_t *pHandle, bool enable)
 /**
  * @brief   Configure asynchronous reset, TDE assertion, and pulse duration behavior.
  *          The three INT_CONFIG1 controls are written together, so callers should supply the intended value
- * for every field rather than assuming unspecified settings will be preserved.
+ *          for every field rather than assuming unspecified settings will be preserved.
  * @param   pHandle              Pointer to the ICM42688 handle struct.
  * @param   setAsyncReset        Desired asynchronous-reset setting.
  * @param   setTdeAssertDisable  Desired TDE-assert-disable setting.

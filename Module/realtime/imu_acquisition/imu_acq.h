@@ -59,8 +59,8 @@ typedef enum
  * ===================================================================== */
 /**
  * @brief   Initialize the ICM42688 and its interrupt-driven SPI DMA acquisition path.
- *          The function validates all HAL handles, configures the 1 MHz timebase and FIFO watermark path, performs
- *          startup gyro-bias calibration, and enables acquisition only after every step succeeds.
+ *          The function validates all HAL handles, configures the 1 MHz timebase and FIFO watermark path,
+ *          performs startup gyro-bias calibration, and enables acquisition only after every step succeeds.
  * @param   pAcqConfig  Pointer to the SPI, GPIO, interrupt, and timebase configuration.
  * @return  true when the complete acquisition path is initialized, otherwise false.
  */
@@ -68,8 +68,9 @@ bool IMU_ACQ_Init(const IMU_ACQ_Config_t *pAcqConfig);
 
 /**
  * @brief   Handle an ICM42688 FIFO-watermark EXTI event and start a DMA FIFO read.
- *          It timestamps the interrupt, reserves a free ping-pong slot, and launches a fixed-size FIFO transfer.
- *          The handler never performs a blocking bank-select write, so user bank 0 must remain selected.
+ *          It timestamps the interrupt, reserves a free ping-pong slot, and launches a fixed-size FIFO
+ *          transfer. The handler never performs a blocking bank-select write, so user bank 0 must remain
+ *          selected.
  * @param   gpio_pin  HAL GPIO pin mask reported by the EXTI callback.
  * @return  true when a DMA FIFO read starts successfully, otherwise false.
  * @note    Call this function from the EXTI callback for the configured ICM42688 INT1 pin.
@@ -87,8 +88,8 @@ bool IMU_ACQ_On_SPI_DMA_Complete(SPI_HandleTypeDef *hspi);
 
 /**
  * @brief   Abort and release the active IMU DMA slot after an SPI DMA transfer error.
- *          It releases chip select, returns the slot to the free pool, and latches a transfer fault for the next
- *          published sample. Calls for unrelated SPI handles are ignored.
+ *          It releases chip select, returns the slot to the free pool, and latches a transfer fault for the
+ * next published sample. Calls for unrelated SPI handles are ignored.
  * @param   hspi  Pointer to the SPI handle reported by the DMA error callback.
  */
 void IMU_ACQ_On_SPI_DMA_Error(SPI_HandleTypeDef *hspi);
@@ -104,8 +105,8 @@ bool IMU_ACQ_ReadLatestSample(IMU_Sample_t *pOutSample);
 
 /**
  * @brief   Copy the latest IMU sample only when its sequence differs from the caller's sequence.
- *          This provides non-blocking new-data detection without consuming or clearing the shared sample; each
- *          caller must maintain its own lastSequence value.
+ *          This provides non-blocking new-data detection without consuming or clearing the shared sample;
+ *          each caller must maintain its own lastSequence value.
  * @param   pOutSample    Pointer to the returned IMU sample.
  * @param   lastSequence  Pointer to the caller's last consumed sequence, updated on success.
  * @return  true when a newer sample is copied, otherwise false.
@@ -122,16 +123,16 @@ IMU_ACQ_ProcessResult_t IMU_ACQ_ProcessNextBatch(void);
 
 /**
  * @brief   Copy the current IMU acquisition diagnostic counters and timing statistics.
- *          The complete status struct is copied under a critical section so related counters and dt extrema form
- *          one consistent diagnostic snapshot.
+ *          The complete status struct is copied under a critical section so related counters and dt extrema
+ *          form one consistent diagnostic snapshot.
  * @param   pOutStatus  Pointer to the returned acquisition status snapshot.
  */
 void IMU_ACQ_GetStatus(IMU_ACQ_Status_t *pOutStatus);
 
 /**
  * @brief   Report whether the real-time IMU acquisition module is initialized.
- *          A true result means initialization completed and callbacks may accept work; it does not guarantee that
- *          the latest sample is healthy or that no runtime faults have occurred.
+ *          A true result means initialization completed and callbacks may accept work; it does not guarantee
+ *          that the latest sample is healthy or that no runtime faults have occurred.
  * @return  true after successful initialization, otherwise false.
  */
 bool IMU_ACQ_IsInitialized(void);
