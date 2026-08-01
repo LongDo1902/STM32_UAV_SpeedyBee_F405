@@ -2,7 +2,7 @@
  * icm42688_accel.c
  *
  *  Created on: Mar 12, 2026
- *      Author: dobao
+ *      Author: dobaolong
  */
 
 #include "imu/sensors/icm42688_accel.h"
@@ -26,8 +26,8 @@ ICM42688_Update_AccelScaleFactor(ICM42688_Handle_t *pHandle)
  *	ACCEL CONFIG / FILTER
  *============================================================================= */
 bool
-ICM42688_Set_AccelConfig(ICM42688_Handle_t *pHandle, ICM42688_Accel_Mode_t mode,
-                         ICM42688_Accel_ODR_t odr, ICM42688_Accel_FSR_t fsr)
+ICM42688_Set_AccelConfig(ICM42688_Handle_t *pHandle, ICM42688_Accel_Mode_t mode, ICM42688_Accel_ODR_t odr,
+                         ICM42688_Accel_FSR_t fsr)
 {
     if (!pHandle)
         return false;
@@ -45,8 +45,7 @@ ICM42688_Set_AccelConfig(ICM42688_Handle_t *pHandle, ICM42688_Accel_Mode_t mode,
     bool _odr_valid = false;
 
     if (mode == ACCEL_LOW_NOISE) {
-        _odr_valid =
-            ((odr >= ACCEL_ODR_32KHz) && (odr <= ACCEL_ODR_12Hz5)) || (odr == ACCEL_ODR_500Hz);
+        _odr_valid = ((odr >= ACCEL_ODR_32KHz) && (odr <= ACCEL_ODR_12Hz5)) || (odr == ACCEL_ODR_500Hz);
     }
     else if (mode == ACCEL_LOW_POWER) {
         _odr_valid = ((odr >= ACCEL_ODR_200Hz) && (odr <= ACCEL_ODR_500Hz));
@@ -73,9 +72,8 @@ ICM42688_Set_AccelConfig(ICM42688_Handle_t *pHandle, ICM42688_Accel_Mode_t mode,
     bool _need_write_mode = ((!pHandle->is_initialized) || (_curr_norm_mode != _prev_norm_mode));
     {
         if (_need_write_mode) {
-            _status =
-                ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_PWR_MGMT0, ICM42688_ACCEL_MODE_Msk,
-                                         ICM42688_ACCEL_MODE_Val(mode));
+            _status = ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_PWR_MGMT0, ICM42688_ACCEL_MODE_Msk,
+                                               ICM42688_ACCEL_MODE_Val(mode));
             if (!_status)
                 return false;
 
@@ -88,16 +86,14 @@ ICM42688_Set_AccelConfig(ICM42688_Handle_t *pHandle, ICM42688_Accel_Mode_t mode,
     }
 
     // (2) ACCEL_CONF0: set ODR and FSR together so cached scale factors match the register state.
-    bool _need_write_config =
-        (!(pHandle->is_initialized) || (odr != pHandle->accel_config.accel_odr) ||
-         (fsr != pHandle->accel_config.accel_fsr));
+    bool _need_write_config = (!(pHandle->is_initialized) || (odr != pHandle->accel_config.accel_odr) ||
+                               (fsr != pHandle->accel_config.accel_fsr));
     {
         if (_need_write_config) {
             uint8_t _mask         = ICM42688_ACCEL_ODR_Msk | ICM42688_ACCEL_FS_SEL_Msk;
             uint8_t _value_masked = ICM42688_ACCEL_ODR_Val(odr) | ICM42688_ACCEL_FS_SEL_Val(fsr);
 
-            _status =
-                ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_ACCEL_CONF0, _mask, _value_masked);
+            _status = ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_ACCEL_CONF0, _mask, _value_masked);
             if (!_status)
                 return false;
 
@@ -118,8 +114,8 @@ ICM42688_Get_Accel_Mode(ICM42688_Handle_t *pHandle, uint8_t *pModeInfo)
     if (!pHandle || !pModeInfo)
         return false;
 
-    uint8_t           _reg    = 0;
-    bool _status = ICM42688_ReadReg(pHandle, ICM42688_UB0_PWR_MGMT0, &_reg);
+    uint8_t _reg    = 0;
+    bool    _status = ICM42688_ReadReg(pHandle, ICM42688_UB0_PWR_MGMT0, &_reg);
     if (!_status)
         return false;
 
@@ -127,15 +123,15 @@ ICM42688_Get_Accel_Mode(ICM42688_Handle_t *pHandle, uint8_t *pModeInfo)
     uint8_t _raw_mode = (uint8_t)(_reg >> ICM42688_ACCEL_MODE_Pos);
 
     if ((_raw_mode == 0U) || (_raw_mode == 1U)) {
-        *pModeInfo                      = 0U;
+        *pModeInfo                       = 0U;
         pHandle->accel_config.accel_mode = ACCEL_OFF;
     }
     else if (_raw_mode == 2U) {
-        *pModeInfo                      = 2U;
+        *pModeInfo                       = 2U;
         pHandle->accel_config.accel_mode = ACCEL_LOW_POWER;
     }
     else if (_raw_mode == 3U) {
-        *pModeInfo                      = 3U;
+        *pModeInfo                       = 3U;
         pHandle->accel_config.accel_mode = ACCEL_LOW_NOISE;
     }
     else {
@@ -198,8 +194,7 @@ ICM42688_Set_Accel_UIFilt_BW(ICM42688_Handle_t *pHandle, ICM42688_UIFilt_BW_t ui
 
 
 bool
-ICM42688_Set_Accel_UIFilt_Order(ICM42688_Handle_t            *pHandle,
-                                ICM42688_Accel_UIFilt_Order_t uiFiltOrder)
+ICM42688_Set_Accel_UIFilt_Order(ICM42688_Handle_t *pHandle, ICM42688_Accel_UIFilt_Order_t uiFiltOrder)
 {
     if (!pHandle)
         return false;

@@ -2,7 +2,7 @@
  * icm42688_application.c
  *
  *  Created on: Mar 12, 2026
- *      Author: dobao
+ *      Author: dobaolong
  */
 
 #include "imu/icm42688_application.h"
@@ -51,8 +51,9 @@ ICM42688_SoftReset(ICM42688_Handle_t *pHandle)
     if (!pHandle)
         return false;
 
-    bool _status = ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_DEVICE_CONF, ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk,
-                                            ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk);
+    bool _status =
+        ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_DEVICE_CONF, ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk,
+                                 ICM42688_DEVICE_CONFIG_SOFT_RESET_Msk);
     if (!_status)
         return false;
 

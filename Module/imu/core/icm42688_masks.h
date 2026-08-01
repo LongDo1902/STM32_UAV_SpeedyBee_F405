@@ -2,7 +2,7 @@
  * icm42688_masks.h
  *
  *  Created on: Feb 21, 2026
- *      Author: dobao
+ *      Author: dobaolong
  */
 
 #ifndef INC_IMU_ICM42688_MASKS_H_

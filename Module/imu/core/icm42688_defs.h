@@ -2,7 +2,7 @@
  * icm42688_defs.h
  *
  *  Created on: Mar 12, 2026
- *      Author: dobao
+ *      Author: dobaolong
  */
 
 #ifndef INC_IMU_ICM42688_DEFS_H_

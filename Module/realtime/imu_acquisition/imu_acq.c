@@ -23,8 +23,8 @@
 
 /**
  * @brief   State flags of DMA slot
- *          They help the program to know which operation/action should be execute next such as probing status, waiting,
- *          processing, releasing, acquiring
+ *          They help the program to know which operation/action should be execute next such as probing
+ * status, waiting, processing, releasing, acquiring
  */
 typedef enum
 {
@@ -48,7 +48,7 @@ typedef struct
     // DMA properties
     volatile IMU_DMA_SlotState_t state;
     uint32_t                     irq_timestamp_us;
-    uint8_t                      completion_order;
+    uint32_t                     completion_order;
 } IMU_DMA_Slot_t;
 
 
@@ -78,9 +78,9 @@ static volatile uint32_t pending_faults_   = IMU_FAULT_NONE;
 
 static bool     previous_timestamp_valid_ = false;
 static uint32_t previous_timestamp_us_    = 0U;
+static uint32_t published_sequence_       = 0U;
 
 static bool latest_sample_valid_ = false;
-
 
 
 /**
@@ -135,8 +135,8 @@ IMU_ACQ_LatchFault(uint32_t fault)
 
 
 /**
- * @brief   Collect all IMU faults that happended, return them to the caller and then clear the stored fault list
- *          So, the caller handles the old faults while @c pending_faults_ is ready to collect the new ones.
+ * @brief   Collect all IMU faults that happended, return them to the caller and then clear the stored fault
+ * list So, the caller handles the old faults while @c pending_faults_ is ready to collect the new ones.
  */
 static uint32_t
 IMU_ACQ_TakePendingFaults()
@@ -257,8 +257,8 @@ IMU_ACQ_ReleaseSlot(uint8_t slotIndex)
 
 
 /**
- * @brief   Read all FIFO frames from one completed DMA RX buffer, calibrate each frame , average them, produce one
- *          final IMU sample
+ * @brief   Read all FIFO frames from one completed DMA RX buffer, calibrate each frame , average them,
+ * produce one final IMU sample
  * @param   pDmaSlot        Pointer to DMA Slot struct of IMU
  * @param   pImuOutSample   Pointer to IMU output sample holder/struct.
  */
@@ -269,9 +269,10 @@ IMU_ACQ_DecodeAndAverage(const IMU_DMA_Slot_t *pDmaSlot, IMU_Sample_t *pImuOutSa
         return false;
     }
 
-    const uint8_t *_p_fifo_byte = &pDmaSlot->rx[IMU_SPI_DMA_CMD_BYTES]; // Pointer to the 1st-index-byte DMA RX buffer
-    uint16_t       _parse_pos   = 0U;
-    uint16_t       _frame_count = 0U;
+    const uint8_t *_p_fifo_byte =
+        &pDmaSlot->rx[IMU_SPI_DMA_CMD_BYTES]; // Pointer to the 1st-index-byte DMA RX buffer
+    uint16_t _parse_pos   = 0U;
+    uint16_t _frame_count = 0U;
 
     float _accel_sum[3] = {0.0f, 0.0f, 0.0f};
     float _gyro_sum[3]  = {0.0f, 0.0f, 0.0f};
@@ -300,8 +301,8 @@ IMU_ACQ_DecodeAndAverage(const IMU_DMA_Slot_t *pDmaSlot, IMU_Sample_t *pImuOutSa
         }
 
         for (uint8_t axis = 0; axis < 3U; axis++) {
-            _gyro_sum[axis]  = _scaled.gyro_dps[axis];
-            _accel_sum[axis] = _scaled.accel_g[axis];
+            _gyro_sum[axis] += _scaled.gyro_dps[axis];
+            _accel_sum[axis] += _scaled.accel_g[axis];
         }
 
         _temp_sum += _scaled.temp_c;
@@ -346,7 +347,10 @@ IMU_ACQ_UpdateDtStatus(uint32_t dt_us)
 
 
 /**
- * @brief
+ * @brief   Publish one processed IMU sample atomically for readers.
+ *          The sample copy and validity flag update share one critical section so readers cannot observe a
+ *          partially updated structure.
+ * @param   pImuSample  Pointer to the sample to publish.
  */
 static void
 IMU_ACQ_Publish(const IMU_Sample_t *pImuSample)
@@ -359,9 +363,6 @@ IMU_ACQ_Publish(const IMU_Sample_t *pImuSample)
 
 
 
-/**
- * @brief
- */
 bool
 IMU_ACQ_Init(const IMU_ACQ_Config_t *pAcqConfig)
 {
@@ -392,6 +393,9 @@ IMU_ACQ_Init(const IMU_ACQ_Config_t *pAcqConfig)
         dma_slot_[i].state = IMU_DMA_SLOT_FREE;
     }
 
+    // Save the valid config supplied by the caller
+    acq_config_ = *pAcqConfig;
+
     __HAL_TIM_SET_COUNTER(acq_config_.htim_us, 0U);          // Reset timer counter
     if (HAL_TIM_Base_Start(acq_config_.htim_us) != HAL_OK) { // Start timer counter
         return false;
@@ -413,7 +417,8 @@ IMU_ACQ_Init(const IMU_ACQ_Config_t *pAcqConfig)
     if (!ICM42688_Set_Int1_FIFO_Threshold_Enable(&icm42688_handle_, false) ||
         !ICM42688_Set_Int1_DataReady_Enable(&icm42688_handle_, false) ||
         !ICM42688_Set_Int1_FIFO_Full_Enable(&icm42688_handle_, false) ||
-        !ICM42688_Set_Int1_ResetDone_Enable(&icm42688_handle_, false) || !IMU_ACQ_Config_HighOdrInterruptTiming() ||
+        !ICM42688_Set_Int1_ResetDone_Enable(&icm42688_handle_, false) ||
+        !IMU_ACQ_Config_HighOdrInterruptTiming() ||
         !ICM42688_Set_Int1_Config(&icm42688_handle_, INT_ACTIVE_HIGH, INT_PUSH_PULL, INT_PULSED) ||
         !ICM42688_Set_FIFO_Watermark(&icm42688_handle_, IMU_FIFO_WTM_BYTES) ||
         !ICM42688_Set_FIFO_WM_GT_THS(&icm42688_handle_, FIFO_WM_GREATER_THS_REPEAT) ||
@@ -428,9 +433,6 @@ IMU_ACQ_Init(const IMU_ACQ_Config_t *pAcqConfig)
 
 
 
-/**
- * @brief   Handle ICM42688 INT1, usually caused by FIFO reaching its watermark
- */
 bool
 IMU_ACQ_On_EXTI(uint16_t gpio_pin)
 {
@@ -472,11 +474,12 @@ IMU_ACQ_On_EXTI(uint16_t gpio_pin)
 
     /**
      * @note    @c autoBankSelect is false to avoid a blocking SPI write in EXTI context.
-     *          This module therefore owns the ICM42688 bus after initialization and keeps the device in user bank 0
-     *          during real-time acquisition
+     *          This module therefore owns the ICM42688 bus after initialization and keeps the device in user
+     * bank 0 during real-time acquisition
      */
-    if (!ICM42688_ReadRegs_DMA_Start(&icm42688_handle_, ICM42688_UB0_FIFO_DATA, slot->tx, (uint16_t)sizeof(slot->tx),
-                                     slot->rx, (uint16_t)sizeof(slot->rx), IMU_FIFO_WTM_BYTES, false)) {
+    if (!ICM42688_ReadRegs_DMA_Start(&icm42688_handle_, ICM42688_UB0_FIFO_DATA, slot->tx,
+                                     (uint16_t)sizeof(slot->tx), slot->rx, (uint16_t)sizeof(slot->rx),
+                                     IMU_FIFO_WTM_BYTES, false)) {
 
         _primask         = IMU_ACQ_EnterCritical();
         slot->state      = IMU_DMA_SLOT_FREE;
@@ -511,8 +514,9 @@ IMU_ACQ_On_SPI_DMA_Complete(SPI_HandleTypeDef *hspi)
 
     _primask                                     = IMU_ACQ_EnterCritical();
     dma_slot_[_active_dma_slot].completion_order = completion_order_++;
-    dma_slot_[_active_dma_slot].state = IMU_DMA_SLOT_READY; // Mark as ready to signal MCU starts to process it
-    active_dma_slot_                  = IMU_DMA_INVALID_SLOT_INDEX;
+    dma_slot_[_active_dma_slot].state =
+        IMU_DMA_SLOT_READY; // Mark as ready to signal MCU starts to process it
+    active_dma_slot_ = IMU_DMA_INVALID_SLOT_INDEX;
     status_.dma_complete_count++;
     IMU_ACQ_ExitCritical(_primask);
 
@@ -553,14 +557,14 @@ IMU_ACQ_ReadLatestSample(IMU_Sample_t *pOutSample)
     }
 
     uint32_t   _primask = IMU_ACQ_EnterCritical();
-    const bool valid    = latest_sample_valid_;
+    const bool _valid   = latest_sample_valid_;
 
-    if (valid) {
+    if (_valid) {
         *pOutSample = *(IMU_Sample_t *)&latest_sample_;
     }
 
     IMU_ACQ_ExitCritical(_primask);
-    return valid;
+    return _valid;
 }
 
 
@@ -572,19 +576,81 @@ IMU_ACQ_ReadNewSample(IMU_Sample_t *pOutSample, uint32_t *lastSequence)
         return false;
     }
 
-    IMU_Sample_t _local = {};
-    if (!IMU_ACQ_ReadLatestSample(&_local)) {
+    IMU_Sample_t _imu_sample = {};
+    if (!IMU_ACQ_ReadLatestSample(&_imu_sample)) {
         return false;
     }
 
-    if (_local.sequence == *lastSequence) {
+    if (_imu_sample.sequence == *lastSequence) {
         return false;
     }
 
-    *pOutSample   = *(IMU_Sample_t *)&_local;
-    *lastSequence = _local.sequence;
+    *pOutSample   = *(IMU_Sample_t *)&_imu_sample;
+    *lastSequence = _imu_sample.sequence;
 
     return true;
+}
+
+
+IMU_ACQ_ProcessResult_t
+IMU_ACQ_ProcessNextBatch(void)
+{
+    if (!initialized_) {
+        return IMU_ACQ_PROCESS_NONE;
+    }
+
+    // Find the oldest ready DMA slot/batch
+    const uint8_t _oldest_ready_slot = IMU_ACQ_TakeOldestReadySlot();
+    if (_oldest_ready_slot == IMU_DMA_INVALID_SLOT_INDEX) {
+        return IMU_ACQ_PROCESS_NONE;
+    }
+
+    // Pointer to the oldest ready DMA slot struct
+    IMU_DMA_Slot_t *_p_dma_slot = (IMU_DMA_Slot_t *)&dma_slot_[_oldest_ready_slot];
+    IMU_Sample_t    _imu_sample = {};
+
+    if (!IMU_ACQ_DecodeAndAverage(_p_dma_slot, &_imu_sample)) {
+        status_.parse_error_count++;
+        IMU_ACQ_LatchFault(IMU_FAULT_FIFO_PARSE);
+        IMU_ACQ_ReleaseSlot(_oldest_ready_slot);
+        return IMU_ACQ_PROCESS_DROPPED;
+    }
+
+    _imu_sample.irq_timestamp_us     = _p_dma_slot->irq_timestamp_us;
+    _imu_sample.timestamp_us         = _p_dma_slot->irq_timestamp_us - IMU_BATCH_MIDPOINT_OFFSET_US;
+    _imu_sample.publish_timestamp_us = IMU_ACQ_NowUs();
+
+    bool _dt_valid = true;
+
+    if (!previous_timestamp_valid_) {
+        _imu_sample.dt_us         = IMU_OUTPUT_PERIOD_US;
+        previous_timestamp_valid_ = true;
+    }
+    else {
+        _imu_sample.dt_us = _imu_sample.timestamp_us - previous_timestamp_us_;
+
+        if ((_imu_sample.dt_us < IMU_DT_MIN_US) || (_imu_sample.dt_us > IMU_DT_MAX_US)) {
+            _dt_valid = false;
+            status_.bad_dt_count++;
+            IMU_ACQ_LatchFault(IMU_FAULT_BAD_DT);
+        }
+    }
+
+    previous_timestamp_us_ = _imu_sample.timestamp_us;
+    _imu_sample.dt_s       = (float)_imu_sample.dt_us * 0.000001f;
+    _imu_sample.sequence   = ++published_sequence_;
+
+    IMU_ACQ_UpdateDtStatus(_imu_sample.dt_us);
+
+    _imu_sample.fault_flags = IMU_ACQ_TakePendingFaults();
+    _imu_sample.healthy     = _dt_valid && (_imu_sample.fault_flags == IMU_FAULT_NONE);
+
+    // Publishes sample
+    IMU_ACQ_Publish(&_imu_sample);
+    status_.published_sample_count++;
+
+    IMU_ACQ_ReleaseSlot(_oldest_ready_slot);
+    return IMU_ACQ_PROCESS_PUBLISHED;
 }
 
 
@@ -604,7 +670,7 @@ IMU_ACQ_GetStatus(IMU_ACQ_Status_t *pOutStatus)
 
 
 bool
-IMU_ACQ_IsInitialize(void)
+IMU_ACQ_IsInitialized(void)
 {
     return initialized_;
 }

@@ -2,7 +2,7 @@
  * icm42688_fifo.c
  *
  *  Created on: Mar 12, 2026
- *      Author: dobao
+ *      Author: dobaolong
  */
 
 #include "imu/features/icm42688_fifo.h"
@@ -12,11 +12,6 @@
  *	FIFO CONFIG
  * ================================================================================== */
 
-/**
- * @brief   Set a desired FIFO count endian type
- * @param   pHandle          Pointer to ICM42688 Handle struct
- * @param   countEndian     Desired count endian (BIG/LITTLE) to be written
- */
 bool
 ICM42688_Set_FIFO_Count_Endian(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Count_Endian_t countEndian)
 {
@@ -38,11 +33,6 @@ ICM42688_Set_FIFO_Count_Endian(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Count_E
 
 
 
-/**
- * @brief   Set a desired count record type
- * @param   pHandle      Pointer to ICM42688 Handle struct
- * @param   countRecord Selects whether FIFO_COUNT reports bytes or records
- */
 bool
 ICM42688_Set_FIFO_Count_Rec(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Count_Rec_t countRecord)
 {
@@ -64,11 +54,6 @@ ICM42688_Set_FIFO_Count_Rec(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Count_Rec_
 
 
 
-/**
- * @brief   Set a desired FIFO mode
- * @param   pHandle  Pointer to ICM42688 Handle struct
- * @param   mode    Desired FIFO working mode
- */
 bool
 ICM42688_Set_FIFO_Mode(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Mode_t mode)
 {
@@ -78,8 +63,8 @@ ICM42688_Set_FIFO_Mode(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Mode_t mode)
     if ((uint8_t)mode > (uint8_t)STOP_ON_FULL)
         return false;
 
-    bool _status =
-        ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_FIFO_CONF, ICM42688_FIFO_MODE_Msk, ICM42688_FIFO_MODE_Val(mode));
+    bool _status = ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_FIFO_CONF, ICM42688_FIFO_MODE_Msk,
+                                            ICM42688_FIFO_MODE_Val(mode));
 
     if (!_status)
         return false;
@@ -91,11 +76,6 @@ ICM42688_Set_FIFO_Mode(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Mode_t mode)
 
 
 
-/**
- * @brief   Read the current FIFO working mode
- * @param   pHandle  Pointer to ICM42688 Handle struct
- * @param   pMode    Pointer to a variable that stores the actual FIFO working mode
- */
 bool
 ICM42688_Get_FIFO_Mode(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Mode_t *pMode)
 {
@@ -119,11 +99,6 @@ ICM42688_Get_FIFO_Mode(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Mode_t *pMode)
 
 
 
-/**
- * @brief   Enable FIFO for Gyro sensor
- * @param   pHandle  Pointer to ICM42688 Handle struct
- * @param   state   Enable or Disable
- */
 bool
 ICM42688_Set_FIFO_Gyro_Enable(ICM42688_Handle_t *pHandle, ICM42688_FIFO_GAT_En_t state)
 {
@@ -145,11 +120,6 @@ ICM42688_Set_FIFO_Gyro_Enable(ICM42688_Handle_t *pHandle, ICM42688_FIFO_GAT_En_t
 
 
 
-/**
- * @brief   Enable FIFO for Accel sensor
- * @param   pHandle      Pointer to ICM42688 Handle struct
- * @param   state       Enable or Disable
- */
 bool
 ICM42688_Set_FIFO_Accel_Enable(ICM42688_Handle_t *pHandle, ICM42688_FIFO_GAT_En_t state)
 {
@@ -171,11 +141,6 @@ ICM42688_Set_FIFO_Accel_Enable(ICM42688_Handle_t *pHandle, ICM42688_FIFO_GAT_En_
 
 
 
-/**
- * @brief   Enable FIFO for Temperature sensor
- * @param   pHandle      Pointer to ICM42688 Handle struct
- * @param   state       Enable or Disable
- */
 bool
 ICM42688_Set_FIFO_Temp_Enable(ICM42688_Handle_t *pHandle, ICM42688_FIFO_GAT_En_t state)
 {
@@ -197,11 +162,6 @@ ICM42688_Set_FIFO_Temp_Enable(ICM42688_Handle_t *pHandle, ICM42688_FIFO_GAT_En_t
 
 
 
-/**
- * @brief   Enable high-resolution data / more bit data for Gyro, Accel and Temperature
- * @param   pHandle      Pointer to ICM42688 Handle struct
- * @param   state       Enable or Disable
- */
 bool
 ICM42688_Set_FIFO_HIRES_Enable(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Hires_En_t state)
 {
@@ -223,11 +183,6 @@ ICM42688_Set_FIFO_HIRES_Enable(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Hires_E
 
 
 
-/**
- * @brief   Set "FIFO Watermark Greater than Threshold" oneshot or repeat interrupt mode
- * @param   pHandle  Pointer to ICM42688 Handle struct
- * @param   state   Oneshot or repeat interrupt
- */
 bool
 ICM42688_Set_FIFO_WM_GT_THS(ICM42688_Handle_t *pHandle, ICM42688_FIFO_WM_Mode_t state)
 {
@@ -249,11 +204,6 @@ ICM42688_Set_FIFO_WM_GT_THS(ICM42688_Handle_t *pHandle, ICM42688_FIFO_WM_Mode_t 
 
 
 
-/**
- * @brief   Set "FIFO Resume Partial Read" mode
- * @param   pHandle  Pointer to ICM42688 Handle struct
- * @param   state   Restart each FIFO read from the beginning or resume from the last read point
- */
 bool
 ICM42688_Set_FIFO_Resume_Partial_Read(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Resume_Read_t state)
 {
@@ -263,8 +213,9 @@ ICM42688_Set_FIFO_Resume_Partial_Read(ICM42688_Handle_t *pHandle, ICM42688_FIFO_
     if (((uint8_t)state != 0U) && ((uint8_t)state != 1U))
         return false;
 
-    bool _status = ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_FIFO_CONF1, ICM42688_FIFO_RESUME_PARTIAL_RD_Msk,
-                                            ICM42688_FIFO_RESUME_PARTIAL_RD_Val(state));
+    bool _status =
+        ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_FIFO_CONF1, ICM42688_FIFO_RESUME_PARTIAL_RD_Msk,
+                                 ICM42688_FIFO_RESUME_PARTIAL_RD_Val(state));
     if (!_status)
         return false;
 
@@ -275,11 +226,6 @@ ICM42688_Set_FIFO_Resume_Partial_Read(ICM42688_Handle_t *pHandle, ICM42688_FIFO_
 
 
 
-/**
- * @brief   Set a desired watermark for FIFO
- * @param   pHandle          Pointer to ICM42688 Handle struct
- * @param   fifoWatermark   Desired watermark level
- */
 bool
 ICM42688_Set_FIFO_Watermark(ICM42688_Handle_t *pHandle, uint16_t fifoWatermark)
 {
@@ -310,11 +256,6 @@ ICM42688_Set_FIFO_Watermark(ICM42688_Handle_t *pHandle, uint16_t fifoWatermark)
 
 
 
-/**
- * @brief   Read the current FIFO watermark level
- * @param   pHandle          Pointer to ICM42688 Handle struct
- * @param   pFifoWatermark   Pointer to a variable that stores the returned watermark level
- */
 bool
 ICM42688_Get_FIFO_Watermark(ICM42688_Handle_t *pHandle, uint16_t *pFifoWatermark)
 {
@@ -336,11 +277,6 @@ ICM42688_Get_FIFO_Watermark(ICM42688_Handle_t *pHandle, uint16_t *pFifoWatermark
 
 
 
-/**
- * @brief   Read the current FIFO byte or record count from the sensor
- * @param   pHandle      Pointer to ICM42688 Handle struct
- * @param   pFifoCount   Pointer to a variable that stores the decoded byte or record count
- */
 bool
 ICM42688_Get_FIFO_Count(ICM42688_Handle_t *pHandle, uint16_t *pFifoCount)
 {
@@ -383,7 +319,8 @@ ICM42688_FIFO_Header_Has(uint8_t header, uint8_t mask)
 static inline uint8_t
 ICM42688_Get_FIFO_TimestampFsync_Mode(uint8_t header)
 {
-    return (uint8_t)((header & ICM42688_FIFO_HEADER_TIMESTAMP_FSYNC_Msk) >> ICM42688_FIFO_HEADER_TIMESTAMP_FSYNC_Pos);
+    return (uint8_t)((header & ICM42688_FIFO_HEADER_TIMESTAMP_FSYNC_Msk) >>
+                     ICM42688_FIFO_HEADER_TIMESTAMP_FSYNC_Pos);
 }
 
 
@@ -415,14 +352,6 @@ ICM42688_SignExtend20(uint32_t value)
 
 
 
-/**
- * @brief   Extract information from FIFO header including @p pPacketType and @p pPacketSize
- * @param   inputHeader     FIFO header byte read from FIFO_DATA
- * @param   pPacketType      Pointer to an output variable that stores the FIFO packet type from
- *                          decoding FIFO header
- * @param   pPacketSize      Pointer to an output variable that stores the FIFO packet size based on
- *                          FIFO packet type
- */
 bool
 ICM42688_Get_FIFO_Packet_Info_From_Header(uint8_t inputHeader, ICM42688_FIFO_Packet_t *pPacketType,
                                           uint8_t *pPacketSize)
@@ -485,15 +414,6 @@ ICM42688_Get_FIFO_Packet_Info_From_Header(uint8_t inputHeader, ICM42688_FIFO_Pac
 
 
 
-/**
- * @brief   Parse one FIFO packet and fill the decoded fields in @p pFrame
- * @param   pHandle      Pointer to ICM42688 Handle struct
- * @param   pFrame       Pointer to FIFO frame that stores packet metadata and decoded data
- * @param   pData        Pointer to the FIFO packet buffer read consecutively from FIFO_DATA
- *                      register
- * @param   packetType  FIFO packet type decoded from the header
- * @param   packetSize  FIFO packet size decoded from the header
- */
 bool
 ICM42688_FIFO_Parse_Frame(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Frame_t *pFrame, const uint8_t *pData,
                           uint8_t packetSize, ICM42688_FIFO_Packet_t packetType)
@@ -704,11 +624,6 @@ ICM42688_FIFO_Parse_Frame(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Frame_t *pFr
 
 
 
-/**
- * @brief   Read one FIFO frame when FIFO_COUNT is configured in record mode
- * @param   pHandle  Pointer to ICM42688 Handle struct
- * @param   pFrame   Pointer to an output ICM42688 FIFO frame struct
- */
 bool
 ICM42688_Get_FIFO_Frame_In_Record(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Frame_t *pFrame)
 {
@@ -723,7 +638,8 @@ ICM42688_Get_FIFO_Frame_In_Record(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Fram
     if (pHandle->fifo_config.fifo_count_rec != FIFO_COUNT_IN_RECORD)
         return false;
 
-    // Partial-read resume is required because this path reads the header first, then the remaining packet bytes.
+    // Partial-read resume is required because this path reads the header first, then the remaining packet
+    // bytes.
     if (pHandle->fifo_config.fifo_partial_read_state != FIFO_PARTIAL_READ_ENABLE)
         return false;
 
@@ -757,7 +673,8 @@ ICM42688_Get_FIFO_Frame_In_Record(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Fram
     // Resume reading the remaining bytes in this packet.
     uint8_t _fifo_data[20] = {0};
     _fifo_data[0]          = _header;
-    _status = ICM42688_ReadRegs(pHandle, ICM42688_UB0_FIFO_DATA, &_fifo_data[1], (uint16_t)(_fifo_packet_size - 1U));
+    _status                = ICM42688_ReadRegs(pHandle, ICM42688_UB0_FIFO_DATA, &_fifo_data[1],
+                                               (uint16_t)(_fifo_packet_size - 1U));
     if (!_status)
         return false;
 
@@ -771,17 +688,6 @@ ICM42688_Get_FIFO_Frame_In_Record(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Fram
 
 
 
-/**
- * @brief   Read all available FIFO bytes in one SPI burst
- * @note    This function is valid only when:
- *          FIFO is enabled, NOT BYPASS
- *          FIFO count is configured to report in BYTEs
- *          PARTIAL FIFO READ is DISABLED
- * In this mode, FIFO_COUNT gives the total number of bytes to read,
- * and the driver performs one burst read from FIFO_DATA
- * @param   pRawBuf      Raw pointer to raw FIFO buffer
- * @param   rawSize     Capacity of @p pRawBuf in bytes
- */
 bool
 ICM42688_Get_FIFO_Frame_In_Byte(ICM42688_Handle_t *pHandle, uint8_t *pRawBuf, uint16_t rawSize)
 {
@@ -818,10 +724,6 @@ ICM42688_Get_FIFO_Frame_In_Byte(ICM42688_Handle_t *pHandle, uint8_t *pRawBuf, ui
 
 
 
-/**
- * @brief   Flush FIFO storage to reset FIFO_COUNT_BYTE/RECORD back to 0
- *          This function should be called after a successful init or before starting a clean capture window
- */
 bool
 ICM42688_FIFO_Flush(ICM42688_Handle_t *pHandle, bool enable)
 {
@@ -829,8 +731,8 @@ ICM42688_FIFO_Flush(ICM42688_Handle_t *pHandle, bool enable)
         return false;
 
     uint8_t _enable_val = enable ? 1U : 0U;
-    bool    _status     = ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_SIGNAL_PATH_RST, ICM42688_FIFO_FLUSH_Msk,
-                                                   ICM42688_FIFO_FLUSH_Val(_enable_val));
+    bool    _status = ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_SIGNAL_PATH_RST, ICM42688_FIFO_FLUSH_Msk,
+                                               ICM42688_FIFO_FLUSH_Val(_enable_val));
 
     if (!_status)
         return false;
@@ -840,19 +742,9 @@ ICM42688_FIFO_Flush(ICM42688_Handle_t *pHandle, bool enable)
 
 
 
-/**
- * @brief   Parse one FIFO frame from a byte buffer previously read from FIFO_DATA
- *          Reads one complete FIFO packet from a larger byte buffer
- * @note    Call ICM42688_Get_FIFO_Frame_In_Byte() before using this function.
- * @param   pHandle          Pointer to an ICM42688 Handle struct
- * @param   pFrame           Pointer to an output ICM42688 FIFO frame struct
- * @param   pByteBuf         Pointer to the FIFO byte buffer.
- * @param   countsInByte    Number of valid bytes in @p pByteBuf
- * @param   pCurrentPos      Current parsing offset; initialize to 0 before the first call
- */
 bool
-ICM42688_FIFO_Parse_One_Byte_Frame(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Frame_t *pFrame, const uint8_t *pByteBuf,
-                                   uint16_t countsInByte, uint16_t *pCurrentPos)
+ICM42688_FIFO_Parse_One_Byte_Frame(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Frame_t *pFrame,
+                                   const uint8_t *pByteBuf, uint16_t countsInByte, uint16_t *pCurrentPos)
 {
     if (!pHandle || !pFrame || !pByteBuf || !pCurrentPos)
         return false;
@@ -860,10 +752,10 @@ ICM42688_FIFO_Parse_One_Byte_Frame(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Fra
     if (*pCurrentPos >= countsInByte)
         return false;
 
-    uint8_t                _header                = pByteBuf[*pCurrentPos]; // Packet header extraction
-    ICM42688_FIFO_Packet_t _fifo_packet_type      = FIFO_PACKET_INVALID;
-    uint8_t                _fifo_packet_size      = 0U;
-    const uint8_t         *_packet_reference_data = &pByteBuf[*pCurrentPos]; // Pointer to a real DMA RX buffer
+    uint8_t                _header           = pByteBuf[*pCurrentPos]; // Packet header extraction
+    ICM42688_FIFO_Packet_t _fifo_packet_type = FIFO_PACKET_INVALID;
+    uint8_t                _fifo_packet_size = 0U;
+    const uint8_t *_packet_reference_data    = &pByteBuf[*pCurrentPos]; // Pointer to a real DMA RX buffer
 
     bool _status = ICM42688_Get_FIFO_Packet_Info_From_Header(_header, &_fifo_packet_type, &_fifo_packet_size);
     if (!_status)
@@ -876,7 +768,8 @@ ICM42688_FIFO_Parse_One_Byte_Frame(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Fra
     if ((uint32_t)*pCurrentPos + (uint32_t)_fifo_packet_size > (uint32_t)countsInByte)
         return false;
 
-    _status = ICM42688_FIFO_Parse_Frame(pHandle, pFrame, _packet_reference_data, _fifo_packet_size, _fifo_packet_type);
+    _status = ICM42688_FIFO_Parse_Frame(pHandle, pFrame, _packet_reference_data, _fifo_packet_size,
+                                        _fifo_packet_type);
     if (!_status)
         return false;
 
@@ -888,16 +781,6 @@ ICM42688_FIFO_Parse_One_Byte_Frame(ICM42688_Handle_t *pHandle, ICM42688_FIFO_Fra
 
 
 
-/**
- * @brief   Calibrate FIFO raw data in frame with corresponding offset and scale,
- *          and fill the calibrated data into output buffer.
- * @param   pHandle             Pointer to an ICM42688 Handle struct
- * @param   pFrame              Pointer to an ICM42688 FIFO frame struct that carries raw data to be calibrated
- * @param   pOffset             Pointer to an ICM42688 Offset struct that carries the raw offset data to be used for
- *                              calibration
- * @param   pOutCalibratedData  Pointer to ICM42688 Scaled struct that carries the calibrated output data
- * @note    Only fields marked valid in @p pFrame are calibrated; absent sensors remain zeroed.
- */
 bool
 ICM42688_Calibrate_FIFO_Frame(const ICM42688_Handle_t *pHandle, const ICM42688_FIFO_Frame_t *pFrame,
                               const ICM42688_Offset_Raw_t       *pOffset,

@@ -2,7 +2,7 @@
  * icm42688_rw.c
  *
  *  Created on: Mar 5, 2026
- *      Author: dobao
+ *      Author: dobaolong
  */
 #include "imu/core/icm42688_rw.h"
 
@@ -59,7 +59,8 @@ ICM42688_WriteBankAuto(ICM42688_Handle_t *pHandle, ICM42688_Reg_t encodedReg)
 
     ICM42688_CS_Pull_Low(pHandle->spi_config.cs_port, pHandle->spi_config.cs_pin);
 
-    HAL_StatusTypeDef _status = HAL_SPI_Transmit(pHandle->spi_config.hspi, _bank_tx, 2, ICM42688_SPI_TIMEOUT_MS);
+    HAL_StatusTypeDef _status =
+        HAL_SPI_Transmit(pHandle->spi_config.hspi, _bank_tx, 2, ICM42688_SPI_TIMEOUT_MS);
 
     ICM42688_CS_Pull_High(pHandle->spi_config.cs_port, pHandle->spi_config.cs_pin);
 
@@ -75,11 +76,6 @@ ICM42688_WriteBankAuto(ICM42688_Handle_t *pHandle, ICM42688_Reg_t encodedReg)
  *  PUBLIC APIs - LOW-LEVEL REGISTER ACCESS
  * ============================================================================ */
 
-/**
- * @brief   Pull CS low to start an SPI transaction.
- * @param   pCsPort GPIO port connected to the ICM42688 CS signal.
- * @param   csPin   GPIO pin mask for the CS signal.
- */
 void
 ICM42688_CS_Pull_Low(GPIO_TypeDef *pCsPort, uint16_t csPin)
 {
@@ -88,11 +84,6 @@ ICM42688_CS_Pull_Low(GPIO_TypeDef *pCsPort, uint16_t csPin)
 
 
 
-/**
- * @brief   Pull CS high to end an SPI transaction.
- * @param   pCsPort GPIO port connected to the ICM42688 CS signal.
- * @param   csPin   GPIO pin mask for the CS signal.
- */
 void
 ICM42688_CS_Pull_High(GPIO_TypeDef *pCsPort, uint16_t csPin)
 {
@@ -101,13 +92,6 @@ ICM42688_CS_Pull_High(GPIO_TypeDef *pCsPort, uint16_t csPin)
 
 
 
-/**
- * @brief   Write one byte to an encoded ICM42688 register over SPI.
- * @param   pHandle     Pointer to ICM42688 handle.
- * @param   encodedReg  Register encoded with bank and address.
- * @param   data        Data byte to write.
- * @return  true if bank selection and SPI transfer succeed, otherwise false.
- */
 bool
 ICM42688_WriteReg(ICM42688_Handle_t *pHandle, ICM42688_Reg_t encodedReg, uint8_t data)
 {
@@ -136,13 +120,6 @@ ICM42688_WriteReg(ICM42688_Handle_t *pHandle, ICM42688_Reg_t encodedReg, uint8_t
 
 
 
-/**
- * @brief   Read one byte from an encoded ICM42688 register over SPI.
- * @param   pHandle     Pointer to ICM42688 handle.
- * @param   encodedReg  Register encoded with bank and address.
- * @param   pOutData    Destination for the received byte.
- * @return  true if bank selection and SPI transfer succeed, otherwise false.
- */
 bool
 ICM42688_ReadReg(ICM42688_Handle_t *pHandle, ICM42688_Reg_t encodedReg, uint8_t *pOutData)
 {
@@ -163,7 +140,8 @@ ICM42688_ReadReg(ICM42688_Handle_t *pHandle, ICM42688_Reg_t encodedReg, uint8_t 
 
     ICM42688_CS_Pull_Low(pHandle->spi_config.cs_port, pHandle->spi_config.cs_pin);
 
-    HAL_StatusTypeDef _status = HAL_SPI_TransmitReceive(pHandle->spi_config.hspi, _tx, _rx, 2, ICM42688_SPI_TIMEOUT_MS);
+    HAL_StatusTypeDef _status =
+        HAL_SPI_TransmitReceive(pHandle->spi_config.hspi, _tx, _rx, 2, ICM42688_SPI_TIMEOUT_MS);
 
     ICM42688_CS_Pull_High(pHandle->spi_config.cs_port, pHandle->spi_config.cs_pin);
 
@@ -177,16 +155,9 @@ ICM42688_ReadReg(ICM42688_Handle_t *pHandle, ICM42688_Reg_t encodedReg, uint8_t 
 
 
 
-/**
- * @brief   Read consecutive ICM42688 registers, or stream bytes from FIFO_DATA.
- * @param   pHandle          Pointer to ICM42688 handle.
- * @param   startEncodedReg  First encoded register to read.
- * @param   pBuf             Destination buffer for payload bytes.
- * @param   bufLength        Number of payload bytes to read.
- * @return  true if the read succeeds, otherwise false.
- */
 bool
-ICM42688_ReadRegs(ICM42688_Handle_t *pHandle, ICM42688_Reg_t startEncodedReg, uint8_t *pBuf, uint16_t bufLength)
+ICM42688_ReadRegs(ICM42688_Handle_t *pHandle, ICM42688_Reg_t startEncodedReg, uint8_t *pBuf,
+                  uint16_t bufLength)
 {
     if ((!pHandle) || (!pBuf) || (bufLength == 0))
         return false;
@@ -210,7 +181,8 @@ ICM42688_ReadRegs(ICM42688_Handle_t *pHandle, ICM42688_Reg_t startEncodedReg, ui
 
     ICM42688_CS_Pull_Low(pHandle->spi_config.cs_port, pHandle->spi_config.cs_pin);
 
-    HAL_StatusTypeDef _status = HAL_SPI_Transmit(pHandle->spi_config.hspi, &_addr, 1, ICM42688_SPI_TIMEOUT_MS);
+    HAL_StatusTypeDef _status =
+        HAL_SPI_Transmit(pHandle->spi_config.hspi, &_addr, 1, ICM42688_SPI_TIMEOUT_MS);
     if (_status == HAL_OK) {
         _status = HAL_SPI_Receive(pHandle->spi_config.hspi, pBuf, bufLength, ICM42688_SPI_TIMEOUT_MS);
     }
@@ -225,16 +197,9 @@ ICM42688_ReadRegs(ICM42688_Handle_t *pHandle, ICM42688_Reg_t startEncodedReg, ui
 
 
 
-/**
- * @brief   Update selected bits of one register with a read-modify-write operation.
- * @param   pHandle      Pointer to ICM42688 handle.
- * @param   encodedReg   Register encoded with bank and address.
- * @param   mask         Bit mask selecting fields to update.
- * @param   valueMasked  New field value, already shifted and masked.
- * @return  true if the read and write both succeed, otherwise false.
- */
 bool
-ICM42688_Update_Reg_Bits(ICM42688_Handle_t *pHandle, ICM42688_Reg_t encodedReg, uint8_t mask, uint8_t valueMasked)
+ICM42688_Update_Reg_Bits(ICM42688_Handle_t *pHandle, ICM42688_Reg_t encodedReg, uint8_t mask,
+                         uint8_t valueMasked)
 {
     if (!pHandle)
         return false;
@@ -255,19 +220,6 @@ ICM42688_Update_Reg_Bits(ICM42688_Handle_t *pHandle, ICM42688_Reg_t encodedReg, 
 
 
 
-/**
- * @brief   Start an SPI DMA burst read from consecutive registers or FIFO_DATA.
- * @param   pHandle          Pointer to ICM42688 handle.
- * @param   startEncodedReg  First encoded register to read.
- * @param   pTxBuf           DMA TX scratch buffer. Byte 0 becomes the read command.
- * @param   txBufLength      Size of pTxBuf in bytes.
- * @param   pRxBuf           DMA RX buffer. Byte 0 is dummy; bytes 1..dataLength are payload.
- * @param   rxBufLength      Size of pRxBuf in bytes.
- * @param   dataLength       Number of payload bytes to read.
- * @param   autoBankSelect   Select the encoded bank before DMA, or false if caller preselected it.
- * @return  true if the DMA transfer starts, otherwise false.
- * @warning CS remains low until the DMA completion path calls ICM42688_DMA_End().
- */
 bool
 ICM42688_ReadRegs_DMA_Start(ICM42688_Handle_t *pHandle, ICM42688_Reg_t startEncodedReg, uint8_t *pTxBuf,
                             uint16_t txBufLength, uint8_t *pRxBuf, uint16_t rxBufLength, uint16_t dataLength,
@@ -321,7 +273,8 @@ ICM42688_ReadRegs_DMA_Start(ICM42688_Handle_t *pHandle, ICM42688_Reg_t startEnco
 
     ICM42688_CS_Pull_Low(pHandle->spi_config.cs_port, pHandle->spi_config.cs_pin);
 
-    HAL_StatusTypeDef _status = HAL_SPI_TransmitReceive_DMA(pHandle->spi_config.hspi, pTxBuf, pRxBuf, _total_length);
+    HAL_StatusTypeDef _status =
+        HAL_SPI_TransmitReceive_DMA(pHandle->spi_config.hspi, pTxBuf, pRxBuf, _total_length);
     if (_status != HAL_OK) {
         ICM42688_CS_Pull_High(pHandle->spi_config.cs_port, pHandle->spi_config.cs_pin);
         return false;
@@ -332,20 +285,9 @@ ICM42688_ReadRegs_DMA_Start(ICM42688_Handle_t *pHandle, ICM42688_Reg_t startEnco
 }
 
 
-/**
- * @brief   Start an SPI DMA write of one byte to an encoded register.
- * @param   pHandle         Pointer to ICM42688 handle.
- * @param   encodedReg      Register encoded with bank and address.
- * @param   data            Byte to write.
- * @param   pTxBuf          DMA TX buffer; must remain valid until transfer completion.
- * @param   txBufLength     Size of pTxBuf in bytes.
- * @param   autoBankSelect  Select the encoded bank before DMA, or false if caller preselected it.
- * @return  true if the DMA transfer starts, otherwise false.
- * @warning CS remains low until the DMA completion path calls ICM42688_DMA_End().
- */
 bool
-ICM42688_WriteReg_DMA_Start(ICM42688_Handle_t *pHandle, ICM42688_Reg_t encodedReg, uint8_t data, uint8_t *pTxBuf,
-                            uint16_t txBufLength, bool autoBankSelect)
+ICM42688_WriteReg_DMA_Start(ICM42688_Handle_t *pHandle, ICM42688_Reg_t encodedReg, uint8_t data,
+                            uint8_t *pTxBuf, uint16_t txBufLength, bool autoBankSelect)
 {
     if (!pHandle || !pTxBuf)
         return false;
@@ -380,18 +322,6 @@ ICM42688_WriteReg_DMA_Start(ICM42688_Handle_t *pHandle, ICM42688_Reg_t encodedRe
 
 
 
-/**
- * @brief   Start an SPI DMA burst write to consecutive registers.
- * @param   pHandle          Pointer to ICM42688 handle.
- * @param   startEncodedReg  First encoded register to write.
- * @param   pData            Payload bytes to copy into pTxBuf.
- * @param   pTxBuf           DMA TX buffer; must remain valid until transfer completion.
- * @param   txBufLength      Size of pTxBuf in bytes.
- * @param   dataLength       Number of payload bytes to write.
- * @param   autoBankSelect   Select the encoded bank before DMA, or false if caller preselected it.
- * @return  true if the DMA transfer starts, otherwise false.
- * @warning CS remains low until the DMA completion path calls ICM42688_DMA_End().
- */
 bool
 ICM42688_WriteRegs_DMA_Start(ICM42688_Handle_t *pHandle, ICM42688_Reg_t startEncodedReg, const uint8_t *pData,
                              uint8_t *pTxBuf, uint16_t txBufLength, uint16_t dataLength, bool autoBankSelect)
@@ -440,11 +370,6 @@ ICM42688_WriteRegs_DMA_Start(ICM42688_Handle_t *pHandle, ICM42688_Reg_t startEnc
     return true;
 }
 
-/**
- * @brief   Release CS after a DMA SPI transaction has completed.
- * @param   pHandle Pointer to ICM42688 handle.
- * @return  true if the handle contains valid SPI and CS configuration, otherwise false.
- */
 bool
 ICM42688_DMA_End(ICM42688_Handle_t *pHandle)
 {

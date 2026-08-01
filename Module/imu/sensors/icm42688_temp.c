@@ -2,7 +2,7 @@
  * icm42688_temp.c
  *
  *  Created on: Mar 12, 2026
- *      Author: dobao
+ *      Author: dobaolong
  */
 
 #include "imu/sensors/icm42688_temp.h"
@@ -21,8 +21,8 @@ ICM42688_Set_Temperature_Enable(ICM42688_Handle_t *pHandle, ICM42688_Temp_t stat
 
     if (pHandle->is_initialized && pHandle->temp_config.temp_state == state)
         return true;
-    bool _status = ICM42688_Update_Reg_Bits(
-        pHandle, ICM42688_UB0_PWR_MGMT0, ICM42688_TEMP_Msk, ICM42688_TEMP_Val(state));
+    bool _status = ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_PWR_MGMT0, ICM42688_TEMP_Msk,
+                                            ICM42688_TEMP_Val(state));
     if (!_status)
         return _status;
     pHandle->temp_config.temp_state = state;

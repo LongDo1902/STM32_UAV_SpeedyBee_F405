@@ -2,7 +2,7 @@
  * temperature.h
  *
  *  Created on: Dec 24, 2025
- *      Author: dobao
+ *      Author: dobaolong
  */
 
 #ifndef INC_TEMPERATURE_H_

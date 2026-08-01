@@ -12,7 +12,7 @@
 
 // SPI DMA transfers one read-command byte followed by the FIFO payload
 #define IMU_SPI_DMA_CMD_BYTES   1U
-#define IMU_SPI_DMA_XFER_BYTES    (IMU_SPI_DMA_CMD_BYTES + IMU_FIFO_WTM_BYTES)
+#define IMU_SPI_DMA_XFER_BYTES  (IMU_SPI_DMA_CMD_BYTES + IMU_FIFO_WTM_BYTES)
 
 // Two slots DMA allow DMA to fill one slot while the worker parses the other
 #define IMU_ACQ_DMA_SLOT_COUNT  2U
@@ -23,7 +23,7 @@
 #define IMU_SENSOR_PERIOD_US    (IMU_TIMEBASE_HZ / IMU_ODR_HZ) // Interval between previous and new ICM42688 accel/gyro data, one frame every 125us
 #define IMU_OUTPUT_PERIOD_US    (IMU_TIMEBASE_HZ / IMU_OUTPUT_HZ) // Interval between previous and new published output, one averaged sample every 250us
 
-// Calculate approximate center timestamp between first and last patch, useful for averaging data of multiple batches
+// Approximate time from the final frame to the center of all uniformly spaced frames inside one batch
 #define IMU_BATCH_MIDPOINT_OFFSET_US ((((IMU_FIFO_BATCH_SAMPLES - 1U) * IMU_SENSOR_PERIOD_US) + 1U) / 2U)
 
 // Health limits for the measured 4kHz interval
@@ -38,7 +38,7 @@
 #endif
 
 #if (IMU_ODR_HZ % IMU_OUTPUT_HZ) != 0
-#error "IMU_ODR_HZ must be divisible by IMU_FAST_LOOP_HZ"
+#error "IMU_ODR_HZ must be divisible by IMU_OUTPUT_HZ"
 #endif
 
 #if (IMU_FIFO_BATCH_SAMPLES != 2U)

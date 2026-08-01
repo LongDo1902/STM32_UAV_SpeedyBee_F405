@@ -2,7 +2,7 @@
  * icm42688_gyro.c
  *
  *  Created on: Mar 12, 2026
- *      Author: dobao
+ *      Author: dobaolong
  */
 #include "imu/sensors/icm42688_gyro.h"
 #include <math.h>
@@ -127,8 +127,9 @@ ICM42688_Set_Gyro_UIFilt_BW(ICM42688_Handle_t *pHandle, ICM42688_UIFilt_BW_t uiF
         (uint8_t)uiFiltBandWidth > 0x0FU)
         return false;
 
-    bool _status = ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_GYRO_ACCEL_CONF0, ICM42688_GYRO_UI_FILT_BW_Msk,
-                                            ICM42688_GYRO_UI_FILT_BW_Val((uint8_t)uiFiltBandWidth));
+    bool _status =
+        ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_GYRO_ACCEL_CONF0, ICM42688_GYRO_UI_FILT_BW_Msk,
+                                 ICM42688_GYRO_UI_FILT_BW_Val((uint8_t)uiFiltBandWidth));
     if (!_status)
         return false;
 
@@ -236,7 +237,7 @@ ICM42688_Compute_NotchFreq(uint16_t desiredNotchFreqHz, uint16_t *pNfCoswz, uint
     float _coswz                  = cosf(2.0f * M_PI * _desired_notch_freq_khz / 32.0f);
 
     if (fabsf(_coswz) <= 0.875f) {
-        *pNfCoswz     = (uint16_t)lroundf(_coswz * 256.0f);
+        *pNfCoswz    = (uint16_t)lroundf(_coswz * 256.0f);
         *pNfCoswzSel = 0U;
         return true;
     }
@@ -371,8 +372,8 @@ ICM42688_Set_NotchFreq_Z(ICM42688_Handle_t *pHandle, uint16_t desiredNotchFreqHz
 
 
 bool
-ICM42688_Set_NotchFreq_XYZ(ICM42688_Handle_t *pHandle, uint16_t desiredXNotchFreqHz, uint16_t desiredYNotchFreqHz,
-                           uint16_t desiredZNotchFreqHz)
+ICM42688_Set_NotchFreq_XYZ(ICM42688_Handle_t *pHandle, uint16_t desiredXNotchFreqHz,
+                           uint16_t desiredYNotchFreqHz, uint16_t desiredZNotchFreqHz)
 {
     if (!pHandle)
         return false;

@@ -2,7 +2,7 @@
  * icm42688_data.c
  *
  *  Created on: Mar 14, 2026
- *      Author: dobao
+ *      Author: dobaolong
  */
 #include "imu/sensors/icm42688_data.h"
 #include <math.h>
@@ -93,9 +93,9 @@ ICM42688_Get_Accel_G(ICM42688_Handle_t *pHandle, float pG[3])
         return false;
 
     const float _s = pHandle->accel_g_per_lsb;
-    pG[0]           = (float)(_raw[0] * _s);
-    pG[1]           = (float)(_raw[1] * _s);
-    pG[2]           = (float)(_raw[2] * _s);
+    pG[0]          = (float)(_raw[0] * _s);
+    pG[1]          = (float)(_raw[1] * _s);
+    pG[2]          = (float)(_raw[2] * _s);
 
     return true;
 }
@@ -152,9 +152,9 @@ ICM42688_Get_Gyro_DPS(ICM42688_Handle_t *pHandle, float pDps[3])
 
     // Convert gyro raw counts to dps using the cached full-scale scale factor.
     const float _s = pHandle->gyro_dps_per_lsb;
-    pDps[0]         = (float)(_raw[0] * _s);
-    pDps[1]         = (float)(_raw[1] * _s);
-    pDps[2]         = (float)(_raw[2] * _s);
+    pDps[0]        = (float)(_raw[0] * _s);
+    pDps[1]        = (float)(_raw[1] * _s);
+    pDps[2]        = (float)(_raw[2] * _s);
 
     return true;
 }
@@ -170,8 +170,8 @@ ICM42688_Get_Temp_Accel_Gyro_Raw(ICM42688_Handle_t *pHandle, ICM42688_Raw_t *pOu
     if (!pHandle || !pOutRaw)
         return false;
 
-    if ((pHandle->temp_config.temp_state == TEMP_DISABLE) || (pHandle->accel_config.accel_mode == ACCEL_OFF) ||
-        (pHandle->gyro_config.gyro_mode == GYRO_OFF))
+    if ((pHandle->temp_config.temp_state == TEMP_DISABLE) ||
+        (pHandle->accel_config.accel_mode == ACCEL_OFF) || (pHandle->gyro_config.gyro_mode == GYRO_OFF))
         return false;
 
     uint8_t _raw[14] = {0};
@@ -214,7 +214,8 @@ ICM42688_Get_Temp_Accel_Gyro_Raw(ICM42688_Handle_t *pHandle, ICM42688_Raw_t *pOu
 
 
 bool
-ICM42688_Get_Calibrate_Raw(ICM42688_Handle_t *pHandle, ICM42688_Offset_Raw_t *pOffsetCalibratedRaw, uint32_t samples)
+ICM42688_Get_Calibrate_Raw(ICM42688_Handle_t *pHandle, ICM42688_Offset_Raw_t *pOffsetCalibratedRaw,
+                           uint32_t samples)
 {
     if (!pHandle || !pOffsetCalibratedRaw || (samples == 0U))
         return false;
@@ -340,8 +341,9 @@ static const ICM42688_Remap_Axes_t imu_remap_orientation[IMU_ORIENT_COUNT] = {
 
 
 static bool
-ICM42688_Remap_IMU_To_Body(ICM42688_Orientation_t orientation, const ICM42688_Temp_Accel_Gyro_Scaled_t *pImuScaled,
-                           ICM42688_Temp_Accel_Gyro_Scaled_t *pBodyScaled)
+ICM42688_Remap_IMU_To_Body(ICM42688_Orientation_t                   orientation,
+                           const ICM42688_Temp_Accel_Gyro_Scaled_t *pImuScaled,
+                           ICM42688_Temp_Accel_Gyro_Scaled_t       *pBodyScaled)
 {
     if (!pImuScaled || !pBodyScaled)
         return false;
@@ -396,7 +398,7 @@ ICM42688_Get_Est_Angle_Complement(ICM42688_Handle_t *pHandle, ICM42688_Orientati
     pAttitudeOut->roll  = (_alpha * (pAttitudeOut->roll + _gyro_x * dtS)) + ((1.0f - _alpha) * _roll_acc);
     pAttitudeOut->pitch = (_alpha * (pAttitudeOut->pitch + _gyro_y * dtS)) + ((1.0f - _alpha) * _pitch_acc);
     // Yaw is gyro-only here because this driver has no magnetometer or external heading correction.
-    pAttitudeOut->yaw   = pAttitudeOut->yaw + _gyro_z * dtS;
+    pAttitudeOut->yaw = pAttitudeOut->yaw + _gyro_z * dtS;
 
     return true;
 }

@@ -2,15 +2,15 @@
  * icm42688_types.h
  *
  *  Created on: Mar 12, 2026
- *      Author: dobao
+ *      Author: dobaolong
  */
 
 #ifndef INC_IMU_ICM42688_TYPES_H_
 #define INC_IMU_ICM42688_TYPES_H_
 
+#include "stm32f4xx_hal.h"
 #include <stdbool.h>
 #include <stdint.h>
-#include "stm32f4xx_hal.h"
 
 
 /* ===========================================================================

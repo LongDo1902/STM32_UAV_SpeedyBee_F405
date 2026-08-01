@@ -2,7 +2,7 @@
  * icm42688_interrupt.c
  *
  *  Created on: Mar 12, 2026
- *      Author: dobao
+ *      Author: dobaolong
  */
 
 #include "imu/features/icm42688_interrupt.h"
@@ -138,8 +138,8 @@ ICM42688_Set_Int1_FIFO_Full_Enable(ICM42688_Handle_t *pHandle, bool enable)
 
     uint8_t _value_masked = enable ? ICM42688_FIFO_FULL_INT1_EN_Msk : 0U;
 
-    bool _status =
-        ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_INT_SRC0, ICM42688_FIFO_FULL_INT1_EN_Msk, _value_masked);
+    bool _status = ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_INT_SRC0, ICM42688_FIFO_FULL_INT1_EN_Msk,
+                                            _value_masked);
     if (!_status)
         return _status;
 
@@ -156,8 +156,8 @@ ICM42688_Set_Int1_FIFO_Threshold_Enable(ICM42688_Handle_t *pHandle, bool enable)
 
     uint8_t _value_masked = enable ? ICM42688_FIFO_THS_INT1_EN_Msk : 0U;
 
-    bool _status =
-        ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_INT_SRC0, ICM42688_FIFO_THS_INT1_EN_Msk, _value_masked);
+    bool _status = ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_INT_SRC0, ICM42688_FIFO_THS_INT1_EN_Msk,
+                                            _value_masked);
     if (!_status)
         return _status;
 
@@ -174,7 +174,8 @@ ICM42688_Set_Int1_DataReady_Enable(ICM42688_Handle_t *pHandle, bool enable)
 
     uint8_t _value_masked = enable ? ICM42688_UI_DRDY_INT1_EN_Msk : 0U;
 
-    bool _status = ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_INT_SRC0, ICM42688_UI_DRDY_INT1_EN_Msk, _value_masked);
+    bool _status =
+        ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_INT_SRC0, ICM42688_UI_DRDY_INT1_EN_Msk, _value_masked);
     if (!_status)
         return _status;
 
@@ -189,8 +190,8 @@ ICM42688_Set_Int1_ResetDone_Enable(ICM42688_Handle_t *pHandle, bool enable)
     if (!pHandle)
         return false;
     uint8_t _value_masked = enable ? ICM42688_RESET_DONE_INT1_EN_Msk : 0U;
-    bool    _status =
-        ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_INT_SRC0, ICM42688_RESET_DONE_INT1_EN_Msk, _value_masked);
+    bool _status = ICM42688_Update_Reg_Bits(pHandle, ICM42688_UB0_INT_SRC0, ICM42688_RESET_DONE_INT1_EN_Msk,
+                                            _value_masked);
     if (!_status)
         return _status;
 

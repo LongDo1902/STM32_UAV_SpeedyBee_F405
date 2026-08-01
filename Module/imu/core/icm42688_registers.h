@@ -2,7 +2,7 @@
  * icm42688_registers.h
  *
  *  Created on: Feb 14, 2026
- *      Author: dobao
+ *      Author: dobaolong
  */
 
 #ifndef INC_IMU_ICM42688_REGISTERS_H_
