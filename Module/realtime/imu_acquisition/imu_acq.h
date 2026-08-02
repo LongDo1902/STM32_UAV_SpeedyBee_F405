@@ -117,9 +117,10 @@ bool IMU_ACQ_ReadNewSample(IMU_Sample_t *pOutSample, uint32_t *lastSequence);
  * @brief   Decode, average, timestamp, publish, and release the oldest ready DMA batch.
  *          Exactly IMU_FIFO_BATCH_SAMPLES frames are expected; malformed data is dropped and reported as a
  *          latched fault, while valid frames receive midpoint timing and a monotonically increasing sequence.
+ * @param   pOutSample  Pointer to the latest IMU sample, read this directly for real-time purpose
  * @return  Processing result indicating no work, a published sample, or a dropped batch.
  */
-IMU_ACQ_ProcessResult_t IMU_ACQ_ProcessNextBatch(void);
+IMU_ACQ_ProcessResult_t IMU_ACQ_ProcessNextBatch(IMU_Sample_t *pOutSample);
 
 /**
  * @brief   Copy the current IMU acquisition diagnostic counters and timing statistics.

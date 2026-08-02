@@ -20,7 +20,6 @@
  */
 
 
-
 /**
  * @brief   State flags of DMA slot
  *          They help the program to know which operation/action should be execute next such as probing
@@ -71,9 +70,8 @@ static volatile IMU_ACQ_Status_t status_;
  */
 static bool initialized_ = false;
 
-static volatile uint8_t active_dma_slot_ =
-    IMU_DMA_INVALID_SLOT_INDEX; // Remember which DMA slot is being filled by SPI DMA
-static volatile uint8_t  completion_order_ = 0U;
+static volatile uint8_t  active_dma_slot_  = IMU_DMA_INVALID_SLOT_IDX; // DMA slot is being filled by SPI DMA
+static volatile uint32_t completion_order_ = 0U;
 static volatile uint32_t pending_faults_   = IMU_FAULT_NONE;
 
 static bool     previous_timestamp_valid_ = false;
@@ -136,7 +134,8 @@ IMU_ACQ_LatchFault(uint32_t fault)
 
 /**
  * @brief   Collect all IMU faults that happended, return them to the caller and then clear the stored fault
- * list So, the caller handles the old faults while @c pending_faults_ is ready to collect the new ones.
+ *          list So, the caller handles the old faults while @c pending_faults_ is ready to collect the new
+ *          ones.
  */
 static uint32_t
 IMU_ACQ_TakePendingFaults()
@@ -182,7 +181,7 @@ IMU_ACQ_CalibrateGyroBias(uint16_t sampleCounts)
 
     /**
      * @todo    Accel startup bias is intentionally left at zero. Estimating it correctly requires known board
-     * orientation and proper six-position calibration.
+     *          orientation and proper six-position calibration.
      */
     return true;
 }
@@ -211,7 +210,26 @@ IMU_ACQ_FindFreeSlotLocked(void)
             return i;
         }
     }
-    return IMU_DMA_INVALID_SLOT_INDEX;
+    return IMU_DMA_INVALID_SLOT_IDX;
+}
+
+
+
+/**
+ *  @brief  Determine whether one completion order occured before another, including across uint32_t
+ *          wraparound.
+ *
+ *  @param  first   Completion order being tested as the older value
+ *  @param  second  Completion order being tested as the newer value
+ *
+ *  @return true    When first occurred before second, otherwise false
+ *  @note   This comparison is valid when the two order values are separated by fewer than 2^31 completions.
+ *          With only two DMA slots, this condition is always satisfied during normal operation
+ */
+static bool
+IMU_ACQ_OrderBefore(uint32_t first, uint32_t second)
+{
+    return ((int32_t)(first - second) < 0);
 }
 
 
@@ -222,18 +240,21 @@ IMU_ACQ_FindFreeSlotLocked(void)
 static uint8_t
 IMU_ACQ_TakeOldestReadySlot(void)
 {
-    uint8_t  _selected_slot  = IMU_DMA_INVALID_SLOT_INDEX;
-    uint32_t _selected_order = UINT32_MAX;
-    uint32_t _primask        = IMU_ACQ_EnterCritical();
+    uint8_t  _selected_slot = IMU_DMA_INVALID_SLOT_IDX;
+    uint32_t _primask       = IMU_ACQ_EnterCritical();
 
     for (uint8_t i = 0; i < IMU_ACQ_DMA_SLOT_COUNT; i++) {
-        if ((dma_slot_[i].state == IMU_DMA_SLOT_READY) && (dma_slot_[i].completion_order < _selected_order)) {
-            _selected_slot  = i;
-            _selected_order = dma_slot_[i].completion_order;
+        // Find the first READY slot
+        if (dma_slot_[i].state == IMU_DMA_SLOT_READY) {
+            if ((_selected_slot == IMU_DMA_INVALID_SLOT_IDX) ||
+                (IMU_ACQ_OrderBefore(dma_slot_[i].completion_order,
+                                     dma_slot_[_selected_slot].completion_order))) {
+                _selected_slot = i; // Select first READY slot
+            }
         }
     }
 
-    if (_selected_slot != IMU_DMA_INVALID_SLOT_INDEX) {
+    if (_selected_slot != IMU_DMA_INVALID_SLOT_IDX) {
         dma_slot_[_selected_slot].state = IMU_DMA_SLOT_PROCESSING;
     }
 
@@ -258,7 +279,7 @@ IMU_ACQ_ReleaseSlot(uint8_t slotIndex)
 
 /**
  * @brief   Read all FIFO frames from one completed DMA RX buffer, calibrate each frame , average them,
- * produce one final IMU sample
+ *          produce one final IMU sample
  * @param   pDmaSlot        Pointer to DMA Slot struct of IMU
  * @param   pImuOutSample   Pointer to IMU output sample holder/struct.
  */
@@ -381,7 +402,7 @@ IMU_ACQ_Init(const IMU_ACQ_Config_t *pAcqConfig)
 
     // Reset all global parameters
     initialized_              = false;
-    active_dma_slot_          = IMU_DMA_INVALID_SLOT_INDEX;
+    active_dma_slot_          = IMU_DMA_INVALID_SLOT_IDX;
     completion_order_         = 0U;
     pending_faults_           = IMU_FAULT_NONE;
     previous_timestamp_valid_ = false;
@@ -447,7 +468,7 @@ IMU_ACQ_On_EXTI(uint16_t gpio_pin)
     uint32_t _primask = IMU_ACQ_EnterCritical();
 
     // Check if prev DMA transfer still using this slot
-    if (active_dma_slot_ != IMU_DMA_INVALID_SLOT_INDEX) {
+    if (active_dma_slot_ != IMU_DMA_INVALID_SLOT_IDX) {
         // e.g active_dma_slot = 1, DMA is receiving new data
         status_.exti_while_dma_active_count++;
         pending_faults_ |= IMU_FAULT_EXTI_WHILE_DMA;
@@ -457,7 +478,7 @@ IMU_ACQ_On_EXTI(uint16_t gpio_pin)
 
     // Find free slot
     const uint8_t _free_slot_index = IMU_ACQ_FindFreeSlotLocked();
-    if (_free_slot_index == IMU_DMA_INVALID_SLOT_INDEX) {
+    if (_free_slot_index == IMU_DMA_INVALID_SLOT_IDX) {
         status_.no_free_dma_slot_count++;
         pending_faults_ |= IMU_FAULT_NO_FREE_DMA_SLOT;
         IMU_ACQ_ExitCritical(_primask);
@@ -483,7 +504,7 @@ IMU_ACQ_On_EXTI(uint16_t gpio_pin)
 
         _primask         = IMU_ACQ_EnterCritical();
         slot->state      = IMU_DMA_SLOT_FREE;
-        active_dma_slot_ = IMU_DMA_INVALID_SLOT_INDEX;
+        active_dma_slot_ = IMU_DMA_INVALID_SLOT_IDX;
         status_.dma_start_error_count++;
         pending_faults_ |= IMU_FAULT_DMA_START;
         IMU_ACQ_ExitCritical(_primask);
@@ -506,7 +527,7 @@ IMU_ACQ_On_SPI_DMA_Complete(SPI_HandleTypeDef *hspi)
     const uint8_t _active_dma_slot = active_dma_slot_;
     IMU_ACQ_ExitCritical(_primask);
 
-    if (_active_dma_slot == IMU_DMA_INVALID_SLOT_INDEX) {
+    if (_active_dma_slot == IMU_DMA_INVALID_SLOT_IDX) {
         return false;
     }
 
@@ -516,7 +537,7 @@ IMU_ACQ_On_SPI_DMA_Complete(SPI_HandleTypeDef *hspi)
     dma_slot_[_active_dma_slot].completion_order = completion_order_++;
     dma_slot_[_active_dma_slot].state =
         IMU_DMA_SLOT_READY; // Mark as ready to signal MCU starts to process it
-    active_dma_slot_ = IMU_DMA_INVALID_SLOT_INDEX;
+    active_dma_slot_ = IMU_DMA_INVALID_SLOT_IDX;
     status_.dma_complete_count++;
     IMU_ACQ_ExitCritical(_primask);
 
@@ -537,11 +558,11 @@ IMU_ACQ_On_SPI_DMA_Error(SPI_HandleTypeDef *hspi)
     uint32_t      _primask         = IMU_ACQ_EnterCritical();
     const uint8_t _active_dma_slot = active_dma_slot_;
 
-    if (_active_dma_slot != IMU_DMA_INVALID_SLOT_INDEX) {
+    if (_active_dma_slot != IMU_DMA_INVALID_SLOT_IDX) {
         dma_slot_[_active_dma_slot].state = IMU_DMA_SLOT_FREE;
     }
 
-    active_dma_slot_ = IMU_DMA_INVALID_SLOT_INDEX;
+    active_dma_slot_ = IMU_DMA_INVALID_SLOT_IDX;
     status_.dma_transfer_error_count++;
     pending_faults_ |= IMU_FAULT_DMA_TRANSFER;
     IMU_ACQ_ExitCritical(_primask);
@@ -593,7 +614,7 @@ IMU_ACQ_ReadNewSample(IMU_Sample_t *pOutSample, uint32_t *lastSequence)
 
 
 IMU_ACQ_ProcessResult_t
-IMU_ACQ_ProcessNextBatch(void)
+IMU_ACQ_ProcessNextBatch(IMU_Sample_t *pOutSample)
 {
     if (!initialized_) {
         return IMU_ACQ_PROCESS_NONE;
@@ -601,7 +622,7 @@ IMU_ACQ_ProcessNextBatch(void)
 
     // Find the oldest ready DMA slot/batch
     const uint8_t _oldest_ready_slot = IMU_ACQ_TakeOldestReadySlot();
-    if (_oldest_ready_slot == IMU_DMA_INVALID_SLOT_INDEX) {
+    if (_oldest_ready_slot == IMU_DMA_INVALID_SLOT_IDX) {
         return IMU_ACQ_PROCESS_NONE;
     }
 
@@ -645,7 +666,12 @@ IMU_ACQ_ProcessNextBatch(void)
     _imu_sample.fault_flags = IMU_ACQ_TakePendingFaults();
     _imu_sample.healthy     = _dt_valid && (_imu_sample.fault_flags == IMU_FAULT_NONE);
 
-    // Publishes sample
+    /**
+     * Publishes sample:
+     *      real-time purpose: directly assign/write to @p pOutSample, caller can directly extract from it.
+     *      Telemetry, logging purpose: use the published mailbox @p latest_sample_
+     */
+    *pOutSample = *(IMU_Sample_t *)&_imu_sample;
     IMU_ACQ_Publish(&_imu_sample);
     status_.published_sample_count++;
 

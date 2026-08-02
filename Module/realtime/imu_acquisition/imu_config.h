@@ -16,7 +16,7 @@
 
 // Two slots DMA allow DMA to fill one slot while the worker parses the other
 #define IMU_ACQ_DMA_SLOT_COUNT  2U
-#define IMU_DMA_INVALID_SLOT_INDEX  0xFFU
+#define IMU_DMA_INVALID_SLOT_IDX  0xFFU
 
 // Dedicated free-running timer requirements
 #define IMU_TIMEBASE_HZ         1000000U // 1MHz
