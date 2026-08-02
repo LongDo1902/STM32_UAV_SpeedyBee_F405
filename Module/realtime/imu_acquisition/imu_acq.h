@@ -26,10 +26,9 @@ typedef struct
     uint32_t exti_count;                  // How many FIFO WTM interrupts arrived from ICM42688
     uint32_t exti_while_dma_active_count; // How many IMU interrupts arrived while the previous SPI DMA
                                           // transfer was still active
-    uint32_t
-        no_free_dma_slot_count;  // How many times an IMU interrupt arrived but neither DMA buffer was free
-    uint32_t dma_start_count;    // How many SPI DMA FIFO reads were successfully started
-    uint32_t dma_complete_count; // How many succeed full-duplex SPI DMA transaction
+    uint32_t no_free_dma_slot_count;      // How many times an IMU INT arrived but neither DMA buffer was free
+    uint32_t dma_start_count;             // How many SPI DMA FIFO reads were successfully started
+    uint32_t dma_complete_count;          // How many succeed full-duplex SPI DMA transaction
 
     uint32_t dma_start_error_count; // How many times the firmware attempted to start SPI DMA but HAL rejected
     uint32_t dma_transfer_error_count; // Counts DMA transaction started but later failed during transfer
@@ -39,12 +38,17 @@ typedef struct
 
     uint32_t published_sample_count; // How many valid 4kHz averaged IMU samples were successfully published
 
-    uint32_t bad_dt_count; // Counts published sample whose measured time is outside acceptable range
+    uint32_t fifo_recovery_count;
+    uint32_t fifo_recovery_error_count;
+    uint32_t recovery_discarded_slot_count;
 
-    uint32_t last_dt_us; // Stores the most recently measured interval between two published IMU samples
-    uint32_t min_dt_us;  // Stores the smallest dt observed since statistics were reset
-    uint32_t max_dt_us;  // Stores the largest dt observed since statistics were reset
-} IMU_ACQ_Status_t;      // Diagnostics structure to track if acquisition path is working correctly
+    uint32_t bad_dt_count; // Counts published sample whose measured time is outside acceptable range
+    uint32_t last_dt_us;   // Stores the most recently measured interval between two published IMU samples
+    uint32_t min_dt_us;    // Stores the smallest dt observed since statistics were reset
+    uint32_t max_dt_us;    // Stores the largest dt observed since statistics were reset
+
+
+} IMU_ACQ_Status_t; // Diagnostics structure to track if acquisition path is working correctly
 
 typedef enum
 {

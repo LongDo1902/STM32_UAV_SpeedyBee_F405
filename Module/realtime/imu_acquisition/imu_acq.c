@@ -33,6 +33,14 @@ typedef enum
     IMU_DMA_SLOT_PROCESSING,
 } IMU_DMA_SlotState_t;
 
+typedef enum
+{
+    IMU_ACQ_RECOVERY_NOT_NEEDED = 0,
+    IMU_ACQ_RECOVERY_NEEDED_BUT_WAIT_DMA,
+    IMU_ACQ_RECOVERY_DONE,
+    IMU_ACQ_RECOVERY_FAILED,
+} IMU_ACQ_RecoveryResult_t;
+
 
 
 /**
@@ -70,7 +78,7 @@ static volatile IMU_ACQ_Status_t status_;
  */
 static bool initialized_ = false;
 
-static volatile uint8_t  active_dma_slot_  = IMU_DMA_INVALID_SLOT_IDX; // DMA slot is being filled by SPI DMA
+static volatile uint8_t  filling_dma_slot_ = IMU_DMA_INVALID_SLOT_IDX; // DMA slot is being filled by SPI DMA
 static volatile uint32_t completion_order_ = 0U;
 static volatile uint32_t pending_faults_   = IMU_FAULT_NONE;
 
@@ -80,6 +88,8 @@ static uint32_t published_sequence_       = 0U;
 
 static bool latest_sample_valid_ = false;
 
+static volatile bool recovery_requested_  = false;
+static volatile bool recovery_in_process_ = false;
 
 /**
  * @brief   Store the current interrupt state (enabled/disabled) and temporarily disable IRQ
@@ -384,6 +394,111 @@ IMU_ACQ_Publish(const IMU_Sample_t *pImuSample)
 
 
 
+/**
+ *  @brief
+ */
+static IMU_ACQ_RecoveryResult_t
+IMU_ACQ_RunRecoveryIfNeeded(void)
+{
+    uint32_t _primask = IMU_ACQ_EnterCritical();
+
+    if (!recovery_requested_) {
+        IMU_ACQ_ExitCritical(_primask);
+        return IMU_ACQ_RECOVERY_NOT_NEEDED;
+    }
+
+    /**
+     * DO NOT flush IMC42688 FIFO while SPI DMA is active
+     * The active DMA transaction currently owns SPI1 and keeps CS asserted
+     *
+     * Wait for DMA-complete or DMA-error callback to:
+     *  1. Release CS
+     *  2. Clear filling_dma_slot_
+     *  3. Notify the worker task
+     *
+     * The worker can then retry recovery and safely perform blocking ICM42688 register accesses
+     */
+
+    if (filling_dma_slot_ != IMU_DMA_INVALID_SLOT_IDX) {
+        IMU_ACQ_ExitCritical(_primask);
+        return IMU_ACQ_RECOVERY_NEEDED_BUT_WAIT_DMA;
+    }
+
+    // Prevent EXIT from starting a new DMA read while worker performs a blocking register access
+    recovery_in_process_ = true;
+    IMU_ACQ_ExitCritical(_primask);
+
+    // Stop new FIFO-threshold event
+    if (!ICM42688_Set_Int1_FIFO_Threshold_Enable(&icm42688_handle_, false)) {
+        goto recovery_failed;
+    }
+
+    // Discard all unread bytes in ICM42688 FIFO
+    if (!ICM42688_FIFO_Flush(&icm42688_handle_, true)) {
+        goto recovery_failed;
+    }
+
+    // Remove any EXTI event that was already pending in STM32 while recovery is taking place
+    __HAL_GPIO_EXTI_CLEAR_IT(acq_config_.int1_gpio_pin);
+
+    // DMA is no longer active, mark every completed pre-recovery DMA slot as FREE so none of old samples get
+    // published after FIFO and timestamp timeline are resynchronized
+    uint32_t _discarded_slot_count;
+
+    _primask = IMU_ACQ_EnterCritical();
+    for (uint8_t i = 0; i < IMU_ACQ_DMA_SLOT_COUNT; i++) {
+        if (dma_slot_[i].state != IMU_DMA_SLOT_FREE) {
+            dma_slot_[i].state = IMU_DMA_SLOT_FREE;
+            _discarded_slot_count++;
+        }
+    }
+
+    // The next clean sample establishes a new timing baseline. It must be compared with the sample before the
+    // flush
+    previous_timestamp_valid_ = false;
+    previous_timestamp_us_    = 0U;
+
+    recovery_in_process_ = false;
+    recovery_requested_  = false;
+
+    status_.recovery_discarded_slot_count += _discarded_slot_count;
+
+    IMU_ACQ_ExitCritical(_primask);
+
+    // FIFO threshold interrupt is still being disabled here, so valid EXTI watermark can occur until this
+    // register write completes
+    if (!ICM42688_FIFO_Flush(&icm42688_handle_, true)) {
+        goto recovery_failed;
+    }
+
+    _primask = IMU_ACQ_EnterCritical();
+    status_.fifo_recovery_count++;
+    IMU_ACQ_ExitCritical(_primask);
+
+    return IMU_ACQ_RECOVERY_DONE;
+
+recovery_failed:
+    uint32_t _primask = IMU_ACQ_EnterCritical();
+    status_.fifo_recovery_error_count++;
+    pending_faults_ |= IMU_FAULT_FIFO_RECOVERY_FAILED;
+
+    // Stop acquisition instead of continuing with unknown FIFO/SPI state
+    initialized_              = false;
+    previous_timestamp_valid_ = false;
+    recovery_requested_       = false;
+    recovery_in_process_      = false;
+    filling_dma_slot_         = IMU_DMA_INVALID_SLOT_IDX;
+
+    for (uint8_t i = 0U; i < IMU_ACQ_DMA_SLOT_COUNT; i++) {
+        dma_slot_[i].state = IMU_DMA_SLOT_FREE;
+    }
+
+    IMU_ACQ_ExitCritical(_primask);
+
+    return IMU_ACQ_RECOVERY_FAILED;
+}
+
+
 bool
 IMU_ACQ_Init(const IMU_ACQ_Config_t *pAcqConfig)
 {
@@ -402,12 +517,14 @@ IMU_ACQ_Init(const IMU_ACQ_Config_t *pAcqConfig)
 
     // Reset all global parameters
     initialized_              = false;
-    active_dma_slot_          = IMU_DMA_INVALID_SLOT_IDX;
+    filling_dma_slot_         = IMU_DMA_INVALID_SLOT_IDX;
     completion_order_         = 0U;
     pending_faults_           = IMU_FAULT_NONE;
     previous_timestamp_valid_ = false;
     previous_timestamp_us_    = 0U;
     latest_sample_valid_      = false;
+    recovery_requested_       = false;
+    recovery_in_process_      = false;
 
     // Free DMA slot
     for (uint8_t i = 0U; i < IMU_ACQ_DMA_SLOT_COUNT; i++) {
@@ -467,27 +584,39 @@ IMU_ACQ_On_EXTI(uint16_t gpio_pin)
 
     uint32_t _primask = IMU_ACQ_EnterCritical();
 
+    // If recovery is running/pending, DO NOT start another DMA transaction
+    if (recovery_requested_ || recovery_in_process_) {
+        IMU_ACQ_ExitCritical(_primask);
+        return false;
+    }
+
     // Check if prev DMA transfer still using this slot
-    if (active_dma_slot_ != IMU_DMA_INVALID_SLOT_IDX) {
-        // e.g active_dma_slot = 1, DMA is receiving new data
-        status_.exti_while_dma_active_count++;
-        pending_faults_ |= IMU_FAULT_EXTI_WHILE_DMA;
+    // A second watermark arrived before prev DMA completed. FIFO timing is no longer trusted
+    if (filling_dma_slot_ != IMU_DMA_INVALID_SLOT_IDX) {
+        status_.exti_while_dma_active_count++; // e.g active_dma_slot = 1, DMA is receiving new data
+        pending_faults_ |= IMU_FAULT_EXTI_WHILE_DMA_ACTIVE;
+        recovery_requested_ = true;
+
         IMU_ACQ_ExitCritical(_primask);
         return false;
     }
 
     // Find free slot
+    // Both DMA buffers are occupied. The FIFO was not drained properly for this watermark, request
+    // resynchronization
     const uint8_t _free_slot_index = IMU_ACQ_FindFreeSlotLocked();
     if (_free_slot_index == IMU_DMA_INVALID_SLOT_IDX) {
         status_.no_free_dma_slot_count++;
         pending_faults_ |= IMU_FAULT_NO_FREE_DMA_SLOT;
+        recovery_requested_ = true;
+
         IMU_ACQ_ExitCritical(_primask);
         return false;
     }
 
     dma_slot_[_free_slot_index].state            = IMU_DMA_SLOT_ACTIVE;
     dma_slot_[_free_slot_index].irq_timestamp_us = _irq_timestamp_us;
-    active_dma_slot_                             = _free_slot_index;
+    filling_dma_slot_                            = _free_slot_index;
 
     IMU_ACQ_ExitCritical(_primask);
 
@@ -502,9 +631,9 @@ IMU_ACQ_On_EXTI(uint16_t gpio_pin)
                                      (uint16_t)sizeof(slot->tx), slot->rx, (uint16_t)sizeof(slot->rx),
                                      IMU_FIFO_WTM_BYTES, false)) {
 
-        _primask         = IMU_ACQ_EnterCritical();
-        slot->state      = IMU_DMA_SLOT_FREE;
-        active_dma_slot_ = IMU_DMA_INVALID_SLOT_IDX;
+        _primask          = IMU_ACQ_EnterCritical();
+        slot->state       = IMU_DMA_SLOT_FREE;
+        filling_dma_slot_ = IMU_DMA_INVALID_SLOT_IDX;
         status_.dma_start_error_count++;
         pending_faults_ |= IMU_FAULT_DMA_START;
         IMU_ACQ_ExitCritical(_primask);
@@ -515,6 +644,8 @@ IMU_ACQ_On_EXTI(uint16_t gpio_pin)
     return true;
 }
 
+
+
 bool
 IMU_ACQ_On_SPI_DMA_Complete(SPI_HandleTypeDef *hspi)
 {
@@ -524,7 +655,7 @@ IMU_ACQ_On_SPI_DMA_Complete(SPI_HandleTypeDef *hspi)
 
     // Remember which DMA slot was being filled
     uint32_t      _primask         = IMU_ACQ_EnterCritical();
-    const uint8_t _active_dma_slot = active_dma_slot_;
+    const uint8_t _active_dma_slot = filling_dma_slot_;
     IMU_ACQ_ExitCritical(_primask);
 
     if (_active_dma_slot == IMU_DMA_INVALID_SLOT_IDX) {
@@ -537,7 +668,7 @@ IMU_ACQ_On_SPI_DMA_Complete(SPI_HandleTypeDef *hspi)
     dma_slot_[_active_dma_slot].completion_order = completion_order_++;
     dma_slot_[_active_dma_slot].state =
         IMU_DMA_SLOT_READY; // Mark as ready to signal MCU starts to process it
-    active_dma_slot_ = IMU_DMA_INVALID_SLOT_IDX;
+    filling_dma_slot_ = IMU_DMA_INVALID_SLOT_IDX;
     status_.dma_complete_count++;
     IMU_ACQ_ExitCritical(_primask);
 
@@ -556,13 +687,13 @@ IMU_ACQ_On_SPI_DMA_Error(SPI_HandleTypeDef *hspi)
     (void)ICM42688_DMA_End(&icm42688_handle_);
 
     uint32_t      _primask         = IMU_ACQ_EnterCritical();
-    const uint8_t _active_dma_slot = active_dma_slot_;
+    const uint8_t _active_dma_slot = filling_dma_slot_;
 
     if (_active_dma_slot != IMU_DMA_INVALID_SLOT_IDX) {
         dma_slot_[_active_dma_slot].state = IMU_DMA_SLOT_FREE;
     }
 
-    active_dma_slot_ = IMU_DMA_INVALID_SLOT_IDX;
+    filling_dma_slot_ = IMU_DMA_INVALID_SLOT_IDX;
     status_.dma_transfer_error_count++;
     pending_faults_ |= IMU_FAULT_DMA_TRANSFER;
     IMU_ACQ_ExitCritical(_primask);
@@ -616,7 +747,7 @@ IMU_ACQ_ReadNewSample(IMU_Sample_t *pOutSample, uint32_t *lastSequence)
 IMU_ACQ_ProcessResult_t
 IMU_ACQ_ProcessNextBatch(IMU_Sample_t *pOutSample)
 {
-    if (!initialized_) {
+    if (!initialized_ || !pOutSample) {
         return IMU_ACQ_PROCESS_NONE;
     }
 

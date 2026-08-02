@@ -29,6 +29,7 @@
 // Health limits for the measured 4kHz interval
 #define IMU_DT_MIN_US   175U
 #define IMU_DT_MAX_US   350U
+#define IMU_TIMEOUT_US  1000000U //1s
 
 // Number of stationary samples used for startup gyro-bias calibration
 #define IMU_GYRO_CALIBRATION_SAMPLE_COUNT 200U

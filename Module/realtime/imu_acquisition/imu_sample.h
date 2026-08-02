@@ -7,13 +7,14 @@
 // Faults observed since the previous successfully published sample
 typedef enum
 {
-    IMU_FAULT_NONE             = 0U,
-    IMU_FAULT_EXTI_WHILE_DMA   = (1U << 0),
-    IMU_FAULT_NO_FREE_DMA_SLOT = (1U << 1),
-    IMU_FAULT_DMA_START        = (1U << 2),
-    IMU_FAULT_DMA_TRANSFER     = (1U << 3),
-    IMU_FAULT_FIFO_PARSE       = (1U << 4),
-    IMU_FAULT_BAD_DT           = (1U << 5),
+    IMU_FAULT_NONE                  = 0U,
+    IMU_FAULT_EXTI_WHILE_DMA_ACTIVE = (1U << 0),
+    IMU_FAULT_NO_FREE_DMA_SLOT      = (1U << 1),
+    IMU_FAULT_DMA_START             = (1U << 2),
+    IMU_FAULT_DMA_TRANSFER          = (1U << 3),
+    IMU_FAULT_FIFO_PARSE            = (1U << 4),
+    IMU_FAULT_BAD_DT                = (1U << 5),
+    IMU_FAULT_FIFO_RECOVERY_FAILED  = (1U << 6),
 } IMU_Fault_t;
 
 typedef struct
