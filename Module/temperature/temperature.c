@@ -2,7 +2,7 @@
  * temperature.c
  *
  *  Created on: Dec 24, 2025
- *      Author: dobao
+ *      Author: dobaolong
  */
 
 #include "temperature.h"
@@ -43,11 +43,10 @@ HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
     if (hadc->Instance == ADC1) {
         rawADCValueInt = (float)HAL_ADC_GetValue(hadc); // Read data
         if (TEMPERATURE_AS_INTEGER) {
-            STM32Temperature =
-                (int32_t)Long_ADC_getSTM32Temperature(); // Extract temperature as Integer
-        } else {
-            STM32Temperature =
-                (float)Long_ADC_getSTM32Temperature(); // Extract temperature as Float
+            STM32Temperature = (int32_t)Long_ADC_getSTM32Temperature(); // Extract temperature as Integer
+        }
+        else {
+            STM32Temperature = (float)Long_ADC_getSTM32Temperature(); // Extract temperature as Float
         }
         HAL_ADC_Start_IT(hadc); // Restart the interrupt to ask for more new data
     }
@@ -73,6 +72,6 @@ Long_ADC_getSTM32Temperature()
      * 		2.	Them, divide it by how much voltage changes for every 1*C.
      * 		3.	Finally, add a constant of 25*C and the "fine-tune offset"
      */
-    return temperature = (float)(((ADC_to_Voltage - VOLTAGE_AT_25DEG) / AVG_SLOPE) + (float)25.0 +
-                                 OFFSET_TEMPERATURE);
+    return temperature =
+               (float)(((ADC_to_Voltage - VOLTAGE_AT_25DEG) / AVG_SLOPE) + (float)25.0 + OFFSET_TEMPERATURE);
 }

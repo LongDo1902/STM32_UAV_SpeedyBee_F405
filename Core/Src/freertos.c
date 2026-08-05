@@ -9,7 +9,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "imu/icm42688_task.h"
 
 #include "dshot_task.h" // DshotMotorControlTask(void *argument);
 
@@ -29,13 +28,6 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-
-osThreadId_t         dshotMotorTaskHandle;
-const osThreadAttr_t dshotMotorTask_attributes = {
-    .name       = "DshotMotorTask",
-    .stack_size = 128 * 4,
-    .priority   = (osPriority_t)osPriorityHigh,
-};
 
 /* USER CODE END Variables */
 /* Definitions for ICM42688Task */
@@ -95,14 +87,11 @@ MX_FREERTOS_Init(void)
 
     /* USER CODE BEGIN RTOS_THREADS */
     /* add threads, ... */
-    dshotMotorTaskHandle = osThreadNew(DshotMotorControlTask, NULL, &dshotMotorTask_attributes);
+    // dshotMotorTaskHandle = osThreadNew(DshotMotorControlTask, NULL, &dshotMotorTask_attributes);
     /* USER CODE END RTOS_THREADS */
 
     /* USER CODE BEGIN RTOS_EVENTS */
     /* add events, ... */
-    /* USER CODE END RTOS_EVENTS */
-
-    /* USER CODE BEGIN RTOS_EVENTS */
     /* USER CODE END RTOS_EVENTS */
 }
 
@@ -117,7 +106,10 @@ void
 Start_ICM42688Task(void *argument)
 {
     /* USER CODE BEGIN Start_ICM42688Task */
-    ICM42688_Main_Task(argument);
+    /* Infinite loop */
+    for (;;) {
+        osDelay(1);
+    }
     /* USER CODE END Start_ICM42688Task */
 }
 
@@ -132,7 +124,10 @@ void
 Start_ICM42688LogTask(void *argument)
 {
     /* USER CODE BEGIN Start_ICM42688LogTask */
-    ICM42688_Logging_Task(argument);
+    /* Infinite loop */
+    for (;;) {
+        osDelay(1);
+    }
     /* USER CODE END Start_ICM42688LogTask */
 }
 

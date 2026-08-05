@@ -2,58 +2,67 @@
  * icm42688_rw.c
  *
  *  Created on: Mar 5, 2026
- *      Author: dobao
+ *      Author: dobaolong
  */
 #include "imu/core/icm42688_rw.h"
 
-/* ============================================================================
- *	PRIVATE HELPERS
- * ============================================================================ */
-static inline void
-ICM42688_CS_Low(ICM42688_Handle_t *handle)
-{
-    HAL_GPIO_WritePin(handle->spi_config.cs_port, handle->spi_config.cs_pin,
-                      GPIO_PIN_RESET); // Pull CS low to start an SPI transaction
-}
-
-
-
-static inline void
-ICM42688_CS_High(ICM42688_Handle_t *handle)
-{
-    HAL_GPIO_WritePin(handle->spi_config.cs_port, handle->spi_config.cs_pin,
-                      GPIO_PIN_SET); // Pull CS high to end an SPI transaction
-}
-
-
+#include <string.h>
 
 /* ============================================================================
- *	LOW-LEVEL REGISTER ACCESS
+ *  PRIVATE APIs - LOW-LEVEL REGISTER ACCESS
  * ============================================================================ */
+
 /**
- * @brief   Automatically write bank number to the corresponding input encoded register
- * @param   handle      Pointer to ICM42688 Handle struct
- * @param   encodedReg  Encoded register containing both register adress and corresponding bank
- *                      number
+ * @brief   Build the command byte for an SPI register read.
+ * @param   encodedReg Register encoded with bank and address.
+ * @return  Register address with the ICM42688 SPI read bit set.
  */
-bool
-ICM42688_WriteBankAuto(ICM42688_Handle_t *handle, ICM42688_Reg_t encodedReg)
+static inline uint8_t
+ICM42688_SPI_Read_Command(ICM42688_Reg_t encodedReg)
+{
+    return (uint8_t)((ICM42688_REG_ADDR(encodedReg) & ICM42688_SPI_ADDR_MASK) | ICM42688_SPI_READ_BIT);
+}
+
+
+
+/**
+ * @brief   Build the command byte for an SPI register write.
+ * @param   encodedReg Register encoded with bank and address.
+ * @return  Register address with the ICM42688 SPI read bit cleared.
+ */
+static inline uint8_t
+ICM42688_SPI_Write_Command(ICM42688_Reg_t encodedReg)
+{
+    return (uint8_t)(ICM42688_REG_ADDR(encodedReg) & ICM42688_SPI_ADDR_MASK);
+}
+
+
+
+/**
+ * @brief   Select the register bank encoded in @p encodedReg before register access.
+ * @param   pHandle     Pointer to ICM42688 handle.
+ * @param   encodedReg  Encoded register containing the target bank.
+ * @return  true if the bank is valid and REG_BANK_SEL is written successfully, otherwise false.
+ * @note    REG_BANK_3 is rejected because this driver has no bank-3 register definitions.
+ */
+static bool
+ICM42688_WriteBankAuto(ICM42688_Handle_t *pHandle, ICM42688_Reg_t encodedReg)
 {
     ICM42688_RegBank_t _bank = ICM42688_REG_BANK(encodedReg);
     if ((_bank > REG_BANK_4) || (_bank == REG_BANK_3))
         return false;
 
     uint8_t _bank_sel_addr = ICM42688_REG_ADDR(ICM42688_UB0_REG_BANK_SEL);
-    uint8_t _bank_tx[2]    = {/* 1st sent is register address + write command bit
-                               * 2nd sent is data byte */
+    uint8_t _bank_tx[2]    = {/* First byte: REG_BANK_SEL address with SPI write bit cleared
+                               * Second byte: target bank number */
                            (uint8_t)(_bank_sel_addr & ICM42688_SPI_ADDR_MASK), (uint8_t)(_bank)};
 
-    ICM42688_CS_Low(handle);
+    ICM42688_CS_Pull_Low(pHandle->spi_config.cs_port, pHandle->spi_config.cs_pin);
 
     HAL_StatusTypeDef _status =
-        HAL_SPI_Transmit(handle->spi_config.hspi, _bank_tx, 2, ICM42688_SPI_TIMEOUT_MS);
+        HAL_SPI_Transmit(pHandle->spi_config.hspi, _bank_tx, 2, ICM42688_SPI_TIMEOUT_MS);
 
-    ICM42688_CS_High(handle);
+    ICM42688_CS_Pull_High(pHandle->spi_config.cs_port, pHandle->spi_config.cs_pin);
 
     if (_status != HAL_OK)
         return false;
@@ -63,34 +72,45 @@ ICM42688_WriteBankAuto(ICM42688_Handle_t *handle, ICM42688_Reg_t encodedReg)
 
 
 
-/**
- * @brief   Write one byte to the target ICM42688 register over SPI
- * @param   handle      Pointer to ICM42688 Handle struct
- * @param   encodedReg  Encoded register containing both register address and corresponding bank
- *                      number
- * @param   val         Data byte to be written into the target register
- */
-bool
-ICM42688_WriteReg(ICM42688_Handle_t *handle, ICM42688_Reg_t encodedReg, uint8_t val)
+/* ============================================================================
+ *  PUBLIC APIs - LOW-LEVEL REGISTER ACCESS
+ * ============================================================================ */
+
+void
+ICM42688_CS_Pull_Low(GPIO_TypeDef *pCsPort, uint16_t csPin)
 {
-    if ((!handle) || (!handle->spi_config.hspi) || (!handle->spi_config.cs_port))
+    HAL_GPIO_WritePin(pCsPort, csPin, GPIO_PIN_RESET);
+}
+
+
+
+void
+ICM42688_CS_Pull_High(GPIO_TypeDef *pCsPort, uint16_t csPin)
+{
+    HAL_GPIO_WritePin(pCsPort, csPin, GPIO_PIN_SET);
+}
+
+
+
+bool
+ICM42688_WriteReg(ICM42688_Handle_t *pHandle, ICM42688_Reg_t encodedReg, uint8_t data)
+{
+    if ((!pHandle) || (!pHandle->spi_config.hspi) || (!pHandle->spi_config.cs_port))
         return false;
 
-    if (!ICM42688_WriteBankAuto(handle, encodedReg))
+    if (!ICM42688_WriteBankAuto(pHandle, encodedReg))
         return false;
 
-    // Extract register address information and start writing to desired register
-    /* 1st sent is write command + register address
-     * 2nd sent is data byte */
+    /* First byte: register address with SPI write bit cleared
+     * Second byte: data byte */
     uint8_t _reg_addr = ICM42688_REG_ADDR(encodedReg);
-    uint8_t _tx[2]    = {(uint8_t)(_reg_addr & ICM42688_SPI_ADDR_MASK), val};
+    uint8_t _tx[2]    = {(uint8_t)(_reg_addr & ICM42688_SPI_ADDR_MASK), data};
 
-    ICM42688_CS_Low(handle);
+    ICM42688_CS_Pull_Low(pHandle->spi_config.cs_port, pHandle->spi_config.cs_pin);
 
-    HAL_StatusTypeDef _status =
-        HAL_SPI_Transmit(handle->spi_config.hspi, _tx, 2, ICM42688_SPI_TIMEOUT_MS);
+    HAL_StatusTypeDef _status = HAL_SPI_Transmit(pHandle->spi_config.hspi, _tx, 2, ICM42688_SPI_TIMEOUT_MS);
 
-    ICM42688_CS_High(handle);
+    ICM42688_CS_Pull_High(pHandle->spi_config.cs_port, pHandle->spi_config.cs_pin);
 
     if (_status != HAL_OK)
         return false;
@@ -100,24 +120,17 @@ ICM42688_WriteReg(ICM42688_Handle_t *handle, ICM42688_Reg_t encodedReg, uint8_t 
 
 
 
-/**
- * @brief   Read one byte from ICM42688 register over SPI
- * @param   encodedReg      Encoded register containing register address and corresponding bank
- *                          number
- * @param   outVal          Pointer to a variable that stores the read register value
- */
 bool
-ICM42688_ReadReg(ICM42688_Handle_t *handle, ICM42688_Reg_t encodedReg, uint8_t *outVal)
+ICM42688_ReadReg(ICM42688_Handle_t *pHandle, ICM42688_Reg_t encodedReg, uint8_t *pOutData)
 {
-    if ((!handle) || (!outVal) || (!handle->spi_config.hspi) || (!handle->spi_config.cs_port))
+    if ((!pHandle) || (!pOutData) || (!pHandle->spi_config.hspi) || (!pHandle->spi_config.cs_port))
         return false;
 
-    if (!ICM42688_WriteBankAuto(handle, encodedReg))
+    if (!ICM42688_WriteBankAuto(pHandle, encodedReg))
         return false;
 
-    // Extract register address information and start reading the desired register
-    /* 1st sent is write command + register address
-     * 2nd sent is data byte */
+    /* First byte: register address with SPI read bit set
+     * Second byte: dummy byte used to clock out the register data */
     uint8_t _reg_addr = ICM42688_REG_ADDR(encodedReg);
     uint8_t _tx[2]    = {
         (uint8_t)((_reg_addr & ICM42688_SPI_ADDR_MASK) | ICM42688_SPI_READ_BIT),
@@ -125,65 +138,56 @@ ICM42688_ReadReg(ICM42688_Handle_t *handle, ICM42688_Reg_t encodedReg, uint8_t *
     };
     uint8_t _rx[2] = {0};
 
-    ICM42688_CS_Low(handle);
+    ICM42688_CS_Pull_Low(pHandle->spi_config.cs_port, pHandle->spi_config.cs_pin);
 
     HAL_StatusTypeDef _status =
-        HAL_SPI_TransmitReceive(handle->spi_config.hspi, _tx, _rx, 2, ICM42688_SPI_TIMEOUT_MS);
+        HAL_SPI_TransmitReceive(pHandle->spi_config.hspi, _tx, _rx, 2, ICM42688_SPI_TIMEOUT_MS);
 
-    ICM42688_CS_High(handle);
+    ICM42688_CS_Pull_High(pHandle->spi_config.cs_port, pHandle->spi_config.cs_pin);
 
     if (_status != HAL_OK)
         return false;
 
-    *outVal = _rx[1]; // rx[0] corresponding to address phase (dummy)/undefined value
+    *pOutData = _rx[1]; // rx[0] is captured during the address phase and is undefined
 
     return true;
 }
 
 
 
-/**
- * @brief   Read multiple consecutive registers from ICM42688 over SPI
- * @param   handle              Pointer to ICM42688 Handle struct
- * @param   startEncodedReg     Encoded start register
- * @param   buf                 Pointer to the buffer that stores the received bytes
- * @param   bufLength           Number of consecutuve bytes to read
- */
 bool
-ICM42688_ReadRegs(ICM42688_Handle_t *handle, ICM42688_Reg_t startEncodedReg, uint8_t *buf,
+ICM42688_ReadRegs(ICM42688_Handle_t *pHandle, ICM42688_Reg_t startEncodedReg, uint8_t *pBuf,
                   uint16_t bufLength)
 {
-    if ((!handle) || (!buf) || (bufLength == 0))
+    if ((!pHandle) || (!pBuf) || (bufLength == 0))
         return false;
 
-    if (!handle->spi_config.hspi || !handle->spi_config.cs_port)
+    if (!pHandle->spi_config.hspi || !pHandle->spi_config.cs_port)
         return false;
 
-    if (!ICM42688_WriteBankAuto(handle, startEncodedReg))
+    if (!ICM42688_WriteBankAuto(pHandle, startEncodedReg))
         return false;
 
-    // Maximum FIFO byte is 2KB, so rejecting the total length > 0x80 is wrong for FIFO stream
+    // FIFO_DATA is a stream port, so the normal register-bank boundary check is skipped for it.
     bool _is_fifo_stream = (startEncodedReg == ICM42688_UB0_FIFO_DATA);
 
-    // Extract register address information and start reading to desired register
-    /* 1st sent is write command + register address
-     * 2nd sent is data byte */
+    // Non-FIFO burst reads must stay inside the selected 128-byte register bank.
     uint8_t _reg_addr = ICM42688_REG_ADDR(startEncodedReg);
     if (!_is_fifo_stream && (((uint16_t)_reg_addr + bufLength) > 0x80U))
         return false;
 
-    /* Send read command + start addr, then burst receive */
+    // Send the read command byte, then keep CS low while clocking out the payload.
     uint8_t _addr = (uint8_t)((_reg_addr & ICM42688_SPI_ADDR_MASK) | ICM42688_SPI_READ_BIT);
 
-    ICM42688_CS_Low(handle);
+    ICM42688_CS_Pull_Low(pHandle->spi_config.cs_port, pHandle->spi_config.cs_pin);
 
     HAL_StatusTypeDef _status =
-        HAL_SPI_Transmit(handle->spi_config.hspi, &_addr, 1, ICM42688_SPI_TIMEOUT_MS);
+        HAL_SPI_Transmit(pHandle->spi_config.hspi, &_addr, 1, ICM42688_SPI_TIMEOUT_MS);
     if (_status == HAL_OK) {
-        _status = HAL_SPI_Receive(handle->spi_config.hspi, buf, bufLength, ICM42688_SPI_TIMEOUT_MS);
+        _status = HAL_SPI_Receive(pHandle->spi_config.hspi, pBuf, bufLength, ICM42688_SPI_TIMEOUT_MS);
     }
 
-    ICM42688_CS_High(handle);
+    ICM42688_CS_Pull_High(pHandle->spi_config.cs_port, pHandle->spi_config.cs_pin);
 
     if (_status != HAL_OK)
         return false;
@@ -193,30 +197,186 @@ ICM42688_ReadRegs(ICM42688_Handle_t *handle, ICM42688_Reg_t startEncodedReg, uin
 
 
 
-/**
- * @brief   Updates selected bit fields of a target register using read-modify-write operation
- * @param   handle      Pointer to ICM42688 Handle struct
- * @param   encodedReg  Encoded register value
- * @param   mask        Bit mask indicates which register bits will be updated
- * @param   valueMasked New field value already shifted and masked to match the mask
- */
 bool
-ICM42688_Update_Reg_Bits(ICM42688_Handle_t *handle, ICM42688_Reg_t encodedReg, uint8_t mask,
+ICM42688_Update_Reg_Bits(ICM42688_Handle_t *pHandle, ICM42688_Reg_t encodedReg, uint8_t mask,
                          uint8_t valueMasked)
 {
-    if (!handle)
+    if (!pHandle)
         return false;
 
     if ((valueMasked & (uint8_t)~mask) != 0U)
         return false;
 
     uint8_t _current_reg = 0U;
-    if (!ICM42688_ReadReg(handle, encodedReg, &_current_reg))
+    if (!ICM42688_ReadReg(pHandle, encodedReg, &_current_reg))
         return false;
 
     _current_reg = (uint8_t)((_current_reg & (uint8_t)~mask) | valueMasked);
-    if (!ICM42688_WriteReg(handle, encodedReg, _current_reg))
+    if (!ICM42688_WriteReg(pHandle, encodedReg, _current_reg))
         return false;
+
+    return true;
+}
+
+
+
+bool
+ICM42688_ReadRegs_DMA_Start(ICM42688_Handle_t *pHandle, ICM42688_Reg_t startEncodedReg, uint8_t *pTxBuf,
+                            uint16_t txBufLength, uint8_t *pRxBuf, uint16_t rxBufLength, uint16_t dataLength,
+                            bool autoBankSelect)
+{
+    if (!pHandle || !pTxBuf || !pRxBuf)
+        return false;
+
+    if ((dataLength == 0U) || (txBufLength == 0U) || (rxBufLength == 0U))
+        return false;
+
+    if (dataLength == UINT16_MAX)
+        return false;
+
+    if (!pHandle->spi_config.hspi || !pHandle->spi_config.cs_port)
+        return false;
+
+    // FIFO_DATA is a stream port; all other burst reads must stay inside one bank.
+    bool    _is_fifo_data_reg = (startEncodedReg == ICM42688_UB0_FIFO_DATA);
+    uint8_t _start_addr       = ICM42688_REG_ADDR(startEncodedReg);
+    if (!_is_fifo_data_reg && (((uint16_t)_start_addr + dataLength) > ICM42688_REG_ADDR_LIMIT)) {
+        return false;
+    }
+
+    /**
+     * TX[0] = read command
+     * TX[1...N] = dummy bytes used to clock incoming data
+     *
+     * RX[0] = command-phase dummy byte
+     * RX[1...N] = payload bytes
+     *
+     * totalLen = 1 command byte + N useful data bytes
+     */
+    uint16_t _total_length = (uint16_t)(dataLength + 1U);
+
+    if ((txBufLength < _total_length) || (rxBufLength < _total_length))
+        return false;
+
+    // Disable autoBankSelect only when the caller has already selected the target bank.
+    if (autoBankSelect) {
+        if (!ICM42688_WriteBankAuto(pHandle, startEncodedReg)) {
+            return false;
+        }
+    }
+
+    // Clear only the bytes used by this transaction; caller-owned tail bytes are left untouched.
+    memset(pTxBuf, 0, _total_length);
+    memset(pRxBuf, 0, _total_length);
+
+    pTxBuf[0] = ICM42688_SPI_Read_Command(startEncodedReg);
+
+    ICM42688_CS_Pull_Low(pHandle->spi_config.cs_port, pHandle->spi_config.cs_pin);
+
+    HAL_StatusTypeDef _status =
+        HAL_SPI_TransmitReceive_DMA(pHandle->spi_config.hspi, pTxBuf, pRxBuf, _total_length);
+    if (_status != HAL_OK) {
+        ICM42688_CS_Pull_High(pHandle->spi_config.cs_port, pHandle->spi_config.cs_pin);
+        return false;
+    }
+
+    // DMA is still running; release CS from the completion callback with ICM42688_DMA_End().
+    return true;
+}
+
+
+bool
+ICM42688_WriteReg_DMA_Start(ICM42688_Handle_t *pHandle, ICM42688_Reg_t encodedReg, uint8_t data,
+                            uint8_t *pTxBuf, uint16_t txBufLength, bool autoBankSelect)
+{
+    if (!pHandle || !pTxBuf)
+        return false;
+
+    if (txBufLength < 2U)
+        return false;
+
+    if (!pHandle->spi_config.hspi || !pHandle->spi_config.cs_port)
+        return false;
+
+    if (autoBankSelect) {
+        if (!ICM42688_WriteBankAuto(pHandle, encodedReg)) {
+            return false;
+        }
+    }
+
+    // TX[0] is the write command; TX[1] is the payload byte.
+    pTxBuf[0] = ICM42688_SPI_Write_Command(encodedReg);
+    pTxBuf[1] = data;
+
+    ICM42688_CS_Pull_Low(pHandle->spi_config.cs_port, pHandle->spi_config.cs_pin);
+
+    HAL_StatusTypeDef _status = HAL_SPI_Transmit_DMA(pHandle->spi_config.hspi, pTxBuf, 2U);
+    if (_status != HAL_OK) {
+        ICM42688_CS_Pull_High(pHandle->spi_config.cs_port, pHandle->spi_config.cs_pin);
+        return false;
+    }
+
+    // DMA is still running; release CS from the completion callback with ICM42688_DMA_End().
+    return true;
+}
+
+
+
+bool
+ICM42688_WriteRegs_DMA_Start(ICM42688_Handle_t *pHandle, ICM42688_Reg_t startEncodedReg, const uint8_t *pData,
+                             uint8_t *pTxBuf, uint16_t txBufLength, uint16_t dataLength, bool autoBankSelect)
+{
+    if (!pHandle || !pData || (dataLength == 0U) || !pTxBuf)
+        return false;
+
+    if (!pHandle->spi_config.hspi || !pHandle->spi_config.cs_port)
+        return false;
+
+    // FIFO_DATA is read-only from this driver's point of view; normal writes must stay inside one bank.
+    bool    _is_fifo_data_reg = (startEncodedReg == ICM42688_UB0_FIFO_DATA);
+    uint8_t _start_addr       = ICM42688_REG_ADDR(startEncodedReg);
+    if (_is_fifo_data_reg || (((uint16_t)_start_addr + dataLength) > ICM42688_REG_ADDR_LIMIT)) {
+        return false;
+    }
+
+    uint16_t _total_length = (uint16_t)(dataLength + 1U);
+    if (txBufLength < _total_length)
+        return false;
+
+    // Disable autoBankSelect only when the caller has already selected the target bank.
+    if (autoBankSelect) {
+        if (!ICM42688_WriteBankAuto(pHandle, startEncodedReg)) {
+            return false;
+        }
+    }
+
+    // TX[0] is the write command; TX[1...N] are payload bytes.
+    pTxBuf[0] = ICM42688_SPI_Write_Command(startEncodedReg);
+
+    for (uint16_t i = 0; i < dataLength; i++) {
+        pTxBuf[i + 1U] = pData[i];
+    }
+
+    ICM42688_CS_Pull_Low(pHandle->spi_config.cs_port, pHandle->spi_config.cs_pin);
+
+    HAL_StatusTypeDef _status = HAL_SPI_Transmit_DMA(pHandle->spi_config.hspi, pTxBuf, _total_length);
+    if (_status != HAL_OK) {
+        ICM42688_CS_Pull_High(pHandle->spi_config.cs_port, pHandle->spi_config.cs_pin);
+        return false;
+    }
+
+    // DMA is still running; release CS from the completion callback with ICM42688_DMA_End().
+
+    return true;
+}
+
+bool
+ICM42688_DMA_End(ICM42688_Handle_t *pHandle)
+{
+    if (!pHandle || !pHandle->spi_config.hspi || !pHandle->spi_config.cs_port)
+        return false;
+
+    ICM42688_CS_Pull_High(pHandle->spi_config.cs_port, pHandle->spi_config.cs_pin);
 
     return true;
 }

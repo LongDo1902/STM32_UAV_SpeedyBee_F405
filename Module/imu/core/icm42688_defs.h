@@ -2,7 +2,7 @@
  * icm42688_defs.h
  *
  *  Created on: Mar 12, 2026
- *      Author: dobao
+ *      Author: dobaolong
  */
 
 #ifndef INC_IMU_ICM42688_DEFS_H_
@@ -28,7 +28,6 @@
 #define ICM42688_SPI_TIMEOUT_MS           20U
 #define ICM42688_SPI_ADDR_MASK            0x7FU
 #define ICM42688_SPI_READ_BIT             0x80U
-
-
+#define ICM42688_REG_ADDR_LIMIT           (0x7FU + 1U) // Valid register addresses are 0x00..0x7F.  0x80 is the one-past-end boundary used for range checking.
 
 #endif /* INC_IMU_ICM42688_DEFS_H_ */
