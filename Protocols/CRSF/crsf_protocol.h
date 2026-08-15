@@ -13,7 +13,7 @@
 #define CRSF_BITS_PER_CHANNEL 11
 #define CRSF_MAX_PAYLOAD_SIZE 60
 #define CRSF_MAX_PAYLOAD_RC_CHANNELS 22
-#define CRSF_MAX_PACKET_SIZE (CRSF_MAX_PAYLOAD_SIZE + 4)
+#define CRSF_MAX_PACKET_SIZE (CRSF_MAX_PAYLOAD_RC_CHANNELS + 4)
 
 #define CRSF_SYNC_BYTE (0xC8)                    // Address of Flight Controller
 #define CRSF_FRAMETYPE_RC_CHANNELS_PACKED (0x16) // Frame types of rc channels
@@ -23,6 +23,8 @@
 #define CRSF_VALUE_CHANNEL_MAX 1811
 
 #define CRSF_FAILURE_TIMEOUT_MS 100
+
+#define CRSF_RC_CHANNEL_SCALE_LEGACY (0.62477120195241f)
 
 typedef struct
 {

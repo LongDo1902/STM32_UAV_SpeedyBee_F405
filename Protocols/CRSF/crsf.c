@@ -14,12 +14,8 @@ crsf_init(crsf_handle_t *crsf_handle, UART_HandleTypeDef *huart)
     crsf_handle->frame_position  = 0;
     crsf_handle->crsf_frame_done = 0;
     crsf_handle->uart            = huart;
-    // Fixme: Set value for huart->RxState
-    //    memset(crsf_handle->crsf_frame.bytes, CRSF_VALUE_CHANNEL_MID, CRSF_MAX_PACKET_SIZE);
-    // TODO: Check why channels is 57568
-    //    memset(crsf_handle->channels, CRSF_VALUE_CHANNEL_MID, 2 * CRSF_MAX_CHANNEL);
 
-    HAL_UART_Receive_IT(crsf_handle->uart, (uint8_t *)&rx_byte, 1) == HAL_OK;
+    HAL_UART_Receive_IT(crsf_handle->uart, (uint8_t *)&rx_byte, 1);
 }
 
 void
@@ -32,7 +28,7 @@ crsf_receive_byte(crsf_handle_t *crsf_handle)
 
     crsf_handle_receive_byte(crsf_handle, rx_byte);
 
-    // Register ISR again
+    /* Register ISR again */
     (void)crsf_start_receive(crsf_handle);
 }
 
@@ -58,10 +54,10 @@ crsf_update(crsf_handle_t *crsf_handle)
         return false;
     }
 
-    // Reset frame done flag
+    /* Reset frame done flag */
     crsf_handle->crsf_frame_done = false;
 
-    // Unpack frame
+    /* Unpack frame */
     switch (rc_channel_frame.frame_def.type) {
         case CRSF_FRAMETYPE_RC_CHANNELS_PACKED:
             crsf_handle_rc_channels_packed(rc_channel_frame.frame_def.payload,
@@ -86,15 +82,14 @@ crsf_handle_rc_channels_packed(const uint8_t *payload, uint16_t *channels)
     channels[3] = packed->ch4;
     channels[4] = packed->ch5;
 
-    // Clamp channels to min/max values
+    /* Scale for rc channels
+     *       RC     PWM
+     * min  172 ->  988us
+     * mid  992 -> 1500us
+     * max 1811 -> 2012us
+     */
     for (uint8_t i = 0; i < CRSF_MAX_CHANNEL; i++) {
-        if (channels[i] < CRSF_VALUE_CHANNEL_MIN) {
-            channels[i] = CRSF_VALUE_CHANNEL_MIN;
-        }
-
-        if (channels[i] > CRSF_VALUE_CHANNEL_MAX) {
-            channels[i] = CRSF_VALUE_CHANNEL_MAX;
-        }
+        channels[i] = (CRSF_RC_CHANNEL_SCALE_LEGACY * channels[i]) + 881;
     }
 }
 
@@ -111,7 +106,7 @@ crsf_handle_receive_byte(crsf_handle_t *crsf_handle, uint8_t byte)
         crsf_handle->frame_position++;
     }
 
-    // RC frame
+    /* RC frame */
     const uint8_t full_frame_length = CRSF_MAX_PAYLOAD_RC_CHANNELS + 4;
     if (crsf_handle->frame_position < full_frame_length) {
         return;
@@ -119,7 +114,7 @@ crsf_handle_receive_byte(crsf_handle_t *crsf_handle, uint8_t byte)
 
     crsf_handle->frame_position = 0;
 
-    // Check crc of packed
+    /* Check crc of packed */
     uint8_t crc = crsf_compute_crc((const uint8_t *)&crsf_handle->crsf_frame.frame_def.type,
                                    crsf_handle->crsf_frame.frame_def.len - 1);
     if (crc != crsf_handle->crsf_frame.frame_def.crc) {
@@ -170,7 +165,7 @@ crsf_get_channel(crsf_handle_t *handle, crsf_channel_t channel, uint16_t *value)
         return false;
     }
 
-    // check bound channel
+    /* Check bound channel */
     if (channel > CRSF_MAX_CHANNEL || channel < CRSF_CHANNEL_ROLL) {
         return false;
     }
