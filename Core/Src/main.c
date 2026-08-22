@@ -97,6 +97,7 @@ volatile uint16_t pitch;
 volatile uint16_t roll;
 volatile uint16_t yaw;
 volatile uint16_t throttle;
+volatile uint16_t aux1;
 
 volatile uint32_t uart6_error_count;
 volatile uint32_t uart6_last_error;
@@ -287,6 +288,7 @@ main(void)
             crsf_get_channel_pitch(&crsf_handle, &pitch);
             crsf_get_channel_yaw(&crsf_handle, &yaw);
             crsf_get_channel_throttle(&crsf_handle, &throttle);
+            crsf_get_channel_aux1(&crsf_handle, &aux1);
         }
 
         HAL_Delay(1);

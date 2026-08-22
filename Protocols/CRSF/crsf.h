@@ -81,6 +81,6 @@ bool crsf_get_channel_roll(crsf_handle_t *handle, uint16_t *value);
 bool crsf_get_channel_pitch(crsf_handle_t *handle, uint16_t *value);
 bool crsf_get_channel_yaw(crsf_handle_t *handle, uint16_t *value);
 bool crsf_get_channel_throttle(crsf_handle_t *handle, uint16_t *value);
-bool crsf_get_channel_aux(crsf_handle_t *handle, uint16_t *value);
+bool crsf_get_channel_aux1(crsf_handle_t *handle, uint16_t *value);
 
 #endif // _CRSF_H_
