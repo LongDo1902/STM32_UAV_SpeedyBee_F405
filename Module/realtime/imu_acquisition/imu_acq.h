@@ -95,12 +95,15 @@ typedef enum
  * @brief   Initialize the ICM42688 and its interrupt-driven SPI DMA acquisition path.
  *          The function validates all HAL handles, configures the 1 MHz timebase and FIFO watermark
  *          path, performs startup gyro-bias calibration, and enables acquisition only after every
- *          step succeeds.
+ *          step succeeds. Both SPI DMA streams must use DMA_NORMAL, and the CS/INT1 masks must each
+ *          identify exactly one GPIO pin.
  * @param   pAcqConfig  Pointer to the SPI, GPIO, interrupt, and timebase configuration.
  * @return  true when the complete acquisition path is initialized, otherwise false.
  * @warning Keep the vehicle stationary during startup gyro calibration, and do not dispatch
  *          acquisition callbacks until this function returns true. The supplied HAL handles and
  *          GPIO configuration must remain valid and dedicated to this module after initialization.
+ * @note    Initialization is accepted only once. An unrecoverable recovery failure latches the
+ *          fatal-stop state, which intentionally requires an MCU reset before reinitialization.
  */
 bool IMU_ACQ_Init(const IMU_ACQ_Config_t *pAcqConfig);
 

@@ -18,7 +18,7 @@
 
 
 /**
- * @brief   Ownership states for one DMA slot
+ * @brief   Ownership states for one DMA slot.
  *          EXTI moves a free slot to ACTIVE, the DMA-complete callback moves it to READY, and the
  *          worker claims it as PROCESSING before returning it to FREE. State transitions shared
  *          with callbacks require a critical section.
@@ -168,9 +168,12 @@ IMU_ACQ_EXTI_EnableInt1(void)
 
 
 /**
- * @brief   Request acquisition recovery, latch fault bit(s), and immediately mask IMU INT1 EXTI line
- * @param   fault   Fault bit(s) to latch into @c pending_fault_
- * @warning Caller MUST already hold IMU acquisition critical section
+ * @brief   Request acquisition recovery, latch fault bits, and immediately mask IMU INT1 EXTI.
+ *          Masking at the same time as the state update prevents another watermark from starting a
+ *          transfer before the worker services the recovery request.
+ * @param   fault  IMU_Fault_t bit mask to OR into pending_faults_.
+ * @warning The caller must already hold the acquisition critical section; this helper does not
+ *          save or restore PRIMASK itself.
  */
 static void
 IMU_ACQ_RecoveryRequestedLocked(uint32_t fault)
@@ -183,9 +186,11 @@ IMU_ACQ_RecoveryRequestedLocked(uint32_t fault)
 
 
 /**
- * @brief   Check whether the GPIO mask represent exactly one physical pin
- * @param   pin     HAL GPIO Pin mask to be validated
- * @return  true only when one bit set, otherwise false
+ * @brief   Check whether a HAL GPIO mask represents exactly one physical pin.
+ *          Zero and multi-bit masks are rejected because EXTI and chip-select ownership require an
+ *          unambiguous line.
+ * @param   pin  HAL GPIO pin mask to validate.
+ * @return  true when exactly one bit is set, otherwise false.
  */
 static bool
 IMU_ACQ_IsSingleGpioPin(uint16_t pin)
@@ -515,6 +520,8 @@ IMU_ACQ_Publish(const IMU_Sample_t *pImuSample)
  * @note    STM32 HAL starts RX DMA before TX DMA, so a rejected start can leave RX active. An RX
  *          transfer error can also leave the paired TX stream active. Recovery must stop both
  *          streams before making blocking SPI register accesses.
+ * @warning A false result means ownership could not be proven safe; recovery must fail closed and
+ *          must not continue with blocking sensor accesses.
  */
 static bool
 IMU_ACQ_StopSpiDma(void)

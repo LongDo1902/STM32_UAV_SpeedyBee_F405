@@ -6,9 +6,10 @@
 
 /**
  * @brief   Fault bits accumulated between published IMU samples.
- *          Runtime faults remain latched until the worker attaches them to a sample. A recovery failure is
- * also counted in IMU_ACQ_Status_t and stops acquisition, so no later sample may be available to carry its
- * bit.
+ *          Runtime faults remain latched until the worker attaches them to a sample. A recovery
+ *          failure is also counted in IMU_ACQ_Status_t and stops acquisition, so no later sample
+ *          may be available to carry its bit.
+ * @note    Values are bit masks and may be ORed together in IMU_Sample_t::fault_flags.
  */
 typedef enum
 {
@@ -24,8 +25,9 @@ typedef enum
 
 /**
  * @brief   One calibrated IMU output produced from a complete FIFO batch.
- *          Sensor values are averages of the configured 8 kHz input frames, while timestamps describe the
- *          watermark edge, estimated measurement midpoint, and eventual publication time.
+ *          Sensor values are averages of the configured 8 kHz input frames, while timestamps
+ *          describe the watermark edge, estimated measurement midpoint, and eventual publication
+ *          time. All timestamps use the wrapping 32-bit microsecond acquisition timebase.
  */
 typedef struct
 {
@@ -37,7 +39,7 @@ typedef struct
     uint32_t dt_us;
     float    dt_s;
 
-    uint32_t sequence;    // Increments once for each successfully parsed and published batch
+    uint32_t sequence;    // Increments for every published batch and may wrap during long operation
     uint32_t fault_flags; // IMU_Fault_t bits accumulated since the previous published sample
 
     // Average of the calibrated FIFO frames represented by this output
@@ -45,6 +47,7 @@ typedef struct
     float accel_g[3];
     float temp_c;
 
+    // Convenience summary; detailed diagnostics remain available in fault_flags and IMU_ACQ_Status_t
     bool healthy; // True only when dt is in range and fault_flags is IMU_FAULT_NONE
 } IMU_Sample_t;
 
