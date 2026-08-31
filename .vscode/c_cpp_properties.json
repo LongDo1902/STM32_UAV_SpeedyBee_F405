@@ -10,6 +10,7 @@
                 "${workspaceFolder}/Module/logging",
                 "${workspaceFolder}/Module/temperature",
                 "${workspaceFolder}/Module/pid",
+                "${workspaceFolder}/Module/realtime",
                 "${workspaceFolder}/Module/common",
                 "${workspaceFolder}/Module/dshot",
                 "${workspaceFolder}/Drivers/STM32F4xx_HAL_Driver/Inc",
