@@ -33,15 +33,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-IMU_ACQ_Config_t imu_acq_config_ = {
-    .hspi    = &hspi1,
-    .cs_port = IMU_CS_PIN_SOFT_GPIO_Port,
-    .cs_pin  = IMU_CS_PIN_SOFT_Pin,
 
-    .int1_gpio_pin = IMU_INT_Pin,
-
-    .htim_us = &htim5,
-};
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -56,7 +48,13 @@ IMU_ACQ_Config_t imu_acq_config_ = {
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+IMU_ACQ_Config_t imu_acq_config_ = {
+    .hspi          = &hspi1,
+    .cs_port       = IMU_CS_PIN_SOFT_GPIO_Port,
+    .cs_pin        = IMU_CS_PIN_SOFT_Pin,
+    .int1_gpio_pin = IMU_INT_Pin,
+    .htim_us       = &htim5,
+};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -108,8 +106,6 @@ main(void)
     MX_TIM8_Init();
     MX_TIM5_Init();
     /* USER CODE BEGIN 2 */
-    if (!IMU_ACQ_Init(&imu_acq_config_))
-        return 1;
 
     /* USER CODE END 2 */
 
