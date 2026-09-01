@@ -10,7 +10,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "dshot_task.h" // DshotMotorControlTask(void *argument);
-#include "imu_acquisition/imu_acq.h"
+#include "realtime/imu_acquisition/imu_acq.h"
+#include "realtime/imu_acquisition/imu_sample.h"
 
 /* USER CODE END Includes */
 
@@ -41,6 +42,7 @@ const osThreadAttr_t IMU_Task_attributes = {
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
+static void IMU_Task_NotifyFromISR(void);
 
 /* USER CODE END FunctionPrototypes */
 
@@ -108,14 +110,71 @@ Start_IMU_Task(void *argument)
         }
     }
 
+    IMU_Sample_t _imu_sample = {0};
+
     /* Infinite loop */
     for (;;) {
-        // Sleep and wait until someone calls
+        // Sleep and wait until an ISR wakes this 'IMU_Task'
+        // Or "if nobody has notified me, BLOCK this task forever" so processor can run other tasks
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+        // Someone just called 'IMU_Task'
+        // Drain everything before sleeping again
+        for (;;) {
+            IMU_ACQ_ProcessResult_t result = IMU_ACQ_ProcessNextBatch(&_imu_sample);
+
+            if (result == IMU_ACQ_PROCESS_NONE) {
+                break;
+            }
+
+            if (result == IMU_ACQ_PROCESS_PUBLISHED) {
+                // Valid 4KHz output here
+            }
+        }
     }
     /* USER CODE END Start_IMU_Task */
 }
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
+static void
+IMU_Task_NotifyFromISR(void)
+{
+    if (imu_task_handle_ == NULL) {
+        return;
+    }
+
+    BaseType_t high_priority_task_woken = pdFALSE;
+
+    vTaskNotifyGiveFromISR(imu_task_handle_, &high_priority_task_woken);
+
+    portYIELD_FROM_ISR(high_priority_task_woken);
+}
+
+void
+HAL_GPIO_EXTI_Callback(uint16_t gpioPin)
+{
+    IMU_ACQ_EXTI_Result_t result = IMU_ACQ_On_EXTI(gpioPin);
+    // if result == IMU_ACQ_EXTI_DMA_STARTED, DON'T wake 'IMU_Task' because it must wait for DMA complete ISR
+
+    if (result == IMU_ACQ_EXTI_RECOVERY_REQUESTED) {
+        IMU_Task_NotifyFromISR();
+    }
+}
+
+void
+HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+    if (IMU_ACQ_On_SPI_DMA_Complete(hspi)) {
+        IMU_Task_NotifyFromISR();
+    }
+}
+
+void
+HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
+{
+    if (IMU_ACQ_On_SPI_DMA_Error(hspi)) {
+        IMU_Task_NotifyFromISR();
+    }
+}
 /* USER CODE END Application */

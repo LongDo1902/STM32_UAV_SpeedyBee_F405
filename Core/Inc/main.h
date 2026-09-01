@@ -31,7 +31,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "realtime/imu_acquisition/imu_acq.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
