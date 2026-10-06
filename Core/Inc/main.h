@@ -31,12 +31,12 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "realtime/imu_acquisition/imu_acq.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-
+extern IMU_ACQ_Config_t imu_acq_config_;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

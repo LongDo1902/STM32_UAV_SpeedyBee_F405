@@ -1,21 +1,21 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file    spi.c
-  * @brief   This file provides code for the configuration
-  *          of the SPI instances.
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file    spi.c
+ * @brief   This file provides code for the configuration
+ *          of the SPI instances.
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2025 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "spi.h"
@@ -33,6 +33,9 @@ void MX_SPI1_Init(void)
 {
 
   /* USER CODE BEGIN SPI1_Init 0 */
+
+    /* Keep the ICM42688 deselected before SPI is enabled or clocked. */
+    HAL_GPIO_WritePin(IMU_CS_PIN_SOFT_GPIO_Port, IMU_CS_PIN_SOFT_Pin, GPIO_PIN_SET);
 
   /* USER CODE END SPI1_Init 0 */
 
@@ -56,6 +59,22 @@ void MX_SPI1_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN SPI1_Init 2 */
+
+    /* Full-duplex FIFO reads are one-shot transactions. Guard against stale generated circular-DMA
+       settings because circular mode keeps HAL ownership after the first completed transfer. */
+    if (hdma_spi1_rx.Init.Mode != DMA_NORMAL) {
+        hdma_spi1_rx.Init.Mode = DMA_NORMAL;
+        if (HAL_DMA_Init(&hdma_spi1_rx) != HAL_OK) {
+            Error_Handler();
+        }
+    }
+
+    if (hdma_spi1_tx.Init.Mode != DMA_NORMAL) {
+        hdma_spi1_tx.Init.Mode = DMA_NORMAL;
+        if (HAL_DMA_Init(&hdma_spi1_tx) != HAL_OK) {
+            Error_Handler();
+        }
+    }
 
   /* USER CODE END SPI1_Init 2 */
 

@@ -1,18 +1,25 @@
 {
     "editor.formatOnSave": true,
     "[c]": {
-        "editor.defaultFormatter": "ms-vscode.cpptools"
+        "editor.defaultFormatter": "ms-vscode.cpptools",
+        "editor.formatOnSave": true
     },
     "[cpp]": {
-        "editor.defaultFormatter": "ms-vscode.cpptools"
+        "editor.defaultFormatter": "ms-vscode.cpptools",
+        "editor.formatOnSave": true
     },
     "C_Cpp.default.cStandard": "gnu11",
+    "C_Cpp.formatting": "clangFormat",
+    "C_Cpp.clang_format_style": "file",
+    "C_Cpp.intelliSenseEngine": "default",
+    "stm32cube-ide-clangd.enable": false,
+    "editor.multiCursorModifier": "alt",
     "stm32-for-vscode.openOCDPath": false,
-    "stm32-for-vscode.makePath": "C:\\ST\\STM32CubeIDE_2.1.1\\STM32CubeIDE\\plugins\\com.st.stm32cube.ide.mcu.externaltools.make.win32_2.2.100.202601091506\\tools\\bin\\make.exe",
-    "stm32-for-vscode.armToolchainPath": "C:\\ST\\STM32CubeIDE_2.1.1\\STM32CubeIDE\\plugins\\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.14.3.rel1.win32_1.0.100.202602081740\\tools\\bin",
+    "stm32-for-vscode.makePath": "C:\\ST\\STM32CubeIDE_2.2.0\\STM32CubeIDE\\plugins\\com.st.stm32cube.ide.mcu.externaltools.make.win32_2.2.200.202604021615\\tools\\bin\\make.exe",
+    "stm32-for-vscode.armToolchainPath": "C:\\ST\\STM32CubeIDE_2.2.0\\STM32CubeIDE\\plugins\\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.14.3.rel1.win32_1.0.100.202602081740\\tools\\bin",
     "terminal.integrated.env.windows": {
-        "STM32_MAKE_EXE": "C:\\ST\\STM32CubeIDE_2.1.1\\STM32CubeIDE\\plugins\\com.st.stm32cube.ide.mcu.externaltools.make.win32_2.2.100.202601091506\\tools\\bin\\make.exe",
-        "STM32_GCC_BIN": "C:\\ST\\STM32CubeIDE_2.1.1\\STM32CubeIDE\\plugins\\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.14.3.rel1.win32_1.0.100.202602081740\\tools\\bin",
-        "STM32_GCC_EXE": "C:\\ST\\STM32CubeIDE_2.1.1\\STM32CubeIDE\\plugins\\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.14.3.rel1.win32_1.0.100.202602081740\\tools\\bin\\arm-none-eabi-gcc.exe"
+        "STM32_MAKE_EXE": "C:\\ST\\STM32CubeIDE_2.2.0\\STM32CubeIDE\\plugins\\com.st.stm32cube.ide.mcu.externaltools.make.win32_2.2.200.202604021615\\tools\\bin\\make.exe",
+        "STM32_GCC_BIN": "C:\\ST\\STM32CubeIDE_2.2.0\\STM32CubeIDE\\plugins\\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.14.3.rel1.win32_1.0.100.202602081740\\tools\\bin",
+        "STM32_GCC_EXE": "C:\\ST\\STM32CubeIDE_2.2.0\\STM32CubeIDE\\plugins\\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.14.3.rel1.win32_1.0.100.202602081740\\tools\\bin\\arm-none-eabi-gcc.exe"
     }
 }
