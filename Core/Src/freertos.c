@@ -11,7 +11,6 @@
 /* USER CODE BEGIN Includes */
 #include "dshot_task.h" // DshotMotorControlTask(void *argument);
 #include "realtime/imu_acquisition/imu_acq.h"
-#include "realtime/imu_acquisition/imu_sample.h"
 
 /* USER CODE END Includes */
 

@@ -1,8 +1,6 @@
 #include "imu_acq.h"
 #include "imu/icm42688_application.h"
 #include "imu_config.h"
-#include "imu_sample.h"
-
 #include <string.h>
 
 /**
@@ -414,10 +412,10 @@ IMU_ACQ_DecodeAndAverage(const IMU_DMA_Slot_t *pDmaSlot, IMU_Sample_t *pImuOutSa
         return false;
     }
 
+    uint16_t       _parse_pos   = 0U;
+    uint16_t       _frame_count = 0U;
     const uint8_t *_p_fifo_byte = &pDmaSlot->rx[IMU_SPI_DMA_CMD_BYTES]; // Skip the command-phase dummy byte
                                                                         // before FIFO payload parsing
-    uint16_t _parse_pos   = 0U;
-    uint16_t _frame_count = 0U;
 
     float _accel_sum[3] = {0.0f, 0.0f, 0.0f};
     float _gyro_sum[3]  = {0.0f, 0.0f, 0.0f};
@@ -1023,9 +1021,9 @@ IMU_ACQ_ProcessNextBatch(IMU_Sample_t *pOutSample)
         return IMU_ACQ_PROCESS_DROPPED;
     }
 
-    _imu_sample.irq_timestamp_us     = _p_dma_slot->irq_timestamp_us;
-    _imu_sample.timestamp_us         = _p_dma_slot->irq_timestamp_us - IMU_BATCH_MIDPOINT_OFFSET_US;
-    _imu_sample.publish_timestamp_us = IMU_ACQ_NowUs();
+    _imu_sample.irq_timestamp_us       = _p_dma_slot->irq_timestamp_us;
+    _imu_sample.mid_avg_timestamp_us   = _p_dma_slot->irq_timestamp_us - IMU_BATCH_MIDPOINT_OFFSET_US;
+    _imu_sample.published_timestamp_us = IMU_ACQ_NowUs();
 
     bool _dt_valid = true;
 
@@ -1034,7 +1032,7 @@ IMU_ACQ_ProcessNextBatch(IMU_Sample_t *pOutSample)
         previous_timestamp_valid_ = true;
     }
     else {
-        _imu_sample.dt_us = _imu_sample.timestamp_us - previous_timestamp_us_;
+        _imu_sample.dt_us = _imu_sample.mid_avg_timestamp_us - previous_timestamp_us_;
 
         if ((_imu_sample.dt_us < IMU_DT_MIN_US) || (_imu_sample.dt_us > IMU_DT_MAX_US)) {
             _dt_valid = false;
@@ -1043,7 +1041,7 @@ IMU_ACQ_ProcessNextBatch(IMU_Sample_t *pOutSample)
         }
     }
 
-    previous_timestamp_us_ = _imu_sample.timestamp_us;
+    previous_timestamp_us_ = _imu_sample.mid_avg_timestamp_us;
     _imu_sample.dt_s       = (float)_imu_sample.dt_us * 0.000001f;
     _imu_sample.sequence   = ++published_sequence_;
 

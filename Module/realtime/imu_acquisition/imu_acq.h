@@ -2,10 +2,48 @@
 #define IMU_ACQ_H
 
 #include "imu/core/icm42688_types.h"
-#include "imu_sample.h"
-
 #include <stdbool.h>
 #include <stdint.h>
+
+/**
+ * @brief   Fault bit accumulated btw published IMU samples
+ *          Runtime faults remain latched until the worker/IMU_Task attaches them to a sample's fault_flags.
+ *          A failure recovery is also counted in IMU_ACQ_Status_t and stops acquisition, so no later sample
+ * may be available to carry its bit.
+ * @note    Values are bit masks and ORed together in IMU_Sample_t::fault_flags
+ */
+typedef enum
+{
+    IMU_FAULT_NONE                  = 0U,        // No fault was latched for this publication interval
+    IMU_FAULT_EXTI_WHILE_DMA_ACTIVE = (1U << 0), // A new WTM interrupt arrived before the prior DMA completed
+    IMU_FAULT_NO_FREE_DMA_SLOT      = (1U << 1), // Both ping-pong slots were unavailable at a WTM
+    IMU_FAULT_DMA_START             = (1U << 2), // HAL rejected the FIFO DMA start
+    IMU_FAULT_DMA_TRANSFER          = (1u << 3), // An accepted DMA transfer later failed
+    IMU_FAULT_FIFO_PARSE            = (1u << 4), // DMA payload did not match the required FIFO batch format
+    IMU_FAULT_BAD_DT                = (1u << 5), // Measurement interval is outside of IMU_DT_MIN/MAX_US
+    IMU_FAULT_FIFO_RECOVERY_FAILED  = (1u << 6), // FIFO resynchronization failed and acquisition stopped
+} IMU_Fault_t;
+
+typedef struct
+{
+    uint32_t irq_timestamp_us;       // MCU time when the FIFO WTM EXTI was captured
+    uint32_t published_timestamp_us; // MCU time after parsing, calibration, and averaging completed
+    uint32_t mid_avg_timestamp_us;   // Estimated midpoint time of the averaged physical measurement
+
+    uint32_t sequence;    // Increments for every published batch and may wrap during long operation
+    uint32_t fault_flags; // IMU_Fault_t bits accumulated since the prev published sample
+
+    // Invertal between consecutive 4kHz measurement timestamps
+    uint32_t dt_us;
+    float    dt_s;
+
+    // Average of the calibrated FIFO frames represented by this output
+    float gyro_dps[3];
+    float accel_g[3];
+    float temp_c;
+
+    bool healthy;
+} IMU_Sample_t;
 
 /**
  * @brief   Hardware resources owned by the real-time IMU acquisition module.
